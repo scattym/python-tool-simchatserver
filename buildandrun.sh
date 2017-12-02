@@ -18,7 +18,7 @@ if [ "X${version}" != "X" ] ; then
 		echo "chatserver: Running version is already ${version}"
 	fi
 else
-	echo "chatserver: No version information for nmeaproxy"
+	echo "chatserver: No version information for chatserver"
 fi
 
 
