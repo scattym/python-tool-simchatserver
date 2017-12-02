@@ -6,7 +6,7 @@ while true; do
     else
         docker build . --tag=simchatserver:dev -f dockerfiles/simchatserver/Dockerfile && \
         docker stop simchatserver && \
-        docker rm simchatserver && docker run -dt --restart=always --name=simchatserver simchatserver:dev -v
+        docker rm simchatserver && docker run -dt --restart=always --name=simchatserver -p 65533:65533 simchatserver:dev -v
     fi
     echo "`date`: Sleeping for 60 seconds"
     sleep 60
