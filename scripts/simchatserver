@@ -1,0 +1,291 @@
+#!/usr/bin/env python
+
+# chat_server.py
+import hashlib
+import json
+import sys
+import socket
+import select
+import argparse
+import logging
+
+HOST = ''
+SOCKET_LIST = [sys.stdin]
+RECV_BUFFER = 4096
+PORT = 65533
+
+SOCKET_MAP = {}
+MASTER_LIST = []
+logger = logging.getLogger(__name__)
+
+
+def close_socket(sock_fd):
+    peer = [None, None]
+    try:
+        peer = sock_fd.getpeername()
+        sock_fd.close()
+        try:
+            SOCKET_LIST.remove(sock_fd)
+        except ValueError as err:
+            logger.error("Unable to remove socket %s, not in list", sock_fd)
+    except socket.error as err:
+        logger.error("Socket error on close %s", err)
+
+    for key in SOCKET_MAP:
+        if SOCKET_MAP[key] == sock_fd:
+            print("Client %s (%s, %s) is offline" % (key, peer[0], peer[1]))
+            SOCKET_MAP[key] = None
+            return
+    if sock_fd in MASTER_LIST:
+        print("Master disconnected from %s:%s", peer[0], peer[1])
+        MASTER_LIST.remove(sock_fd)
+        return
+
+    logger.error("Peer was not a connected device")
+
+
+def execute_command(data):
+    logger.info("Executing command: %s", data)
+    if ',' in data:
+        line = data.split(",", 1)
+        imei = line[0]
+        cmd = line[1]
+        send_to_device(imei, cmd)
+    else:
+        if data == "list":
+            for sock in MASTER_LIST:
+                try:
+                    peer = sock.getpeername()
+                    print("Master is connected from %s:%s" % (peer[0], peer[1]))
+                    send_to_masters("Master is connected from %s:%s" % (peer[0], peer[1]))
+                except socket.error:
+                    close_socket(sock)
+            for key in SOCKET_MAP:
+                try:
+                    if SOCKET_MAP[key]:
+                        peer = SOCKET_MAP[key].getpeername()
+                        print("IMEI: %s is connected on socket %s:%s" % (key, peer[0], peer[1]))
+                        send_to_masters("IMEI: %s is connected on socket %s:%s" % (key, peer[0], peer[1]))
+                except socket.error:
+                    close_socket(SOCKET_MAP[key])
+        if data == "debug":
+            root_logger = logging.getLogger('')
+            root_logger.setLevel(logging.DEBUG)
+        if data == "nodebug":
+            root_logger = logging.getLogger('')
+            root_logger.setLevel(logging.INFO)
+        if data == "quit":
+            quit_flag = True
+
+
+def is_master(sock_fd):
+    if sock_fd in MASTER_LIST:
+        return True
+    return False
+
+
+def sock_to_imei(sock_fd):
+    for key in SOCKET_MAP:
+        if SOCKET_MAP[key] == sock_fd:
+            return key
+    return "Not found"
+
+
+def chat_server(port):
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind((HOST, port))
+    server_socket.listen(10)
+
+    # add server socket object to the list of readable connections
+    SOCKET_LIST.append(server_socket)
+
+    print("Chat server started on port " + str(PORT))
+
+    quit_flag = False
+    while not quit_flag:
+
+        # get the list sockets which are ready to be read through select
+        # 4th arg, time_out  = 0 : poll and never block
+        ready_to_read, ready_to_write, in_error = select.select(SOCKET_LIST, [], [], 2000)
+
+        for sock in ready_to_read:
+            # a new connection request recieved
+            if sock == server_socket:
+                imei = None
+                version = None
+                sockfd, addr = server_socket.accept()
+                SOCKET_LIST.append(sockfd)
+                print("Client (%s, %s) connected" % addr)
+                try:
+                    sockfd.settimeout(0.5)
+                    imei_line = sockfd.recv(1024)
+                    sockfd.settimeout(None)
+                    if 'C0NXN:' in imei_line[0:6]:
+                        connect_string_list = imei_line.rstrip().split(':')
+                        if len(connect_string_list) >= 2:
+                            imei = connect_string_list[1]
+                        if len(connect_string_list) >= 3:
+                            version = connect_string_list[2]
+                        print("imei: %s, version: %s, IP: %s:%s" % (imei, version, addr[0], addr[1]))
+                        send_to_masters("imei: %s, version: %s, IP: %s:%s" % (imei, version, addr[0], addr[1]))
+                        SOCKET_MAP[imei] = sockfd
+                    elif 'M@ST#R:' in imei_line[0:7] and (addr[0] == "127.0.0.1" or addr[0][0:6] == "172.17"):
+                        print("New master connection from %s:%s" % addr)
+                        send_to_masters("New master connection from %s:%s" % addr)
+                        MASTER_LIST.append(sockfd)
+                    else:
+                        logger.error("No connect string for %s", imei_line.rstrip())
+                        send_to_masters("No connect string for %s" % imei_line.rstrip())
+                        close_socket(sockfd)
+                except socket.timeout as err:
+                    print("No imei in timeout period from IP: %s:%s. Closing" % addr)
+                    send_to_masters("No imei in timeout period from IP: %s:%s. Closing" % addr)
+                    close_socket(sockfd)
+
+                # broadcast(server_socket, sockfd, "[%s:%s] entered our chatting room\n" % addr)
+
+            elif sock == sys.stdin:
+                data = sys.stdin.readline().rstrip()
+                execute_command(data)
+#                broadcast(server_socket, sock, "\r" + '[master] ' + data)
+            # a message from a client, not a new connection
+            else:
+                # process data recieved from client,
+                try:
+                    # receiving data from the socket.
+                    data = sock.recv(RECV_BUFFER)
+                    peer = sock.getpeername()
+                    if data:
+                        if is_master(sock):
+                            execute_command(data.rstrip())
+                        else:
+                            if "C0NXN>" in data:
+                                logger.debug("Received a heartbeat packet from %s", sock.getpeername())
+                            else:
+                                imei = sock_to_imei(sock)
+                                print(imei)
+                                print(data)
+                                send_to_masters("IMEI: %s\nDATA: %s", imei, data)
+
+                        # there is something in the closed
+                        # broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data)
+                    else:
+                        close_socket(sock)
+                        # at this stage, no data means probably the connection has been broken
+                        # broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
+
+                        # exception
+                except socket.error as err:
+                    print("Client (%s, %s) is offline" % addr)
+                    close_socket(sock)
+                    send_to_masters("Client (%s, %s) is offline" % addr)
+                    # broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
+
+    server_socket.close()
+
+
+def command_as_json(cmd):
+    config = {
+        "command": str(cmd.rstrip()),
+    }
+
+    sha256 = hashlib.sha256()
+    sha256.update("Please press enter:")
+    for key in sorted(config):
+        print("Key: %s, value: %s" % (key, config[key]))
+        sha256.update(key)
+        sha256.update("%s" % (config[key]))
+    sha256.update("Please press enter:")
+    config["checksum"] = sha256.hexdigest()
+
+    return json.dumps(config)
+
+
+def send_to_masters(data):
+    for sock_fd in MASTER_LIST:
+        try:
+            sock_fd.send(data)
+            sock_fd.send('\n')
+        except socket.error:
+            close_socket(sock_fd)
+
+
+def send_to_device(imei, cmd):
+    peer = ('None', 'None')
+    if imei == "bc":
+        for key in SOCKET_MAP:
+            if SOCKET_MAP[key]:
+                try:
+                    SOCKET_MAP[key].send(command_as_json(cmd))
+                except socket.error as err:
+                    close_socket(SOCKET_MAP[key])
+
+    elif SOCKET_MAP.get(imei):
+        try:
+            client_fd = SOCKET_MAP[imei]
+            peer = client_fd.getpeername()
+            client_fd.send(command_as_json(cmd))
+        except socket.error as err:
+            close_socket(SOCKET_MAP[imei])
+
+    else:
+        print("Unable to send to any clients.")
+        send_to_masters("Unable to send to any clients.")
+
+
+# broadcast chat messages to all connected clients
+def broadcast(server_socket, sock, message):
+    for sock_fd in SOCKET_LIST:
+        # send the message only to peer
+        if sock_fd != server_socket and sock_fd != sock and sock_fd != sys.stdin:
+            try:
+                sock_fd.send(message)
+            except:
+                # broken socket connection
+                sock_fd.close()
+                # broken socket, remove it
+                if sock_fd in SOCKET_LIST:
+                    SOCKET_LIST.remove(socket)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        '-p',
+        '--port',
+        help="The port for the webserver to listen on.",
+        type=int,
+        default=65533
+    )
+    parser.add_argument(
+        '-v',
+        dest='debug',
+        help=("Increase the logging level. Can specify this option multiple "
+              "times for more detail."),
+        action="count",
+        default=0
+    )
+
+    args = parser.parse_args()
+
+    log_level = 11 - args.debug
+
+    logger = logging.getLogger('')
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    if args.debug:
+        logger.setLevel(log_level)
+        ch.setLevel(log_level)
+
+    sys.exit(chat_server(args.port))

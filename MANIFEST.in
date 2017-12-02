@@ -1,0 +1,8 @@
+include *.md
+include Dockerfile
+include unittest.cfg
+exclude .project
+exclude .pydevproject
+exclude .settings/*
+exclude .settings
+exclude setup.cfg
