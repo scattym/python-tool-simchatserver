@@ -166,7 +166,7 @@ def chat_server(port):
                                 imei = sock_to_imei(sock)
                                 print(imei)
                                 print(data)
-                                send_to_masters("IMEI: %s\nDATA: %s", imei, data)
+                                send_to_masters("IMEI: %s\nDATA: %s" % (imei, data))
 
                         # there is something in the closed
                         # broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data)
