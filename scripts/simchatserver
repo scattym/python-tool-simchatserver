@@ -200,7 +200,11 @@ def chat_server(port):
                                 IMEI_INFO_MAP[imei]["last_tick"] = datetime.datetime.now()
 
                             if "C0NXN>" in data:
-                                logger.debug("Received a heartbeat packet from %s", sock.getpeername())
+                                logger.debug(
+                                    "Received a heartbeat packet from %s with imei %s",
+                                    sock.getpeername(),
+                                    sock_to_imei(sock)
+                                )
                             else:
                                 print(imei)
                                 print(data)
