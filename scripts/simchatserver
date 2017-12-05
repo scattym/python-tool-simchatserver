@@ -21,29 +21,32 @@ logger = logging.getLogger(__name__)
 
 IMEI_INFO_MAP = {}
 
+
 def close_socket(sock_fd):
     peer = [None, None]
     try:
         peer = sock_fd.getpeername()
-        sock_fd.close()
-        try:
-            SOCKET_LIST.remove(sock_fd)
-        except ValueError as err:
-            logger.error("Unable to remove socket %s, not in list", sock_fd)
     except socket.error as err:
-        logger.error("Socket error on close %s", err)
+        logger.error("Socket error on getting peer %s", err)
 
     for key in SOCKET_MAP:
         if SOCKET_MAP[key] == sock_fd:
-            print("Client %s (%s, %s) is offline" % (key, peer[0], peer[1]))
+            logger.info("Client %s (%s, %s) is offline", key, peer[0], peer[1])
             SOCKET_MAP[key] = None
-            return
+            # return
     if sock_fd in MASTER_LIST:
-        print("Master disconnected from %s:%s", peer[0], peer[1])
+        logger.info("Master disconnected from %s:%s", peer[0], peer[1])
         MASTER_LIST.remove(sock_fd)
-        return
+        # return
+    if sock_fd in SOCKET_LIST:
+        logger.info("Disconnecting client socket %s", sock_fd)
+        SOCKET_LIST.remove(sock_fd)
 
-    logger.error("Peer was not a connected device")
+    try:
+        sock_fd.close()
+        logger.info("Socket closed")
+    except socket.error as err:
+        logger.error("Socket error on close %s", err)
 
 
 def get_version(imei):
