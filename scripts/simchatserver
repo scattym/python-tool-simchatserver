@@ -11,7 +11,7 @@ import logging
 import datetime
 
 HOST = ''
-SOCKET_LIST = [sys.stdin]
+SOCKET_LIST = []
 RECV_BUFFER = 4096
 PORT = 65533
 
