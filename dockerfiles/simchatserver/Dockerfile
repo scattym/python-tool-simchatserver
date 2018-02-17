@@ -8,6 +8,7 @@ WORKDIR /usr/local/bin
 COPY scripts/simchatserver /usr/local/bin/
 COPY scripts/simchatmaster /usr/local/bin/
 RUN chown sysadmin:sysadmin /usr/local/bin/simchatserver
+RUN chown sysadmin:sysadmin /usr/local/bin/simchatmaster
 USER sysadmin
 EXPOSE 65533
 ENTRYPOINT ["/usr/local/bin/simchatserver"]
