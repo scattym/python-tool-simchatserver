@@ -5,6 +5,8 @@ if [ "X${version}" != "X" ] ; then
 	docker build --tag=gcr.io/geotool-test/simchatserver:v${version} . -f dockerfiles/simchatserver/Dockerfile
 	if [ $? -eq 0 ] ; then
 		gcloud docker -- push gcr.io/geotool-test/simchatserver:v${version}
+		docker tag gcr.io/geotool-test/simchatserver:v${version} gcr.io/position-live/simchatserver:v${version}
+		gcloud docker -- push gcr.io/position-live/simchatserver:v${version}
 	fi
 else
 	echo "simchatserver: No version information for nmeaproxy"
