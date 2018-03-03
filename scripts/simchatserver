@@ -9,17 +9,19 @@ import select
 import argparse
 import logging
 import datetime
+import sim_chat_lib
+from sim_chat_lib.exception import Error as SimChatError
 
 HOST = ''
 SOCKET_LIST = []
 RECV_BUFFER = 4096
 PORT = 65533
 
-SOCKET_MAP = {}
 MASTER_LIST = []
 logger = logging.getLogger(__name__)
 
-IMEI_INFO_MAP = {}
+CHAT_CLIENT_LIST = {}
+CHAT_CLIENT_IDENT_LIST = {}
 
 
 def close_socket(sock_fd):
@@ -29,11 +31,16 @@ def close_socket(sock_fd):
     except socket.error as err:
         logger.error("Socket error on getting peer %s", err)
 
-    for key in SOCKET_MAP:
-        if SOCKET_MAP[key] == sock_fd:
-            logger.info("Client %s (%s, %s) is offline", key, peer[0], peer[1])
-            SOCKET_MAP[key] = None
-            # return
+    # for key in SOCKET_MAP:
+    #     if SOCKET_MAP[key] == sock_fd:
+    #         logger.info("Client %s (%s, %s) is offline", key, peer[0], peer[1])
+    #         SOCKET_MAP[key] = None
+
+    if CHAT_CLIENT_LIST.get(sock_fd):
+        ident = CHAT_CLIENT_LIST[sock_fd].ident()
+        CHAT_CLIENT_IDENT_LIST[ident] = None
+        CHAT_CLIENT_LIST[sock_fd] = None
+
     if sock_fd in MASTER_LIST:
         logger.info("Master disconnected from %s:%s", peer[0], peer[1])
         MASTER_LIST.remove(sock_fd)
@@ -47,29 +54,6 @@ def close_socket(sock_fd):
         logger.info("Socket closed")
     except socket.error as err:
         logger.error("Socket error on close %s", err)
-
-
-def get_version(imei):
-    device = IMEI_INFO_MAP.get(imei)
-    if device:
-        return device.get("version")
-    return None
-
-
-def get_last_tick(imei):
-    device = IMEI_INFO_MAP.get(imei)
-    if device:
-        return device.get("last_tick")
-    return None
-
-
-def get_age(imei):
-    device = IMEI_INFO_MAP.get(imei)
-    if device:
-        last_tick = device.get("last_tick")
-        now = datetime.datetime.now()
-        return now - last_tick
-    return -1
 
 
 def execute_command(data):
@@ -88,22 +72,13 @@ def execute_command(data):
                     send_to_masters("Master is connected from %s:%s" % (peer[0], peer[1]))
                 except socket.error:
                     close_socket(sock)
-            for key in SOCKET_MAP:
-                try:
-                    if SOCKET_MAP[key]:
-                        peer = SOCKET_MAP[key].getpeername()
-                        message = "IMEI: %s, version: %s, last_tick: %s, age: %s, is connected on socket %s:%s" % (
-                                key,
-                                get_version(key),
-                                get_last_tick(key),
-                                get_age(key),
-                                peer[0],
-                                peer[1]
-                            )
-                        print(message)
-                        send_to_masters(message)
-                except socket.error:
-                    close_socket(SOCKET_MAP[key])
+            logger.debug("%s", CHAT_CLIENT_LIST)
+            for sock_fd in CHAT_CLIENT_LIST:
+                logger.debug("Sockfd: %s", sock_fd)
+                if CHAT_CLIENT_LIST[sock_fd]:
+                    message = CHAT_CLIENT_LIST[sock_fd].get_client_details()
+                    print(message)
+                    send_to_masters(message)
         if data == "debug":
             root_logger = logging.getLogger('')
             root_logger.setLevel(logging.DEBUG)
@@ -118,13 +93,6 @@ def is_master(sock_fd):
     if sock_fd in MASTER_LIST:
         return True
     return False
-
-
-def sock_to_imei(sock_fd):
-    for key in SOCKET_MAP:
-        if SOCKET_MAP[key] == sock_fd:
-            return key
-    return "Not found"
 
 
 def chat_server(port):
@@ -150,38 +118,49 @@ def chat_server(port):
             if sock == server_socket:
                 imei = None
                 version = None
-                sockfd, addr = server_socket.accept()
-                SOCKET_LIST.append(sockfd)
+                proto_version = 1
+                seed = None
+                login_hash = None
+                device_name = None
+                sock_fd, addr = server_socket.accept()
+                SOCKET_LIST.append(sock_fd)
                 print("Client (%s, %s) connected" % addr)
                 try:
-                    sockfd.settimeout(0.5)
-                    imei_line = sockfd.recv(1024)
-                    sockfd.settimeout(None)
-                    if 'C0NXN:' in imei_line[0:6]:
-                        connect_string_list = imei_line.rstrip().split(':')
-                        if len(connect_string_list) >= 2:
-                            imei = connect_string_list[1]
-                            IMEI_INFO_MAP[imei] = {"version": None, "last_tick": datetime.datetime.now()}
-                        if len(connect_string_list) >= 3:
-                            version = connect_string_list[2]
-                            IMEI_INFO_MAP[imei]["version"] = version
-                        print("imei: %s, version: %s, IP: %s:%s" % (imei, version, addr[0], addr[1]))
-                        send_to_masters("imei: %s, version: %s, IP: %s:%s" % (imei, version, addr[0], addr[1]))
-                        SOCKET_MAP[imei] = sockfd
-                    elif 'M@ST#R:' in imei_line[0:7] and (addr[0] == "127.0.0.1" or addr[0][0:6] == "172.17"):
+                    sock_fd.settimeout(0.5)
+                    imei_line = sock_fd.recv(1024)
+                    sock_fd.settimeout(None)
+                    if 'M@ST#R:' in imei_line[0:7] and (addr[0] == "127.0.0.1" or addr[0][0:6] == "172.17"):
                         print("New master connection from %s:%s" % addr)
                         send_to_masters("New master connection from %s:%s" % addr)
-                        MASTER_LIST.append(sockfd)
+                        MASTER_LIST.append(sock_fd)
                     else:
-                        logger.error("No connect string for %s", imei_line.rstrip())
-                        send_to_masters("No connect string for %s" % imei_line.rstrip())
-                        close_socket(sockfd)
+                        client = sim_chat_lib.parse_client_connect(sock_fd, imei_line)
+                        if client:
+                            CHAT_CLIENT_LIST[sock_fd] = client
+                            ident = client.ident()
+                            if CHAT_CLIENT_IDENT_LIST.get(ident):
+                                close_socket(CHAT_CLIENT_IDENT_LIST.get(ident))
+                            CHAT_CLIENT_IDENT_LIST[ident] = sock_fd
+                            # SOCKET_MAP
+                            print(client.get_client_details())
+                            send_to_masters(client.get_client_details())
+                        else:
+                            logger.error("No chat client instantiated")
+                            close_socket(sock_fd)
                 except socket.timeout as err:
                     print("No imei in timeout period from IP: %s:%s. Closing" % addr)
                     send_to_masters("No imei in timeout period from IP: %s:%s. Closing" % addr)
-                    close_socket(sockfd)
+                    close_socket(sock_fd)
+                except SimChatError as err:
+                    print(
+                        "Chat protocol exception from IP: %s:%s. Closing: %s" % (addr[0], addr[1], err.message)
+                    )
+                    send_to_masters(
+                        "Chat protocol exception from IP: %s:%s. Closing: %s" % (addr[0], addr[1], err.message)
+                    )
+                    close_socket(sock_fd)
 
-                # broadcast(server_socket, sockfd, "[%s:%s] entered our chatting room\n" % addr)
+                    # broadcast(server_socket, sock_fd, "[%s:%s] entered our chatting room\n" % addr)
 
             elif sock == sys.stdin:
                 data = sys.stdin.readline().rstrip()
@@ -192,30 +171,16 @@ def chat_server(port):
                 # process data recieved from client,
                 try:
                     # receiving data from the socket.
-                    data = sock.recv(RECV_BUFFER)
-                    peer = sock.getpeername()
-                    if data:
-                        if is_master(sock):
-                            execute_command(data.rstrip())
-                        else:
-                            imei = sock_to_imei(sock)
-                            if imei:
-                                IMEI_INFO_MAP[imei]["last_tick"] = datetime.datetime.now()
-
-                            if "C0NXN>" in data:
-                                logger.debug(
-                                    "Received a heartbeat packet from %s with imei %s",
-                                    sock.getpeername(),
-                                    sock_to_imei(sock)
-                                )
-                            else:
-                                print(imei)
-                                print(data)
-                                send_to_masters("IMEI: %s\nDATA: %s" % (imei, data))
-
-                        # there is something in the closed
-                        # broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data)
+                    if is_master(sock):
+                        data = sock.recv(RECV_BUFFER)
+                        execute_command(data.rstrip())
+                    elif CHAT_CLIENT_LIST.get(sock):
+                        result = CHAT_CLIENT_LIST.get(sock).receive_data()
+                        if result:
+                            send_to_masters(result)
                     else:
+                        data = sock.read(RECV_BUFFER)
+                        logger.error("Spurious data: %s", data)
                         close_socket(sock)
                         # at this stage, no data means probably the connection has been broken
                         # broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
@@ -226,25 +191,16 @@ def chat_server(port):
                     close_socket(sock)
                     send_to_masters("Client (%s, %s) is offline" % addr)
                     # broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
+                except SimChatError as err:
+                    print(
+                        "Chat protocol exception. Closing: %s" % (err.message,)
+                    )
+                    send_to_masters(
+                        "Chat protocol exception. Closing: %s" % (err.message,)
+                    )
+                    close_socket(sock_fd)
 
     server_socket.close()
-
-
-def command_as_json(cmd):
-    config = {
-        "command": str(cmd.rstrip()),
-    }
-
-    sha256 = hashlib.sha256()
-    sha256.update("Please press enter:")
-    for key in sorted(config):
-        print("Key: %s, value: %s" % (key, config[key]))
-        sha256.update(key)
-        sha256.update("%s" % (config[key]))
-    sha256.update("Please press enter:")
-    config["checksum"] = sha256.hexdigest()
-
-    return json.dumps(config)
 
 
 def send_to_masters(data):
@@ -256,23 +212,20 @@ def send_to_masters(data):
             close_socket(sock_fd)
 
 
-def send_to_device(imei, cmd):
+def send_to_device(ident, cmd):
     peer = ('None', 'None')
-    if imei == "bc":
-        for key in SOCKET_MAP:
-            if SOCKET_MAP[key]:
-                try:
-                    SOCKET_MAP[key].send(command_as_json(cmd))
-                except socket.error as err:
-                    close_socket(SOCKET_MAP[key])
+    if ident == "bc":
+        for sock in CHAT_CLIENT_LIST:
+            try:
+                CHAT_CLIENT_LIST[sock].send_command(cmd)
+            except socket.error as err:
+                close_socket(sock)
 
-    elif SOCKET_MAP.get(imei):
+    elif CHAT_CLIENT_IDENT_LIST.get(ident):
         try:
-            client_fd = SOCKET_MAP[imei]
-            peer = client_fd.getpeername()
-            client_fd.send(command_as_json(cmd))
+            CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].send_command(cmd)
         except socket.error as err:
-            close_socket(SOCKET_MAP[imei])
+            close_socket(CHAT_CLIENT_IDENT_LIST.get(ident))
 
     else:
         print("Unable to send to any clients.")
