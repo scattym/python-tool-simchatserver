@@ -10,5 +10,6 @@ setup(name='simchatserver',
       scripts=['scripts/simchatserver', 'scripts/simchatmaster', 'scripts/simchatclient'],
       packages=find_packages(),
       install_requires=[
+            "pycrypto",
       ],
       zip_safe=False)

@@ -21,7 +21,7 @@ class ChatClient(object):
     def receive_data(self):
         data = self.sock_fd.recv(RECV_BUFFER)
         if data:
-            return self.process_data(data.decode())
+            return self.process_data(data)
         else:
             self.on_client_close()
             raise ClientClosedError("No data on receive. Client went away.")
