@@ -1,4 +1,4 @@
-import simcom53XX
+from sim_chat_lib import simcom53XX
 
 
 def check_login(imei_line):

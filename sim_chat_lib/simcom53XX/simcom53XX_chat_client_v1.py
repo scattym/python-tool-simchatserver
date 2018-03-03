@@ -2,7 +2,7 @@
 import logging
 from sim_chat_lib.chat import ChatClient as BaseChatClient
 from sim_chat_lib.exception import Error as ChatError
-from encapsulation import command_as_json
+from .encapsulation import command_as_json
 
 logger = logging.getLogger(__name__)
 

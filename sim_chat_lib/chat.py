@@ -1,6 +1,6 @@
 import datetime
 import logging
-from exception import ClientClosedError
+from .exception import ClientClosedError
 
 logger = logging.getLogger(__name__)
 
