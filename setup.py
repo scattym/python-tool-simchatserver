@@ -7,7 +7,7 @@ setup(name='simchatserver',
       author='Matt Clark',
       author_email='mattjclark0407@hotmail.com',
       license='Copyright (C) Matthew Clark - All Rights Reserved',
-      scripts=['scripts/simchatserver', 'scripts/simchatmaster'],
+      scripts=['scripts/simchatserver', 'scripts/simchatmaster', 'scripts/simchatclient'],
       packages=find_packages(),
       install_requires=[
       ],

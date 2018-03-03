@@ -4,9 +4,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def command_as_json(cmd, key, seed=None):
+def command_as_json(type, cmd, key, seed=None):
     config = {
-        "command": str(cmd.rstrip()),
+        type: str(cmd.rstrip()),
     }
 
     sha256 = hashlib.sha256()

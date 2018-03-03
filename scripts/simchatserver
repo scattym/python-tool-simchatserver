@@ -164,7 +164,8 @@ def chat_server(port):
 
             elif sock == sys.stdin:
                 data = sys.stdin.readline().rstrip()
-                execute_command(data)
+                if data:
+                    execute_command(data)
 #                broadcast(server_socket, sock, "\r" + '[master] ' + data)
             # a message from a client, not a new connection
             else:
@@ -173,7 +174,10 @@ def chat_server(port):
                     # receiving data from the socket.
                     if is_master(sock):
                         data = sock.recv(RECV_BUFFER)
-                        execute_command(data.rstrip())
+                        if not data:
+                            close_socket(sock)
+                        else:
+                            execute_command(data.rstrip())
                     elif CHAT_CLIENT_LIST.get(sock):
                         result = CHAT_CLIENT_LIST.get(sock).receive_data()
                         if result:

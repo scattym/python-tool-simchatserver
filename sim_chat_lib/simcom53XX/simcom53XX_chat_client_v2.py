@@ -27,7 +27,19 @@ class ChatClient(BaseChatClient):
             raise LoginError("Invalid login hash")
 
     def send_command(self, command):
-        send_buffer = command_as_json(command, "Please press enter:", seed=self.seed)
+        type_arr = command.split(',', 1)
+        if len(type_arr) == 2:
+            if type_arr[0] == "cli":
+                self.send_cli(type_arr[1])
+            if type_arr[0] == "sio":
+                self.send_sio(type_arr[1])
+
+    def send_sio(self, command):
+        send_buffer = command_as_json("command", command, "Please press enter:", seed=self.seed)
+        self.send_data(send_buffer)
+
+    def send_cli(self, command):
+        send_buffer = command_as_json("cli", command, "Please press enter:", seed=self.seed)
         self.send_data(send_buffer)
 
     def send_data(self, data):
