@@ -1,6 +1,6 @@
 # Docker image for running python applications
 
-FROM python:2-slim
+FROM python:3-slim
 MAINTAINER Matt Clark <mattjclark0407@hotmail.com>
 
 RUN useradd sysadmin
