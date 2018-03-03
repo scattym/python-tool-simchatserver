@@ -38,7 +38,9 @@ class ChatClient(BaseChatClient):
 
     def get_client_details(self):
         start = super(ChatClient, self).get_client_details()
-        return "ident: %s, imei: %s, version: %s, remote: %s" % (self.ident(), self.imei, self.version, start)
+        return "ident: %s, imei: %s, version: %s, remote: %s, age: %s" % (
+            self.ident(), self.imei, self.version, start, self.age()
+        )
 
     def ident(self):
         return "imei-%s" % (self.imei,)
