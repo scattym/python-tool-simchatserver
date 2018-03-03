@@ -10,6 +10,7 @@ DEVICE_NAME_LIST = ["5320", "5360"]
 
 def parse_client_connect(socket, connect_line):
     client_details = {}
+    logger.debug(connect_line)
     if connect_line[0:6] != 'C0NXN:':
         logger.error("No start string: %s, %s", connect_line, connect_line[0:6])
         return None

@@ -25,6 +25,7 @@ CHAT_CLIENT_IDENT_LIST = {}
 
 
 def close_socket(sock_fd):
+    logger.debug("Closing socket %s", sock_fd)
     peer = [None, None]
     try:
         peer = sock_fd.getpeername()
@@ -37,17 +38,20 @@ def close_socket(sock_fd):
     #         SOCKET_MAP[key] = None
 
     if CHAT_CLIENT_LIST.get(sock_fd):
+        logger.debug("Found the socket in the chat client list")
         ident = CHAT_CLIENT_LIST[sock_fd].ident()
         CHAT_CLIENT_IDENT_LIST[ident] = None
         CHAT_CLIENT_LIST[sock_fd] = None
 
     if sock_fd in MASTER_LIST:
-        logger.info("Master disconnected from %s:%s", peer[0], peer[1])
+        logger.info("Master disconnected from %s", sock_fd)
         MASTER_LIST.remove(sock_fd)
         # return
     if sock_fd in SOCKET_LIST:
         logger.info("Disconnecting client socket %s", sock_fd)
         SOCKET_LIST.remove(sock_fd)
+
+    logger.debug("Socket list is now: %s", SOCKET_LIST)
 
     try:
         sock_fd.close()
@@ -128,25 +132,32 @@ def chat_server(port):
                 try:
                     sock_fd.settimeout(0.5)
                     imei_line = sock_fd.recv(1024)
-                    sock_fd.settimeout(None)
-                    if 'M@ST#R:' in imei_line[0:7] and (addr[0] == "127.0.0.1" or addr[0][0:6] == "172.17"):
-                        print("New master connection from %s:%s" % addr)
-                        send_to_masters("New master connection from %s:%s" % addr)
-                        MASTER_LIST.append(sock_fd)
+                    if not imei_line:
+                        logger.error("No data on connect.")
+                        close_socket(sock_fd)
                     else:
-                        client = sim_chat_lib.parse_client_connect(sock_fd, imei_line)
-                        if client:
-                            CHAT_CLIENT_LIST[sock_fd] = client
-                            ident = client.ident()
-                            if CHAT_CLIENT_IDENT_LIST.get(ident):
-                                close_socket(CHAT_CLIENT_IDENT_LIST.get(ident))
-                            CHAT_CLIENT_IDENT_LIST[ident] = sock_fd
-                            # SOCKET_MAP
-                            print(client.get_client_details())
-                            send_to_masters(client.get_client_details())
+                        imei_line = imei_line.decode()
+                        sock_fd.settimeout(None)
+                        if 'M@ST#R:' in imei_line[0:7] and (addr[0] == "127.0.0.1" or addr[0][0:6] == "172.17"):
+                            print("New master connection from %s:%s" % addr)
+                            send_to_masters("New master connection from %s:%s" % addr)
+                            MASTER_LIST.append(sock_fd)
                         else:
-                            logger.error("No chat client instantiated")
-                            close_socket(sock_fd)
+                            logger.debug(imei_line)
+                            client = sim_chat_lib.parse_client_connect(sock_fd, imei_line)
+                            if client:
+                                CHAT_CLIENT_LIST[sock_fd] = client
+                                ident = client.ident()
+                                if CHAT_CLIENT_IDENT_LIST.get(ident):
+                                    close_socket(CHAT_CLIENT_IDENT_LIST.get(ident))
+                                CHAT_CLIENT_IDENT_LIST[ident] = sock_fd
+                                # SOCKET_MAP
+                                print(client.get_client_details())
+                                send_to_masters(client.get_client_details())
+                            else:
+                                logger.error("No chat client instantiated")
+                                close_socket(sock_fd)
+
                 except socket.timeout as err:
                     print("No imei in timeout period from IP: %s:%s. Closing" % addr)
                     send_to_masters("No imei in timeout period from IP: %s:%s. Closing" % addr)
@@ -172,18 +183,22 @@ def chat_server(port):
                 # process data recieved from client,
                 try:
                     # receiving data from the socket.
+                    logger.debug("Received data on socket %s", sock)
                     if is_master(sock):
                         data = sock.recv(RECV_BUFFER)
                         if not data:
                             close_socket(sock)
                         else:
-                            execute_command(data.rstrip())
+                            execute_command(data.decode().rstrip())
                     elif CHAT_CLIENT_LIST.get(sock):
+                        logger.debug("Found a client in the list %s", CHAT_CLIENT_LIST.get(sock))
                         result = CHAT_CLIENT_LIST.get(sock).receive_data()
+                        logger.debug("Received the following data: %s", result)
                         if result:
+                            logger.debug("Result is ok, sending to masters")
                             send_to_masters(result)
                     else:
-                        data = sock.read(RECV_BUFFER)
+                        data = sock.recv(RECV_BUFFER)
                         logger.error("Spurious data: %s", data)
                         close_socket(sock)
                         # at this stage, no data means probably the connection has been broken
@@ -202,18 +217,19 @@ def chat_server(port):
                     send_to_masters(
                         "Chat protocol exception. Closing: %s" % (err.message,)
                     )
-                    close_socket(sock_fd)
+                    close_socket(sock)
 
     server_socket.close()
 
 
 def send_to_masters(data):
     for sock_fd in MASTER_LIST:
-        try:
-            sock_fd.send(data)
-            sock_fd.send('\n')
-        except socket.error:
-            close_socket(sock_fd)
+        if sock_fd in SOCKET_LIST:
+            try:
+                sock_fd.send(data.encode())
+                sock_fd.send('\n'.encode())
+            except socket.error:
+                close_socket(sock_fd)
 
 
 def send_to_device(ident, cmd):
@@ -242,7 +258,7 @@ def broadcast(server_socket, sock, message):
         # send the message only to peer
         if sock_fd != server_socket and sock_fd != sock and sock_fd != sys.stdin:
             try:
-                sock_fd.send(message)
+                sock_fd.send(message.encode())
             except:
                 # broken socket connection
                 sock_fd.close()
@@ -281,7 +297,7 @@ if __name__ == "__main__":
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        '%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s'
     )
     ch.setFormatter(formatter)
     logger.addHandler(ch)

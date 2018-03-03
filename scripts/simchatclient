@@ -18,15 +18,15 @@ def chat_client(host, port, imei, version):
     try:
         s.connect((host, port))
         if version == 1:
-            s.send("C0NXN:%s:base" % (imei,))
+            s.send(("C0NXN:%s:base" % (imei,)).encode())
         if version == 2:
             hash = calc_hash("KernelRelease", "seed", imei, "base", "2", "5360")
             s.send("C0NXN:%s:base:2:5360:seed:%s" % (imei, hash,))
     except:
-        print 'Unable to connect'
+        print('Unable to connect')
         sys.exit()
 
-    print 'Connected to remote host. You can start sending messages'
+    print('Connected to remote host. You can start sending messages')
     sys.stdout.write('[Me] ')
     sys.stdout.flush()
 
@@ -41,18 +41,18 @@ def chat_client(host, port, imei, version):
                 # incoming message from remote server, s
                 data = sock.recv(4096)
                 if not data:
-                    print '\nDisconnected from chat server'
+                    print('\nDisconnected from chat server')
                     sys.exit()
                 else:
                     # print data
-                    sys.stdout.write(data)
+                    sys.stdout.write(data.decode())
                     sys.stdout.write('[Me] ');
                     sys.stdout.flush()
 
             else:
                 # user entered a message
                 msg = sys.stdin.readline()
-                s.send(msg)
+                s.send(msg.encode())
                 sys.stdout.write('[Me] ');
                 sys.stdout.flush()
 

@@ -15,16 +15,13 @@ class ChatClient(object):
         self.port = peer[1]
         self.last_tick = datetime.datetime.now()
 
-        logger.error("Base chat client creation")
-
     def send_data(self, data):
-        logger.error("Base chat client send data")
-        self.sock_fd.send(data)
+        self.sock_fd.send(data.encode())
 
     def receive_data(self):
         data = self.sock_fd.recv(RECV_BUFFER)
         if data:
-            return self.process_data(data)
+            return self.process_data(data.decode())
         else:
             self.on_client_close()
             raise ClientClosedError("No data on receive. Client went away.")
@@ -55,4 +52,7 @@ class ChatClient(object):
         return False
 
     def on_client_close(self):
-        logger.debug("Client closed connection.")
+        logger.debug("Client closed connection: %s", self.ident())
+
+    def __str__(self):
+        return self.get_client_details()
