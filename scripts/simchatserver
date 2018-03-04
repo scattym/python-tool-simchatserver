@@ -72,7 +72,7 @@ def execute_command(data):
             for sock in MASTER_LIST:
                 try:
                     peer = sock.getpeername()
-                    print("Master is connected from %s:%s" % (peer[0], peer[1]))
+                    logger.info("Master is connected from %s:%s" % (peer[0], peer[1]))
                     send_to_masters("Master is connected from %s:%s" % (peer[0], peer[1]))
                 except socket.error:
                     close_socket(sock)
@@ -81,7 +81,7 @@ def execute_command(data):
                 logger.debug("Sockfd: %s", sock_fd)
                 if CHAT_CLIENT_LIST[sock_fd]:
                     message = CHAT_CLIENT_LIST[sock_fd].get_client_details()
-                    print(message)
+                    logger.debug(message)
                     send_to_masters(message)
         if data == "debug":
             root_logger = logging.getLogger('')
@@ -108,7 +108,7 @@ def chat_server(port):
     # add server socket object to the list of readable connections
     SOCKET_LIST.append(server_socket)
 
-    print("Chat server started on port " + str(PORT))
+    logger.info("Chat server started on port " + str(PORT))
 
     quit_flag = False
     while not quit_flag:
@@ -128,7 +128,7 @@ def chat_server(port):
                 device_name = None
                 sock_fd, addr = server_socket.accept()
                 SOCKET_LIST.append(sock_fd)
-                print("Client (%s, %s) connected" % addr)
+                logger.info("Client (%s, %s) connected" % addr)
                 try:
                     sock_fd.settimeout(0.5)
                     imei_line = sock_fd.recv(1024)
@@ -139,7 +139,7 @@ def chat_server(port):
                         imei_line = imei_line.decode()
                         sock_fd.settimeout(None)
                         if 'M@ST#R:' in imei_line[0:7] and (addr[0] == "127.0.0.1" or addr[0][0:6] == "172.17"):
-                            print("New master connection from %s:%s" % addr)
+                            logger.info("New master connection from %s:%s" % addr)
                             send_to_masters("New master connection from %s:%s" % addr)
                             MASTER_LIST.append(sock_fd)
                         else:
@@ -152,18 +152,18 @@ def chat_server(port):
                                     close_socket(CHAT_CLIENT_IDENT_LIST.get(ident))
                                 CHAT_CLIENT_IDENT_LIST[ident] = sock_fd
                                 # SOCKET_MAP
-                                print(client.get_client_details())
+                                logger.info(client.get_client_details())
                                 send_to_masters(client.get_client_details())
                             else:
                                 logger.error("No chat client instantiated")
                                 close_socket(sock_fd)
 
                 except socket.timeout as err:
-                    print("No imei in timeout period from IP: %s:%s. Closing" % addr)
+                    logger.error("No imei in timeout period from IP: %s:%s. Closing" % addr)
                     send_to_masters("No imei in timeout period from IP: %s:%s. Closing" % addr)
                     close_socket(sock_fd)
                 except SimChatError as err:
-                    print(
+                    logger.error(
                         "Chat protocol exception from IP: %s:%s. Closing: %s" % (addr[0], addr[1], err.message)
                     )
                     send_to_masters(
@@ -206,12 +206,12 @@ def chat_server(port):
 
                         # exception
                 except socket.error as err:
-                    print("Client (%s, %s) is offline" % addr)
+                    logger.info("Client (%s, %s) is offline" % addr)
                     close_socket(sock)
                     send_to_masters("Client (%s, %s) is offline" % addr)
                     # broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
                 except SimChatError as err:
-                    print(
+                    logger.error(
                         "Chat protocol exception. Closing: %s" % (err.message,)
                     )
                     send_to_masters(
@@ -248,7 +248,7 @@ def send_to_device(ident, cmd):
             close_socket(CHAT_CLIENT_IDENT_LIST.get(ident))
 
     else:
-        print("Unable to send to any clients.")
+        logger.error("Unable to send to any clients.")
         send_to_masters("Unable to send to any clients.")
 
 
@@ -273,11 +273,18 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
+        '-l',
+        '--line-numbers',
+        help="Include line numbers in logging output",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
         '-p',
         '--port',
         help="The port for the webserver to listen on.",
         type=int,
-        default=65533
+        default=65533,
     )
     parser.add_argument(
         '-v',
@@ -285,7 +292,7 @@ if __name__ == "__main__":
         help=("Increase the logging level. Can specify this option multiple "
               "times for more detail."),
         action="count",
-        default=0
+        default=0,
     )
 
     args = parser.parse_args()
@@ -297,8 +304,12 @@ if __name__ == "__main__":
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s'
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
+    if args.line_numbers:
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s'
+        )
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 

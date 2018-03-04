@@ -1,5 +1,6 @@
 import datetime
 import logging
+import socket
 from .exception import ClientClosedError
 
 logger = logging.getLogger(__name__)
@@ -10,7 +11,14 @@ RECV_BUFFER = 4096
 class ChatClient(object):
     def __init__(self, sock_fd):
         self.sock_fd = sock_fd
-        peer = sock_fd.getpeername()
+        try:
+            peer = sock_fd.getpeername()
+        except OSError as err:
+            logger.error("Unable to get client details from socket: %s", err)
+            peer = ("none", -1)
+        except socket.error as err:
+            logger.error("Unable to get client details from socket: %s", err)
+        peer = ("none", -1)
         self.ip_address = peer[0]
         self.port = peer[1]
         self.last_tick = datetime.datetime.now()

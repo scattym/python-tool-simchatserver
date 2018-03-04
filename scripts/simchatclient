@@ -58,7 +58,7 @@ def chat_client(host, port, imei, version):
                     encrypted_data = encrypt(data)
                     length = len(encrypted_data)
                     header = "ENCDATA:%s>" % (length,)
-                    s.send(header)
+                    s.send(header.encode())
                     s.send(encrypted_data)
                 else:
                     s.send(msg.encode())
