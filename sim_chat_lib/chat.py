@@ -1,7 +1,7 @@
 import datetime
 import logging
 import socket
-from .exception import ClientClosedError
+from sim_chat_lib.exception import ClientClosedError
 
 logger = logging.getLogger(__name__)
 

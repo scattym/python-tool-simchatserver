@@ -25,13 +25,13 @@ def command_as_json(type, cmd, key, seed=None):
 
 def calc_hash(key, seed, *args):
     sha256 = hashlib.sha256()
-    sha256.update(key)
+    sha256.update(key.encode())
     if seed is not None:
-        sha256.update(seed)
+        sha256.update(seed.encode())
     for value in args:
         logger.debug("Value: %s", value)
-        sha256.update("%s" % (value,))
-    sha256.update(key)
+        sha256.update(("%s" % (value,)).encode())
+    sha256.update(key.encode())
 
     return sha256.hexdigest()
 
