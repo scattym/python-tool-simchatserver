@@ -18,7 +18,6 @@ class ChatClient(object):
             peer = ("none", -1)
         except socket.error as err:
             logger.error("Unable to get client details from socket: %s", err)
-        peer = ("none", -1)
         self.ip_address = peer[0]
         self.port = peer[1]
         self.last_tick = datetime.datetime.now()

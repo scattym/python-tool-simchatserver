@@ -31,7 +31,6 @@ class ChatClient(BaseChatClient):
         send_buffer = command_as_json("command", command, "Please press enter:")
         self.send_data(send_buffer)
 
-
     def send_data(self, data):
         return super(ChatClient, self).send_data(data)
 
