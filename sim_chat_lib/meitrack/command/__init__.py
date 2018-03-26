@@ -5,6 +5,7 @@ import sys
 from sim_chat_lib.meitrack import event
 from sim_chat_lib.meitrack.command.command_AAA import TrackerCommand
 from sim_chat_lib.meitrack.command.common import Command
+from sim_chat_lib.meitrack.error import GPRSParameterError
 
 logger = logging.getLogger(__name__)
 
@@ -65,14 +66,21 @@ COMMAND_LIST = {
 
 
 def command_to_object(direction, command_type, payload):
-    logger.debug("commant type: %s, with payload %s", command_type, payload)
+    logger.debug("command type: %s, with payload %s", command_type, payload)
     if command_type in COMMAND_LIST and COMMAND_LIST[command_type]["class"] is not None:
         return COMMAND_LIST[command_type]["class"](direction, payload)
-    return None
+    else:
+        return Command(direction, payload)
 
 
 def stc_request_location():
     return Command(0, "A10")
+
+
+def stc_set_heartbeat(minutes=0):
+    if minutes < 0 or minutes > 65535:
+        raise GPRSParameterError("Heartbeat must be between 0 and 65535. Was %s" % (minutes,))
+    return Command(0, "A11,%s" % (minutes,))
 
 
 if __name__ == '__main__':

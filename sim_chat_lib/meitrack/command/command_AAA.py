@@ -65,8 +65,13 @@ class TrackerCommand(Command):
         fields = []
         if self.field_name_selector:
             for field in self.field_name_selector:
-                fields.append(self.field_dict.get(field))
-        return ','.join(fields)
+                if self.field_dict.get(field):
+                    fields.append(self.field_dict.get(field))
+        if fields is not None:
+            return ','.join(fields)
+        else:
+            return ''
+
 
 if __name__ == '__main__':
     log_level = 11 - 11

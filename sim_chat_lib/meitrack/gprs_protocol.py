@@ -80,8 +80,9 @@ class GPRS(object):
 
     @enclosed_data.setter
     def enclosed_data(self, enclosed_commmand_object):
-        self.leftover = repr(enclosed_commmand_object)
-        self.__enclosed_data = enclosed_commmand_object
+        if enclosed_commmand_object is not None:
+            self.leftover = repr(enclosed_commmand_object)
+            self.__enclosed_data = enclosed_commmand_object
 
     @property
     def data_length(self):

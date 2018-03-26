@@ -31,28 +31,9 @@ class ChatClient(BaseChatClient):
         send_buffer = command_as_json("command", command, "Please press enter:")
         self.send_data(send_buffer)
 
-    def send_data(self, data):
-        return super(ChatClient, self).send_data(data)
-
-    def receive_data(self):
-        payload = super(ChatClient, self).receive_data()
-        # if payload:
-        #     logger.debug(payload)
-        #     if payload[0:3] == "ENC":
-        #
-        #         header, data = payload.split('>', 1)
-        #         msg_type, msg_bytes = header.split(":", 1)
-        #         logger.debug(msg_bytes)
-        #         if len(data) == msg_bytes:
-        #             decrypted = decrypt(data)
-        #             logger.debug(decrypted)
-        #             return decrypted
-        # logger.debug("Clear message")
-        return payload
-
     def get_client_details(self):
         start = super(ChatClient, self).get_client_details()
-        return "ident: %s, imei: %s, version: %s, remote: %s, age: %s" % (
+        return "type: Simcom53XX, ident: %s, imei: %s, version: %s, remote: %s, age: %s" % (
             self.ident(), self.imei, self.version, start, self.age()
         )
 

@@ -21,7 +21,12 @@ def parse_client_connect(sock_fd, connect_line):
             if gprs.imei:
                 client_details["imei"] = gprs.imei
                 client_details["last_tick"] = datetime.datetime.now()
-                return create_chat_client(sock_fd, client_details)
+                chat_client = create_chat_client(sock_fd, client_details)
+                if chat_client:
+                    # Re-encode connect line as we decoded it on the
+                    # way into this function
+                    chat_client.process_data(connect_line.encode())
+                return chat_client
     except GPRSParseError:
         logger.error("Unable to parse connect string for meitrack device.")
     return None

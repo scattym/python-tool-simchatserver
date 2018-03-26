@@ -6,23 +6,28 @@ import socket
 import select
 import argparse
 import logging
-from sim_chat_lib.simcom53XX.encapsulation import calc_hash
-from sim_chat_lib.simcom53XX.aes import encrypt
+from sim_chat_lib.meitrack import stub_processor
+from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
 
 
 def chat_client(host, port, imei, version):
 
+    gprs_list, before, after = parse_data_payload(
+        "$$a131,353358017784062,AAA,31,22.913458,114.083183,080229123628,V,9,23,21,83,1,18,1350,127,0|0|10133|4110,0000,169|181|184|2714|919,*60\r\n"
+    )
+    if len(gprs_list) != 1:
+        sys.exit(1)
+
+    gprs = gprs_list[0]
+    gprs.imei = imei
+    message = repr(gprs)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2)
 
     # connect to remote host
     try:
         s.connect((host, port))
-        if version == 1:
-            s.send(("C0NXN:%s:base" % (imei,)).encode())
-        if version == 2:
-            hash = calc_hash("KernelRelease", "seed", imei, "base", "2", "5360")
-            s.send("C0NXN:%s:base:2:5360:seed:%s" % (imei, hash,))
+        s.send(message.encode())
     except:
         print('Unable to connect')
         sys.exit()
@@ -41,28 +46,29 @@ def chat_client(host, port, imei, version):
             if sock == s:
                 # incoming message from remote server, s
                 data = sock.recv(4096)
+
                 if not data:
                     print('\nDisconnected from chat server')
                     sys.exit()
                 else:
-                    # print data
+                    sys.stdout.write("\n")
                     sys.stdout.write(data.decode())
-                    sys.stdout.write('[Me] ');
+                    gprs_list, before, after = parse_data_payload(data.decode())
+                    for gprs in gprs_list:
+                        command = repr(gprs.enclosed_data)
+                        response = stub_processor.request_to_response(command, imei)
+                        print("Sending response %s" % (response,))
+                        s.send(response.encode())
+                    sys.stdout.write('[Me] ')
                     sys.stdout.flush()
-
             else:
                 # user entered a message
                 msg = sys.stdin.readline()
                 if msg.rstrip() == "enctest":
                     data = "This is a test string for encryption"
-                    encrypted_data = encrypt(data)
-                    length = len(encrypted_data)
-                    header = "ENCDATA:%s>" % (length,)
-                    s.send(header.encode())
-                    s.send(encrypted_data)
                 else:
                     s.send(msg.encode())
-                sys.stdout.write('[Me] ');
+                sys.stdout.write('[Me] ')
                 sys.stdout.flush()
 
 

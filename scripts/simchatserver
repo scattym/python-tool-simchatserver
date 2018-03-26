@@ -247,13 +247,14 @@ def send_to_device(ident, cmd):
     peer = ('None', 'None')
     if ident == "bc":
         for sock in CHAT_CLIENT_LIST:
-            try:
-                if cmd == "info":
-                    CHAT_CLIENT_LIST[sock].request_client_info()
-                else:
-                    CHAT_CLIENT_LIST[sock].send_command(cmd)
-            except socket.error as err:
-                close_socket(sock)
+            if CHAT_CLIENT_LIST[sock]:
+                try:
+                    if cmd == "info":
+                        CHAT_CLIENT_LIST[sock].request_client_info()
+                    else:
+                        CHAT_CLIENT_LIST[sock].send_command(cmd)
+                except socket.error as err:
+                    close_socket(sock)
 
     elif CHAT_CLIENT_IDENT_LIST.get(ident):
         try:

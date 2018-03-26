@@ -24,6 +24,7 @@ class ChatClient(object):
 
     def send_data(self, data):
         self.sock_fd.send(data.encode())
+        self.update_last_tick()
 
     def receive_data(self):
         data = self.sock_fd.recv(RECV_BUFFER)
@@ -32,6 +33,7 @@ class ChatClient(object):
         else:
             self.on_client_close()
             raise ClientClosedError("No data on receive. Client went away.")
+        self.update_last_tick()
 
     def get_remote_ip(self):
         return "%s:%s" % (self.ip_address, self.port)
@@ -65,10 +67,13 @@ class ChatClient(object):
         return self.get_client_details()
 
     def reboot(self):
-        logger.debug("Reboot not implemented on this device")
+        logger.debug("Reboot not implemented on this device.")
 
     def request_current_location(self):
-        logger.debug("Current location not implemented on this device")
+        logger.debug("Current location not implemented on this device.")
 
     def request_client_info(self):
         logger.debug("Client info not implemented for this device.")
+
+    def set_heartbeat_interval(self, seconds):
+        logger.debug("Setting heartbeat not implemented for this device.")
