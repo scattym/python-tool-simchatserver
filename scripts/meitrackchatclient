@@ -1,0 +1,128 @@
+#!/usr/bin/env python
+# chat_client.py
+
+import sys
+import socket
+import select
+import argparse
+import logging
+from sim_chat_lib.simcom53XX.encapsulation import calc_hash
+from sim_chat_lib.simcom53XX.aes import encrypt
+
+
+def chat_client(host, port, imei, version):
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(2)
+
+    # connect to remote host
+    try:
+        s.connect((host, port))
+        if version == 1:
+            s.send(("C0NXN:%s:base" % (imei,)).encode())
+        if version == 2:
+            hash = calc_hash("KernelRelease", "seed", imei, "base", "2", "5360")
+            s.send("C0NXN:%s:base:2:5360:seed:%s" % (imei, hash,))
+    except:
+        print('Unable to connect')
+        sys.exit()
+
+    print('Connected to remote host. You can start sending messages')
+    sys.stdout.write('[Me] ')
+    sys.stdout.flush()
+
+    while 1:
+        socket_list = [sys.stdin, s]
+
+        # Get the list sockets which are readable
+        ready_to_read, ready_to_write, in_error = select.select(socket_list, [], [])
+
+        for sock in ready_to_read:
+            if sock == s:
+                # incoming message from remote server, s
+                data = sock.recv(4096)
+                if not data:
+                    print('\nDisconnected from chat server')
+                    sys.exit()
+                else:
+                    # print data
+                    sys.stdout.write(data.decode())
+                    sys.stdout.write('[Me] ');
+                    sys.stdout.flush()
+
+            else:
+                # user entered a message
+                msg = sys.stdin.readline()
+                if msg.rstrip() == "enctest":
+                    data = "This is a test string for encryption"
+                    encrypted_data = encrypt(data)
+                    length = len(encrypted_data)
+                    header = "ENCDATA:%s>" % (length,)
+                    s.send(header.encode())
+                    s.send(encrypted_data)
+                else:
+                    s.send(msg.encode())
+                sys.stdout.write('[Me] ');
+                sys.stdout.flush()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    parser.add_argument(
+        '-i',
+        '--imei',
+        help="The imei to use in the connect string.",
+        default="0407",
+    )
+    parser.add_argument(
+        '-o',
+        '--host',
+        help="The host to connect to.",
+        default="localhost",
+    )
+
+    parser.add_argument(
+        '-p',
+        '--port',
+        help="The port for the webserver to listen on.",
+        type=int,
+        default=65533
+    )
+    parser.add_argument(
+        '-r',
+        '--version',
+        help="The protocol version to use.",
+        type=int,
+        default=1
+    )
+    parser.add_argument(
+        '-v',
+        dest='debug',
+        help=("Increase the logging level. Can specify this option multiple "
+              "times for more detail."),
+        action="count",
+        default=0
+    )
+
+    args = parser.parse_args()
+
+    log_level = 11 - args.debug
+
+    logger = logging.getLogger('')
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    if args.debug:
+        logger.setLevel(log_level)
+        ch.setLevel(log_level)
+
+    sys.exit(chat_client(args.host, args.port, args.imei, args.version))

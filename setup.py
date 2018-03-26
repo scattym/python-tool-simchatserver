@@ -1,15 +1,23 @@
 from setuptools import setup, find_packages
 
-setup(name='simchatserver',
+setup(
+      name='simchatserver',
       version='0.1.dev0',
       description=('Project to communicate with simcom devices'),
       url='https://bitbucket.org/mjclark1/python-tool-simchatserver.git',
       author='Matt Clark',
       author_email='mattjclark0407@hotmail.com',
       license='Copyright (C) Matthew Clark - All Rights Reserved',
-      scripts=['scripts/simchatserver', 'scripts/simchatmaster', 'scripts/simchatclient'],
+      scripts=[
+            'scripts/meitrackchatserver',
+            'scripts/meitrackchatclient',
+            'scripts/simchatserver',
+            'scripts/simchatmaster',
+            'scripts/simchatclient'
+      ],
       packages=find_packages(),
       install_requires=[
             "pycrypto",
       ],
-      zip_safe=False)
+      zip_safe=False
+)

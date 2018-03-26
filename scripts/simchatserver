@@ -11,6 +11,7 @@ import logging
 import datetime
 import sim_chat_lib
 from sim_chat_lib.exception import Error as SimChatError
+from sim_chat_lib.exception import ProtocolError
 
 HOST = ''
 SOCKET_LIST = []
@@ -130,13 +131,14 @@ def chat_server(port):
                 SOCKET_LIST.append(sock_fd)
                 logger.info("Client (%s, %s) connected" % addr)
                 try:
-                    sock_fd.settimeout(0.5)
+                    sock_fd.settimeout(2)
                     imei_line = sock_fd.recv(1024)
                     if not imei_line:
                         logger.error("No data on connect.")
                         close_socket(sock_fd)
                     else:
                         imei_line = imei_line.decode()
+
                         sock_fd.settimeout(None)
                         if 'M@ST#R:' in imei_line[0:7] and (addr[0] == "127.0.0.1" or addr[0][0:6] == "172.17"):
                             logger.info("New master connection from %s:%s" % addr)
@@ -161,6 +163,14 @@ def chat_server(port):
                 except socket.timeout as err:
                     logger.error("No imei in timeout period from IP: %s:%s. Closing" % addr)
                     send_to_masters("No imei in timeout period from IP: %s:%s. Closing" % addr)
+                    close_socket(sock_fd)
+                except UnicodeDecodeError as err:
+                    logger.error(
+                        "Chat protocol exception unable to convert bytes IP: %s:%s. Closing: %s" % (addr[0], addr[1], err)
+                    )
+                    send_to_masters(
+                        "Chat protocol exception unable to convert bytes IP: %s:%s. Closing: %s" % (addr[0], addr[1], err)
+                    )
                     close_socket(sock_fd)
                 except SimChatError as err:
                     logger.error(
@@ -190,6 +200,7 @@ def chat_server(port):
                             close_socket(sock)
                         else:
                             execute_command(data.decode().rstrip())
+
                     elif CHAT_CLIENT_LIST.get(sock):
                         logger.debug("Found a client in the list %s", CHAT_CLIENT_LIST.get(sock))
                         result = CHAT_CLIENT_LIST.get(sock).receive_data()
@@ -237,13 +248,20 @@ def send_to_device(ident, cmd):
     if ident == "bc":
         for sock in CHAT_CLIENT_LIST:
             try:
-                CHAT_CLIENT_LIST[sock].send_command(cmd)
+                if cmd == "info":
+                    CHAT_CLIENT_LIST[sock].request_client_info()
+                else:
+                    CHAT_CLIENT_LIST[sock].send_command(cmd)
             except socket.error as err:
                 close_socket(sock)
 
     elif CHAT_CLIENT_IDENT_LIST.get(ident):
         try:
-            CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].send_command(cmd)
+            if cmd == "info":
+                CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].request_client_info()
+            else:
+                CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].send_command(cmd)
+
         except socket.error as err:
             close_socket(CHAT_CLIENT_IDENT_LIST.get(ident))
 

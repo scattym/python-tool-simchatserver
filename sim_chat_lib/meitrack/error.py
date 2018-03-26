@@ -1,0 +1,2 @@
+class GPRSParseError(Exception):
+    pass

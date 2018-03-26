@@ -138,6 +138,10 @@ class ChatClient(BaseChatClient):
 
         return None
 
+    def request_client_info(self):
+        self.send_command("sio,ati")
+
+
 if __name__ == "__main__":
     import doctest
     import socket
