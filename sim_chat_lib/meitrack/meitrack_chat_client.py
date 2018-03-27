@@ -8,15 +8,17 @@ from sim_chat_lib.meitrack import GPRSParseError
 from sim_chat_lib.meitrack.error import GPRSError
 from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
 from sim_chat_lib.meitrack.build_message import stc_request_location_message
+from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report
+import traceback
 
 logger = logging.getLogger(__name__)
 
 
 class MeitrackChatClient(BaseChatClient):
-    def __init__(self, sock_fd, imei):
-        super(MeitrackChatClient, self).__init__(sock_fd)
+    def __init__(self, sock_fd, report_queue, imei):
+        super(MeitrackChatClient, self).__init__(sock_fd, report_queue)
         self.imei = imei
-        self.buffer = ''
+        self.buffer = b''
 
     def check_login(self):
         return True
@@ -37,15 +39,16 @@ class MeitrackChatClient(BaseChatClient):
         super(MeitrackChatClient, self).update_last_tick()
         if len(self.buffer) <= 1024:
             try:
-                self.buffer += data.decode()
+                self.buffer += data
             except UnicodeDecodeError as err:
                 logger.error("Unable to convert bytes to string %s", data)
                 raise ChatError("Unable to convert bytes to string")
 
         try:
-            gprs_list, before, after = parse_data_payload(self.buffer)
+            gprs_list, before, after = parse_data_payload(self.buffer.decode())
         except GPRSParseError as err:
             logger.error("Parsing error on buffer %s", self.buffer)
+            logger.debug(traceback.print_exc())
             raise ProtocolError("Problem parsing meitrack buffer")
 
         return_str = "%s " % self.ident()
@@ -53,9 +56,12 @@ class MeitrackChatClient(BaseChatClient):
             if not self.imei:
                 self.imei = gprs.imei
             print(gprs)
+            report = gprs_to_report(gprs)
+            self.queue_report(report)
             return_str += repr(gprs)
 
-        self.buffer = after or ""
+        logger.debug("Leftover bytes count %s, with data: %s", len(after), after)
+        self.buffer = (after or "").encode()
         return return_str
 
     def request_client_info(self):

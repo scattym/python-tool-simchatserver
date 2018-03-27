@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class ChatClient(BaseChatClient):
-    def __init__(self, sock_fd, imei, version, proto_version, device_name, seed, login_hash):
-        super(ChatClient, self).__init__(sock_fd)
+    def __init__(self, sock_fd, report_queue, imei, version, proto_version, device_name, seed, login_hash):
+        super(ChatClient, self).__init__(sock_fd, report_queue)
         self.imei = imei
         self.version = version
         self.proto_version = 2

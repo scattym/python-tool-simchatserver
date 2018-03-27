@@ -63,11 +63,11 @@ def chat_client(host, port, imei, version):
                     sys.stdout.flush()
             else:
                 # user entered a message
-                msg = sys.stdin.readline()
+                msg = sys.stdin.readline().rstrip()
                 if msg.rstrip() == "enctest":
                     data = "This is a test string for encryption"
                 else:
-                    s.send(msg.encode())
+                    s.send(("%s%s" % (msg, "\r\n")).encode())
                 sys.stdout.write('[Me] ')
                 sys.stdout.flush()
 

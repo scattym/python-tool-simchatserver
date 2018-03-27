@@ -9,9 +9,13 @@ import select
 import argparse
 import logging
 import datetime
+
+import os
+
 import sim_chat_lib
 from sim_chat_lib.exception import Error as SimChatError
 from sim_chat_lib.exception import ProtocolError
+from sim_chat_lib.report.async_api import start_consumers
 
 HOST = ''
 SOCKET_LIST = []
@@ -100,7 +104,7 @@ def is_master(sock_fd):
     return False
 
 
-def chat_server(port):
+def chat_server(port, task_queue):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((HOST, port))
@@ -146,7 +150,7 @@ def chat_server(port):
                             MASTER_LIST.append(sock_fd)
                         else:
                             logger.debug(imei_line)
-                            client = sim_chat_lib.parse_client_connect(sock_fd, imei_line)
+                            client = sim_chat_lib.parse_client_connect(sock_fd, task_queue, imei_line)
                             if client:
                                 CHAT_CLIENT_LIST[sock_fd] = client
                                 ident = client.ident()
@@ -306,6 +310,12 @@ if __name__ == "__main__":
         default=65533,
     )
     parser.add_argument(
+        '-s',
+        '--server',
+        help="The django host to send the data to.",
+        default=os.environ.get("GEO_API_HOST", "localhost:8000"),
+    )
+    parser.add_argument(
         '-v',
         dest='debug',
         help=("Increase the logging level. Can specify this option multiple "
@@ -336,4 +346,7 @@ if __name__ == "__main__":
         logger.setLevel(log_level)
         ch.setLevel(log_level)
 
-    sys.exit(chat_server(args.port))
+    task_queue, result_queue = start_consumers()
+    logger.info("Task queue is %s", task_queue)
+    logger.info("Result queue is %s", result_queue)
+    sys.exit(chat_server(args.port, task_queue))

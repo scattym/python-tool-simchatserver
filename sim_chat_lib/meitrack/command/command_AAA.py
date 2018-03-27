@@ -1,6 +1,6 @@
 import logging
 from sim_chat_lib.meitrack.error import GPRSParseError
-from sim_chat_lib.meitrack.command.common import Command
+from sim_chat_lib.meitrack.command.common import Command, meitrack_date_to_datetime, datetime_to_meitrack_date
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +37,11 @@ class TrackerCommand(Command):
             return self.field_dict[item]
         raise AttributeError("Field %s not set" % (item,))
 
+    def __getattr__(self, item):
+        if item in self.field_dict:
+            return self.field_dict[item]
+        raise AttributeError("Field %s not set" % (item,))
+
     def parse_payload(self, payload):
         fields = payload.split(',')
         if len(fields) < 2:
@@ -52,7 +57,10 @@ class TrackerCommand(Command):
             raise GPRSParseError("Incorrect number of fields for gps data")
         for i in range(0, len(fields)):
             field_name = self.field_name_selector[i]
-            self.field_dict[field_name] = fields[i]
+            if field_name == "date_time":
+                self.field_dict[field_name] = meitrack_date_to_datetime(fields[i])
+            else:
+                self.field_dict[field_name] = fields[i]
 
     def __str__(self):
         result_str = ""
@@ -66,7 +74,11 @@ class TrackerCommand(Command):
         if self.field_name_selector:
             for field in self.field_name_selector:
                 if self.field_dict.get(field):
-                    fields.append(self.field_dict.get(field))
+                    if field == "date_time":
+                        logger.debug("Date field is %s", self.field_dict.get(field))
+                        fields.append(datetime_to_meitrack_date(self.field_dict.get(field)))
+                    else:
+                        fields.append(self.field_dict.get(field))
         if fields is not None:
             return ','.join(fields)
         else:

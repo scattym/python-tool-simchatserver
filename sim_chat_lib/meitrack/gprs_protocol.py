@@ -338,3 +338,6 @@ if __name__ == '__main__':
             print("Before bytes is ", before_bytes)
         if extra_bytes:
             print("Leftover is ", extra_bytes)
+        if "AAA" in gprs_item:
+            print(gprs.enclosed_data["longitude"])
+            print(gprs.enclosed_data.longitude)

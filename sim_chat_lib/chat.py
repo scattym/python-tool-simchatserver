@@ -2,6 +2,7 @@ import datetime
 import logging
 import socket
 from sim_chat_lib.exception import ClientClosedError
+from sim_chat_lib.report.async_api import queue_report
 
 logger = logging.getLogger(__name__)
 
@@ -9,8 +10,9 @@ RECV_BUFFER = 4096
 
 
 class ChatClient(object):
-    def __init__(self, sock_fd):
+    def __init__(self, sock_fd, report_queue):
         self.sock_fd = sock_fd
+        self.report_queue = report_queue
         try:
             peer = sock_fd.getpeername()
         except OSError as err:
@@ -62,6 +64,9 @@ class ChatClient(object):
 
     def on_client_close(self):
         logger.debug("Client closed connection: %s", self.ident())
+
+    def queue_report(self, report):
+        queue_report(report, self.report_queue)
 
     def __str__(self):
         return self.get_client_details()
