@@ -20,6 +20,8 @@ setup(
             "pycrypto",
             "requests",
             "simplejson",
+            "cachetools",
+            "python-memcached",
       ],
       zip_safe=False
 )
