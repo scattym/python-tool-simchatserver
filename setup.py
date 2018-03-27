@@ -18,6 +18,7 @@ setup(
       packages=find_packages(),
       install_requires=[
             "pycrypto",
+            "requests",
       ],
       zip_safe=False
 )

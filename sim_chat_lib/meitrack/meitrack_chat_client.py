@@ -57,7 +57,9 @@ class MeitrackChatClient(BaseChatClient):
                 self.imei = gprs.imei
             print(gprs)
             report = gprs_to_report(gprs)
-            self.queue_report(report)
+            queue_result = self.queue_report(report)
+            if not queue_result:
+                logger.error("Unable to add record to queue: %s", repr(gprs))
             return_str += repr(gprs)
 
         logger.debug("Leftover bytes count %s, with data: %s", len(after), after)

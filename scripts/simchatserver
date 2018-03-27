@@ -120,7 +120,7 @@ def chat_server(port, task_queue):
 
         # get the list sockets which are ready to be read through select
         # 4th arg, time_out  = 0 : poll and never block
-        ready_to_read, ready_to_write, in_error = select.select(SOCKET_LIST, [], [], 2000)
+        ready_to_read, ready_to_write, in_error = select.select(SOCKET_LIST, [], [], 30)
 
         for sock in ready_to_read:
             # a new connection request recieved
@@ -170,10 +170,14 @@ def chat_server(port, task_queue):
                     close_socket(sock_fd)
                 except UnicodeDecodeError as err:
                     logger.error(
-                        "Chat protocol exception unable to convert bytes IP: %s:%s. Closing: %s" % (addr[0], addr[1], err)
+                        "Chat protocol exception unable to convert bytes IP: %s:%s. Closing: %s" % (
+                            addr[0], addr[1], err
+                         )
                     )
                     send_to_masters(
-                        "Chat protocol exception unable to convert bytes IP: %s:%s. Closing: %s" % (addr[0], addr[1], err)
+                        "Chat protocol exception unable to convert bytes IP: %s:%s. Closing: %s" % (
+                            addr[0], addr[1], err
+                        )
                     )
                     close_socket(sock_fd)
                 except SimChatError as err:
@@ -227,10 +231,10 @@ def chat_server(port, task_queue):
                     # broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
                 except SimChatError as err:
                     logger.error(
-                        "Chat protocol exception. Closing: %s" % (err.message,)
+                        "Chat protocol exception (%s). Closing: %s" % (err.message, sock)
                     )
                     send_to_masters(
-                        "Chat protocol exception. Closing: %s" % (err.message,)
+                        "Chat protocol exception (%s). Closing: %s" % (err.message, sock)
                     )
                     close_socket(sock)
 

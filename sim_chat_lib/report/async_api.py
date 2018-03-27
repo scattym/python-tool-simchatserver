@@ -1,6 +1,8 @@
 import datetime
 import multiprocessing
 import logging
+from queue import Queue
+
 from sim_chat_lib.geotool_api import device_api
 
 logger = logging.getLogger(__name__)
@@ -8,10 +10,11 @@ logger = logging.getLogger(__name__)
 
 class Consumer(multiprocessing.Process):
 
-    def __init__(self, task_queue, result_queue):
+    def __init__(self, task_queue, result_queue, alarm_size):
         multiprocessing.Process.__init__(self)
         self.task_queue = task_queue
         self.result_queue = result_queue
+        self.alarm_size = alarm_size
 
     def run(self):
         proc_name = self.name
@@ -27,6 +30,12 @@ class Consumer(multiprocessing.Process):
             self.task_queue.task_done()
             if self.result_queue:
                 self.result_queue.put(answer)
+            try:
+                if self.task_queue.qsize() > self.alarm_size:
+                    logger.error("Queue depth is getting large. Value is %s", self.task_queue.qsize())
+                logger.debug("Task queue depth is %s", self.task_queue.qsize())
+            except NotImplementedError as err:
+                logger.debug("Task queue depth not implemented on this platform")
         return
 
 
@@ -59,20 +68,26 @@ class Task(object):
         return '%s -> %s' % (self.report.imei, self.result)
 
 
-def queue_report(report, task_queue):
-    task_queue.put(Task(report))
+def queue_report(report, task_queue, blocking=False, timeout=1):
+    try:
+        task_queue.put(Task(report), blocking, timeout)
+        return True
+    except Queue.Full as err:
+        logger.error("Task queue is full. Not adding item.")
+        return False
 
         
 def start_consumers(num_consumers=10, queue_depth=1000, bin_results=True):
     tasks = multiprocessing.JoinableQueue(queue_depth)
     results = None
+    alarm_size = (queue_depth * 0.75)
     if not bin_results:
         results = multiprocessing.Queue()
 
     # Start consumers
     num_consumers = int(num_consumers)
     logger.debug('Creating %d consumers' % num_consumers)
-    consumers = [Consumer(tasks, results) for i in range(num_consumers)]
+    consumers = [Consumer(tasks, results, alarm_size) for i in range(num_consumers)]
 
     for w in consumers:
         w.start()

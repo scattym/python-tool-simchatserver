@@ -4,7 +4,8 @@ FROM python:3.6-slim
 MAINTAINER Matt Clark <mattjclark0407@hotmail.com>
 
 COPY binaries/python36/* /tmp
-RUN pip install --use-wheel /tmp/pycrypto-2.6.1-cp36-cp36m-linux_x86_64.whl
+RUN pip install --no-cache --use-wheel /tmp/pycrypto-2.6.1-cp36-cp36m-linux_x86_64.whl
+RUN pip install --no-cache --use-wheel requests
 RUN useradd sysadmin
 WORKDIR /usr/local/src
 RUN mkdir -p /usr/local/src/simchatserver

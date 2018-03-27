@@ -1,6 +1,5 @@
 import datetime
 import logging
-from time import strftime
 
 logger = logging.getLogger(__name__)
 
