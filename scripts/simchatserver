@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 
 # chat_server.py
-import hashlib
-import json
 import sys
 import socket
 import select
 import argparse
 import logging
-import datetime
-
 import os
+from sim_chat_lib.geotool_api.common import set_api_host
 
 import sim_chat_lib
 from sim_chat_lib.exception import Error as SimChatError
@@ -349,6 +346,8 @@ if __name__ == "__main__":
     if args.debug:
         logger.setLevel(log_level)
         ch.setLevel(log_level)
+
+    set_api_host(args.server)
 
     task_queue, result_queue = start_consumers()
     logger.info("Task queue is %s", task_queue)
