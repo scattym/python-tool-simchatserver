@@ -19,6 +19,7 @@ setup(
       install_requires=[
             "pycrypto",
             "requests",
+            "simplejson",
       ],
       zip_safe=False
 )
