@@ -78,7 +78,7 @@ class ChatClient(object):
     def reboot(self):
         logger.debug("Reboot not implemented on this device.")
 
-    def request_current_location(self):
+    def request_client_location(self):
         logger.debug("Current location not implemented on this device.")
 
     def request_client_info(self):

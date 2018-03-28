@@ -122,6 +122,8 @@ class ChatClient(BaseChatClient):
     def request_client_info(self):
         self.send_command("sio,ati")
 
+    def request_client_location(self):
+        self.send_command("sio,at+cgspinfo")
 
 if __name__ == "__main__":
     import doctest

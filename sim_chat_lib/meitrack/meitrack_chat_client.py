@@ -72,7 +72,7 @@ class MeitrackChatClient(BaseChatClient):
         self.buffer = (after or "").encode()
         return return_str
 
-    def request_location(self):
+    def request_client_location(self):
         if not self.imei:
             logger.error("Unable to request location as client id not yet known")
         else:
