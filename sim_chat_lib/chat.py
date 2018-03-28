@@ -24,6 +24,10 @@ class ChatClient(object):
         self.port = peer[1]
         self.last_tick = datetime.datetime.now()
 
+    def on_login(self):
+        self.request_client_info()
+        logger.error("On login not implemented in base class")
+
     def send_data(self, data):
         self.sock_fd.send(data.encode())
         self.update_last_tick()
@@ -82,3 +86,4 @@ class ChatClient(object):
 
     def set_heartbeat_interval(self, seconds):
         logger.debug("Setting heartbeat not implemented for this device.")
+

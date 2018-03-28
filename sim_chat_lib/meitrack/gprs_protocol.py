@@ -5,18 +5,15 @@ import sys
 from sim_chat_lib.meitrack import event
 from sim_chat_lib.meitrack.command import command_to_object
 from sim_chat_lib.meitrack.error import GPRSParseError
+from sim_chat_lib.meitrack.common import CLIENT_TO_SERVER_PREFIX, SERVER_TO_CLIENT_PREFIX, DIRECTION_CLIENT_TO_SERVER
+from sim_chat_lib.meitrack.common import DIRECTION_SERVER_TO_CLIENT, END_OF_MESSAGE_STRING
+
 
 logger = logging.getLogger(__name__)
 
 """
 payload $$<Data identifier><Data length>,<IMEI>,<Command type>,<Command><*Checksum>\r\n
 """
-SERVER_TO_CLIENT_PREFIX = '@@'
-CLIENT_TO_SERVER_PREFIX = '$$'
-END_OF_MESSAGE_STRING = '\r\n'
-
-DIRECTION_SERVER_TO_CLIENT = 0
-DIRECTION_CLIENT_TO_SERVER = 1
 
 
 def prefix_to_direction(prefix):

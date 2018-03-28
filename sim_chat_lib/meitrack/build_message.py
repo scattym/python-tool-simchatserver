@@ -25,6 +25,17 @@ def stc_set_heartbeat_interval(imei, minutes=0):
     return gprs
 
 
+def stc_request_device_info(imei):
+    com = command.stc_request_info()
+    gprs = GPRS()
+    gprs.direction = '@@'
+    gprs.data_identifier = 'X'
+    gprs.enclosed_data = com
+    gprs.imei = imei
+
+    return gprs
+
+
 if __name__ == '__main__':
     test_gprs = stc_request_location_message("testimei")
     print(repr(test_gprs))

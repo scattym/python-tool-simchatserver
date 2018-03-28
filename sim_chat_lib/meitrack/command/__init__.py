@@ -4,6 +4,7 @@ import logging
 import sys
 from sim_chat_lib.meitrack import event
 from sim_chat_lib.meitrack.command.command_AAA import TrackerCommand
+from sim_chat_lib.meitrack.command.command_E91 import RequestDeviceInfoCommand
 from sim_chat_lib.meitrack.command.common import Command
 from sim_chat_lib.meitrack.error import GPRSParameterError
 
@@ -56,7 +57,7 @@ COMMAND_LIST = {
     "D71": {"name": "Setting GPS Data Filtering", "class": None},
     "D72": {"name": "Setting Output Triggering", "class": None},
     "D73": {"name": "Allocating GPRS Cache and GPS LOG Storage Space", "class": None},
-    "E91": {"name": "Reading Device's Firmware Version and SN", "class": None},
+    "E91": {"name": "Reading Device's Firmware Version and SN", "class": RequestDeviceInfoCommand},
     "F01": {"name": "Restarting the GSM Module", "class": None},
     "F02": {"name": "Restarting the GPS Module", "class": None},
     "F08": {"name": "Setting the Mileage and Run Time", "class": None},
@@ -81,6 +82,10 @@ def stc_set_heartbeat(minutes=0):
     if minutes < 0 or minutes > 65535:
         raise GPRSParameterError("Heartbeat must be between 0 and 65535. Was %s" % (minutes,))
     return Command(0, "A11,%s" % (minutes,))
+
+
+def stc_request_info():
+    return Command(0, "E91")
 
 
 if __name__ == '__main__':
