@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 def parse_client_connect(sock_fd, report_queue, connect_line):
     client_details = {}
     logger.debug(connect_line)
-    if connect_line[0:2] != '$$':
+    if connect_line[0:2] != b'$$' and connect_line[0:2] != '$$':
         logger.error("No start string: %s, %s", connect_line, connect_line[0:6])
         return None
 

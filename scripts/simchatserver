@@ -101,7 +101,23 @@ def is_master(sock_fd):
     return False
 
 
-def chat_server(port, task_queue):
+def identify_client(sock_fd, task_queue, buffer):
+    client = sim_chat_lib.parse_client_connect(sock_fd, task_queue, buffer)
+    if client:
+        CHAT_CLIENT_LIST[sock_fd] = client
+        ident = client.ident()
+        if CHAT_CLIENT_IDENT_LIST.get(ident):
+            close_socket(CHAT_CLIENT_IDENT_LIST.get(ident))
+        CHAT_CLIENT_IDENT_LIST[ident] = sock_fd
+        # SOCKET_MAP
+        logger.info(client.get_client_details())
+        send_to_masters(client.get_client_details())
+    else:
+        logger.error("No chat client instantiated")
+        close_socket(sock_fd)
+
+
+def chat_server(port, task_queue, disconnect_unidentified):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((HOST, port))
@@ -132,7 +148,7 @@ def chat_server(port, task_queue):
                 SOCKET_LIST.append(sock_fd)
                 logger.info("Client (%s, %s) connected" % addr)
                 try:
-                    sock_fd.settimeout(60)
+                    sock_fd.settimeout(0.5)
                     imei_line = sock_fd.recv(1024)
                     if not imei_line:
                         logger.error("No data on connect.")
@@ -147,24 +163,15 @@ def chat_server(port, task_queue):
                             MASTER_LIST.append(sock_fd)
                         else:
                             logger.debug(imei_line)
-                            client = sim_chat_lib.parse_client_connect(sock_fd, task_queue, imei_line)
-                            if client:
-                                CHAT_CLIENT_LIST[sock_fd] = client
-                                ident = client.ident()
-                                if CHAT_CLIENT_IDENT_LIST.get(ident):
-                                    close_socket(CHAT_CLIENT_IDENT_LIST.get(ident))
-                                CHAT_CLIENT_IDENT_LIST[ident] = sock_fd
-                                # SOCKET_MAP
-                                logger.info(client.get_client_details())
-                                send_to_masters(client.get_client_details())
-                            else:
-                                logger.error("No chat client instantiated")
-                                close_socket(sock_fd)
+                            identify_client(sock_fd, task_queue, imei_line)
 
                 except socket.timeout as err:
-                    logger.error("No imei in timeout period from IP: %s:%s. Closing" % addr)
-                    send_to_masters("No imei in timeout period from IP: %s:%s. Closing" % addr)
-                    close_socket(sock_fd)
+                    if disconnect_unidentified:
+                        logger.error("No imei in timeout period from IP: %s:%s. Closing" % addr)
+                        send_to_masters("No imei in timeout period from IP: %s:%s. Closing" % addr)
+                        close_socket(sock_fd)
+                    else:
+                        logger.error("No connect string but keeping connection alive.")
                 except UnicodeDecodeError as err:
                     logger.error(
                         "Chat protocol exception unable to convert bytes IP: %s:%s. Closing: %s" % (
@@ -215,8 +222,11 @@ def chat_server(port, task_queue):
                             send_to_masters(result)
                     else:
                         data = sock.recv(RECV_BUFFER)
-                        logger.error("Spurious data: %s", data)
-                        close_socket(sock)
+                        if data:
+                            logger.error("Spurious data: %s", data)
+                            identify_client(sock_fd, task_queue, data.decode())
+                        else:
+                            close_socket(sock)
                         # at this stage, no data means probably the connection has been broken
                         # broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
 
@@ -297,6 +307,14 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
+        '-d',
+        '--disconnect-unidentified',
+        help="Disconnect clients that have not identified themselves in the first timeout period.",
+        action="store_true",
+        default=False,
+    )
+
+    parser.add_argument(
         '-l',
         '--line-numbers',
         help="Include line numbers in logging output",
@@ -349,7 +367,7 @@ if __name__ == "__main__":
 
     set_api_host(args.server)
 
-    task_queue, result_queue = start_consumers()
-    logger.info("Task queue is %s", task_queue)
+    report_task_queue, result_queue = start_consumers()
+    logger.info("Task queue is %s", report_task_queue)
     logger.info("Result queue is %s", result_queue)
-    sys.exit(chat_server(args.port, task_queue))
+    sys.exit(chat_server(args.port, report_task_queue, args.disconnect_unidentified))
