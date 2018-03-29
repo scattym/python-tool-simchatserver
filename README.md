@@ -1,1 +1,1 @@
-# Web service tool for creating combined dash manifests
+# Tools for connecting to devices
