@@ -1,4 +1,7 @@
 import logging
+
+import binascii
+
 from sim_chat_lib.meitrack.error import GPRSParseError
 from sim_chat_lib.meitrack.command.common import Command, meitrack_date_to_datetime, datetime_to_meitrack_date
 
@@ -43,6 +46,7 @@ class TrackerCommand(Command):
         super(TrackerCommand, self).parse_payload(payload)
 
 
+
 if __name__ == '__main__':
     log_level = 11 - 11
 
@@ -61,8 +65,11 @@ if __name__ == '__main__':
         """AAA,35,24.819173,121.026060,180323060454,A,8,12,0,24,1.4,60,108,12757,466|97|527B|01035DB3,0000,0001|0000|0000|019C|0984,00000001,,3,,,44,39""",
         """AAA,35,24.819173,121.026053,180323060554,A,8,12,0,189,0.9,59,108,12817,466|97|527B|01036CAB,0000,0000|0000|0000|019D|0983,00000001,,3,,,90,47""",
         """AAA,50,24.819116,121.026091,180323023615,A,7,16,0,176,1.3,83,7,1174,466|97|527B|01035DB4,0000,0001|0000|0000|019A|0981,00000001,,,3,,,36,23""",
+        """AAA,35,24.818910,121.025936,180329052345,A,7,13,0,16,1.2,69,2720,86125,466|97|527B|01035DB4,0000,0001|0000|0000|019E|097F,00000001,,3,,,124,96""",
     ]
 
     for test in tests:
-        test_command = TrackerCommand(test)
+        test_command = TrackerCommand(0, test)
+        print(test_command.get_battery_voltage())
+        print(test_command.get_battery_level())
         print(repr(test_command))

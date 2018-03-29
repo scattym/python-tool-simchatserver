@@ -70,7 +70,7 @@ class ChatClient(object):
         logger.debug("Client closed connection: %s", self.ident())
 
     def queue_report(self, report):
-        queue_report(report, self.report_queue)
+        return queue_report(report, self.report_queue)
 
     def __str__(self):
         return self.get_client_details()

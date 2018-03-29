@@ -83,6 +83,27 @@ def device_update_by_location(
     return result
 
 
+def cell_update(
+        imei, battery_level, battery_voltage, mcc, mnc, lac, cell_id, rx_level, timestamp, log_time
+):
+    call_update_dict = {
+        'battery_level': battery_level,
+        'battery_voltage': battery_voltage,
+        'log_time': str(log_time),  # "2018-03-27T07:19:35.619512+07:00"
+        'cell_id': cell_id,
+        'location_area_code': lac,
+        'mobile_country_code': mcc,
+        'mobile_network_code': mnc,
+        'rx_level': rx_level,
+        "imei": imei,
+        "timestamp": str(timestamp),  # "2018-03-27T07:19:35+07:00",
+    }
+
+    result = common.post_to_api("%s" % (common.CELL_DATA_API,), call_update_dict)
+
+    return result
+
+
 if __name__ == '__main__':
     from timeit import timeit
     log_level = 11 - 2

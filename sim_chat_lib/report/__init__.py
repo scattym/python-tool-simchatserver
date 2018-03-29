@@ -9,6 +9,13 @@ class Report(object):
         self.gps_longitude = None
         self.num_sats = None
         self.timestamp = datetime.datetime.now()
+        self.battery_voltage = None
+        self.battery_level = None
+        self.mcc = None
+        self.mnc = None
+        self.lac = None
+        self.ci = None
+        self.rx_level = None
 
 
 if __name__ == "__main__":

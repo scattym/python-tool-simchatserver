@@ -45,6 +45,7 @@ class Task(object):
         self.result = None
 
     def __call__(self):
+        log_time = datetime.datetime.now()
         if self.report.imei and self.report.gps_latitude and self.report.gps_longitude:
             try:
                 self.result = device_api.device_update_by_long_lat(
@@ -58,10 +59,27 @@ class Task(object):
                     None,
                     self.report.num_sats,
                     self.report.timestamp,
-                    datetime.datetime.now()
+                    log_time
                 )
             except Exception as err:
-                logger.error("Exception in async task %s", err)
+                logger.error("Exception in async task, logging gps entry %s", err)
+        if self.report.battery_level and self.report.battery_voltage and self.report.mnc:
+            try:
+                self.result1 = device_api.cell_update(
+                    self.report.imei,
+                    self.report.battery_level,
+                    self.report.battery_voltage,
+                    self.report.mcc,
+                    self.report.mnc,
+                    self.report.lac,
+                    self.report.ci,
+                    self.report.rx_level,
+                    self.report.timestamp,
+                    log_time
+                )
+            except Exception as err:
+                logger.error("Exception in async task, logging gps entry %s", err)
+
         return self.result
 
     def __str__(self):

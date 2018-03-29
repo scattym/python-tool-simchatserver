@@ -13,7 +13,8 @@ from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
 def chat_client(host, port, imei, version):
 
     gprs_list, before, after = parse_data_payload(
-        "$$a131,353358017784062,AAA,31,22.913458,114.083183,080229123628,V,9,23,21,83,1,18,1350,127,0|0|10133|4110,0000,169|181|184|2714|919,*60\r\n"
+
+        "$$`164,864507032228727,AAA,35,24.818910,121.025936,180329052345,A,7,13,0,16,1.2,69,2720,86125,466|97|527B|01035DB4,0000,0001|0000|0000|019E|097F,00000001,,3,,,124,96*F2\r\n"
     )
     if len(gprs_list) != 1:
         sys.exit(1)

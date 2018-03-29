@@ -68,6 +68,40 @@ class Command(object):
             else:
                 self.field_dict[field_name] = fields[i]
 
+    def get_analog_input_value(self, input_number):
+        if self.field_dict.get("analog_input_value"):
+            analog_list = self.field_dict.get("analog_input_value").split("|")
+            if input_number <= len(analog_list):
+                print(analog_list[input_number-1])
+                print(int(analog_list[input_number-1], 16))
+                return int(analog_list[input_number-1], 16) / 100
+
+    def get_battery_voltage(self):
+        return self.get_analog_input_value(4)
+
+    def get_battery_level(self):
+        battery_voltage = self.get_battery_voltage()
+        if battery_voltage:
+            return int(self.get_battery_voltage() / 4.2 * 100)
+
+    def get_base_station_info(self):
+        if self.field_dict.get("base_station_info"):
+            fields = self.field_dict.get("base_station_info").split("|")
+            if len(fields) == 4:
+                return_dict = {
+                    "mcc": fields[0],
+                    "mnc": fields[1],
+                    "lac": str(int(fields[2], 16)),
+                    "ci": str(int(fields[3], 16)),
+                    "gsm_signal_strength": self.get_gsm_signal_strength()
+                }
+                return return_dict
+
+    def get_gsm_signal_strength(self):
+        if self.field_dict.get("gsm_signal_strength"):
+            return self.field_dict.get("gsm_signal_strength")
+
+
 def meitrack_date_to_datetime(date_time):
     # yymmddHHMMSS
     date_time = "%s%s" % (date_time, "Z")
