@@ -23,7 +23,7 @@ def on_message(client, userdata, msg):
     camera_number = fields[4]
     filename = fields[5]
     device = device_api.get_device_pk(imei)
-    camera_api.add_camera_image(device, 0, camera_number, datetime.datetime.now(), msg.payload)
+    camera_api.add_camera_image(device, camera_number, datetime.datetime.now(), msg.payload)
 
 
 username = "sysadmin"
