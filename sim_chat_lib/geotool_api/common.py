@@ -40,6 +40,7 @@ DRIVER_API = "/api/driver/"
 DRIVER_LOG_API = "/api/driver_log/"
 TRIP_LOG_API = "/api/trip_log/"
 DEVICE_UPDATE_API = "/api/deviceupdate/"
+CAMERA_API = "/api/camera/"
 
 GEOTOOL_API_CACHE = None
 
