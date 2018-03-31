@@ -2,6 +2,8 @@ import paho.mqtt.client as mqtt
 import datetime
 import time
 import binascii
+import logging
+import argparse
 from sim_chat_lib.geotool_api import camera_api, device_api, common
 
 
@@ -26,19 +28,78 @@ def on_message(client, userdata, msg):
     camera_api.add_camera_image(device, camera_number, datetime.datetime.now(), msg.payload)
 
 
-username = "sysadmin"
-password = "apw4sysadmin2u"
-common.set_api_host("localhost:8000")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
 
-client = mqtt.Client()
-client.username_pw_set(username, password=password)
-client.on_connect = on_connect
-client.on_message = on_message
+    parser.add_argument(
+        '-i',
+        '--imei',
+        help="The imei to use in the connect string.",
+        default="0407",
+    )
+    parser.add_argument(
+        '-o',
+        '--host',
+        help="The host to connect to.",
+        default="localhost",
+    )
 
-client.connect("localhost", 65532, 60)
+    parser.add_argument(
+        '-p',
+        '--port',
+        help="The port for the webserver to listen on.",
+        type=int,
+        default=65533
+    )
+    parser.add_argument(
+        '-r',
+        '--version',
+        help="The protocol version to use.",
+        type=int,
+        default=1
+    )
+    parser.add_argument(
+        '-v',
+        dest='debug',
+        help=("Increase the logging level. Can specify this option multiple "
+              "times for more detail."),
+        action="count",
+        default=0
+    )
 
-# Blocking call that processes network traffic, dispatches callbacks and
-# handles reconnecting.
-# Other loop*() functions are available that give a threaded interface and a
-# manual interface.
-client.loop_forever()
+    args = parser.parse_args()
+
+    log_level = 11 - args.debug
+
+    logger = logging.getLogger('')
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    if args.debug:
+        logger.setLevel(log_level)
+        ch.setLevel(log_level)
+
+    username = "sysadmin"
+    password = "apw4sysadmin2u"
+    common.set_api_host("localhost:8000")
+
+    client = mqtt.Client()
+    client.username_pw_set(username, password=password)
+    client.on_connect = on_connect
+    client.on_message = on_message
+
+    client.connect("localhost", 65532, 60)
+
+    # Blocking call that processes network traffic, dispatches callbacks and
+    # handles reconnecting.
+    # Other loop*() functions are available that give a threaded interface and a
+    # manual interface.
+    client.loop_forever()
