@@ -17,11 +17,9 @@ LOOKUP_CACHE_DEPTH_IN_DAYS = 30
 headers = {
     'do': {
         'Authorization': 'Token 9554e04e2781705f45f54eaa8ba6a32a3b49294d',
-        'content-type': 'application/json'
     },
     'home': {
         'Authorization': 'Token 2e75eff12d410c60edce82b9f1a4742ef2fa9bb9',
-        'content-type': 'application/json'
     },
 }
 
@@ -123,29 +121,36 @@ def host_to_token_header(host):
     return headers['do']
 
 
-def post_to_api(endpoint, data, primary_key=None, cacheable=False):
+def post_to_api(endpoint, data, primary_key=None, cacheable=False, files=None):
     try:
         url = 'http://%s%s' % (API_HOST, endpoint)
 
+        content_type="application/json"
+        if data:
+            post_data = json.dumps(data)
+        else:
+            post_data = data  # make sure we copy in the None
+
         if primary_key is not None:
-            logger.debug("PUT to url: %s, data: %s", url, data)
             url = url + "%s/" % (primary_key,)
             response = requests.put(
                 url,
-                data=json.dumps(data),
-                headers=host_to_token_header(API_HOST)
+                data=post_data,
+                headers=host_to_token_header(API_HOST),
+                files=files,
             )
         else:
-            logger.debug("POST to url: %s, data: %s", url, data)
             response = requests.post(
                 url,
-                data=json.dumps(data),
-                headers=host_to_token_header(API_HOST)
+                data=post_data,
+                headers=host_to_token_header(API_HOST),
+                files=files,
             )
         logger.debug(response)
         logger.debug(response.text)
     except Exception as e:
         logger.error("Callout to geotool failed with error: %s", e)
+        logger.debug(traceback.format_exc())
         raise e
 
     try:

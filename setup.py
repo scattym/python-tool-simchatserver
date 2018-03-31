@@ -13,7 +13,8 @@ setup(
             'scripts/meitrackchatclient',
             'scripts/simchatserver',
             'scripts/simchatmaster',
-            'scripts/simchatclient'
+            'scripts/simchatclient',
+            'scripts/mqtt_receiver',
       ],
       packages=find_packages(),
       install_requires=[
