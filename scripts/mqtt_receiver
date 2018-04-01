@@ -1,3 +1,5 @@
+import json
+
 import paho.mqtt.client as mqtt
 import datetime
 import time
@@ -15,17 +17,40 @@ def on_connect(client, userdata, flags, rc):
     # reconnect then subscriptions will be renewed.
 #    client.subscribe("$SYS/#")
     client.subscribe("v1/devices/+/new_image/#")
+    client.subscribe("v1/devices/+/new_location")
 
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
     print(msg.topic+" "+binascii.hexlify(msg.payload))
     fields = msg.topic.split('/')
-    imei = fields[2].rstrip().lstrip()
-    camera_number = fields[4]
-    filename = fields[5]
-    device = device_api.get_device_pk(imei)
-    camera_api.add_camera_image(device, camera_number, datetime.datetime.now(), msg.payload)
+    if "new_image" in msg.topic:
+        imei = fields[2].rstrip().lstrip()
+        camera_number = fields[4]
+        filename = fields[5]
+        device = device_api.get_device_pk(imei)
+        camera_api.add_camera_image(device, camera_number, datetime.datetime.now(), msg.payload)
+    if "new_location" in msg.topic:
+        imei = fields[2].rstrip().lstrip()
+        data_record = json.loads(msg.payload)
+        # imei, longitude, latitude, true_track, ground_speed, altitude, dilution, age_gps_data, num_sats, timestamp, log_time
+        device_api.device_update_by_long_lat(
+            imei,
+            data_record['longitude'],
+            data_record['latitude'],
+            None,
+            None,
+            None,
+            None,
+            None,
+            data_record.get("num_sats"),
+            datetime.datetime.now(),
+            datetime.datetime.now(),
+        )
+
+
+
+
 
 
 if __name__ == "__main__":
