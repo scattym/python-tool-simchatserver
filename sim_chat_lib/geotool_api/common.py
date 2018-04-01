@@ -127,6 +127,9 @@ def post_to_api(endpoint, data, primary_key=None, cacheable=False, files=None):
         url = 'http://%s%s' % (API_HOST, endpoint)
 
         content_type="application/json"
+        headers = host_to_token_header(API_HOST)
+        if data:
+            headers["Content-Type"] = "application/json"
         if data:
             post_data = json.dumps(data)
         else:
@@ -137,14 +140,14 @@ def post_to_api(endpoint, data, primary_key=None, cacheable=False, files=None):
             response = requests.put(
                 url,
                 data=post_data,
-                headers=host_to_token_header(API_HOST),
+                headers=headers,
                 files=files,
             )
         else:
             response = requests.post(
                 url,
                 data=post_data,
-                headers=host_to_token_header(API_HOST),
+                headers=headers,
                 files=files,
             )
         logger.debug(response)

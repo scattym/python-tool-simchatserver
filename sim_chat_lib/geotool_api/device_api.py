@@ -106,12 +106,13 @@ def cell_update(
 
 if __name__ == '__main__':
     from timeit import timeit
-    log_level = 11 - 2
+    import datetime
+    log_level = 11 - 11
 
     logger = logging.getLogger('')
-    logger.setLevel(logging.INFO)
+    logger.setLevel(log_level)
     ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
+    ch.setLevel(log_level)
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
@@ -123,6 +124,7 @@ if __name__ == '__main__':
     print(get_device_pk("77070407942500"))
     print(create_device("77070407942501"))
     print(create_device("770704079425", name="Another API test"))
+    print(device_update_by_long_lat("77070407942501", "151.200195", "-33.815788", None, None, None, None, None, "5", datetime.datetime.now(), datetime.datetime.now()))
     # report_pk = create_report(10)
     # report_gps_pk = create_report_gps(report_pk)
     # 031924.0, A, 3348.948974, S, 15112.009167, E, 0.0, 0.0, 141017,, ,
