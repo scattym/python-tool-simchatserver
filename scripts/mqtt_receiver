@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
     username = "sysadmin"
     password = "apw4sysadmin2u"
-    common.set_api_host("localhost:8000")
+    common.set_api_host("10.1.1.4:8000")
 
     client = mqtt.Client()
     client.username_pw_set(username, password=password)
