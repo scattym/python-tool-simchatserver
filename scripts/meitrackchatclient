@@ -13,8 +13,8 @@ from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
 def chat_client(host, port, imei, version):
 
     gprs_list, before, after = parse_data_payload(
-
-        "$$`164,864507032228727,AAA,35,24.818910,121.025936,180329052345,A,7,13,0,16,1.2,69,2720,86125,466|97|527B|01035DB4,0000,0001|0000|0000|019E|097F,00000001,,3,,,124,96*F2\r\n"
+        "$$`164,864507032228727,AAA,35,24.818910,121.025936,180329052345,A,7,13,0,16,1.2,69,2720,86125,466|97|527B"
+        "|01035DB4,0000,0001|0000|0000|019E|097F,00000001,,3,,,124,96*F2\r\n"
     )
     if len(gprs_list) != 1:
         sys.exit(1)
@@ -29,8 +29,8 @@ def chat_client(host, port, imei, version):
     try:
         s.connect((host, port))
         s.send(message.encode())
-    except:
-        print('Unable to connect')
+    except Exception as err:
+        print('Unable to connect: %s' % (err,))
         sys.exit()
 
     print('Connected to remote host. You can start sending messages')

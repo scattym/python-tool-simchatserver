@@ -18,6 +18,15 @@ class Report(object):
         self.rx_level = None
 
 
+class MeitrackConfigRequest(object):
+    def __init__(self):
+        self.imei = None
+        self.response = None
+
+    def __str__(self):
+        return "%s-%s" % (self.imei, self.response)
+
+
 if __name__ == "__main__":
     report = Report()
     report.imei = "testimei"

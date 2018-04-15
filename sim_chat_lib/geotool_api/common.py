@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 LOOKUP_METHOD_GOOGLE = "1"
 LOOKUP_CACHE_DEPTH_IN_DAYS = 30
 
-headers = {
+HEADERS = {
     'do': {
         'Authorization': 'Token 9554e04e2781705f45f54eaa8ba6a32a3b49294d',
     },
@@ -23,7 +23,7 @@ headers = {
     },
 }
 
-API_HOST = os.environ.get("GEO_API_HOST") or "theforeman.do.scattym.com:8000"
+API_HOST = os.environ.get("GEO_API_HOST") or "webui.scattym.com:8000"
 MEMGEOTOOL_API_CACHED_HOST = os.environ.get("MEMGEOTOOL_API_CACHED_HOST", "localhost")
 
 
@@ -41,6 +41,7 @@ DRIVER_LOG_API = "/api/driver_log/"
 TRIP_LOG_API = "/api/trip_log/"
 DEVICE_UPDATE_API = "/api/deviceupdate/"
 CAMERA_API = "/api/camera/"
+MEITRACK_CONFIG_API = "/api/meitrack_config/"
 
 GEOTOOL_API_CACHE = None
 
@@ -78,7 +79,8 @@ def check_cache_and_fallback():
 
 def setup_cache():
     global GEOTOOL_API_CACHE
-    GEOTOOL_API_CACHE = memcache.Client(["127.0.0.1:11211"])
+    cache_host = os.environ.get("MEMCACHE_HOST", "127.0.0.1:11211")
+    GEOTOOL_API_CACHE = memcache.Client([cache_host])
     check_cache_and_fallback()
 
 
@@ -117,9 +119,9 @@ def set_api_host(host):
 
 def host_to_token_header(host):
     if "geotool.scattym.com" in host or "10.1.1.4" in host:
-        return headers['home']
+        return HEADERS['home']
 
-    return headers['do']
+    return HEADERS['do']
 
 
 def post_to_api(endpoint, data, primary_key=None, cacheable=False, files=None):

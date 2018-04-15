@@ -1,8 +1,11 @@
 class Error(Exception):
     """Base class for exceptions in this module."""
 
-    def __init__(self):
-        self.message = "A generic error occurred"
+    def __init__(self, message=None):
+        if message:
+            self.message = message
+        else:
+            self.message = "A generic error occurred"
 
 
 class ProtocolError(Error):

@@ -12,7 +12,7 @@ from sim_chat_lib.geotool_api.common import set_api_host
 import sim_chat_lib
 from sim_chat_lib.exception import Error as SimChatError
 from sim_chat_lib.exception import ProtocolError
-from sim_chat_lib.report.async_api import start_consumers
+from sim_chat_lib.report.async_api import start_consumers, get_result
 
 HOST = ''
 SOCKET_LIST = []
@@ -117,7 +117,20 @@ def identify_client(sock_fd, task_queue, buffer):
         close_socket(sock_fd)
 
 
-def chat_server(port, task_queue, disconnect_unidentified):
+def is_available(ident):
+    if CHAT_CLIENT_IDENT_LIST.get(ident):
+        return True
+    return False
+
+
+def get_client(ident):
+    if CHAT_CLIENT_IDENT_LIST.get(ident):
+        if CHAT_CLIENT_LIST.get(CHAT_CLIENT_IDENT_LIST.get(ident)):
+            return CHAT_CLIENT_LIST.get(CHAT_CLIENT_IDENT_LIST.get(ident))
+    return None
+
+
+def chat_server(port, task_queue, result_queue, disconnect_unidentified):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((HOST, port))
@@ -133,11 +146,27 @@ def chat_server(port, task_queue, disconnect_unidentified):
 
         # get the list sockets which are ready to be read through select
         # 4th arg, time_out  = 0 : poll and never block
+        logger.debug("About to call select")
         ready_to_read, ready_to_write, in_error = select.select(SOCKET_LIST, [], [], 30)
 
         for sock in ready_to_read:
             # a new connection request recieved
-            if sock == server_socket:
+            logger.debug("Testing if result queue reader")
+            if result_queue and sock == result_queue._reader:
+                logger.debug("Is a result queue reader")
+                response = get_result(result_queue)
+                if response and response.get("imei"):
+                    if is_available("imei-%s" % (response["imei"],)):
+                        if response.get("type") == "config":
+                            client = get_client("imei-%s" % (response["imei"],))
+                            client.parse_config(response["response"])
+                        # response.parser(response.result)
+                    else:
+                        logger.error("Device %s is no longer available for response", response.get("imei"))
+                else:
+                    logger.error("Unable to deliver response %s", response)
+
+            elif sock == server_socket:
                 imei = None
                 version = None
                 proto_version = 1
@@ -249,6 +278,7 @@ def chat_server(port, task_queue, disconnect_unidentified):
 
 
 def send_to_masters(data):
+    logger.debug("Sending %s to masters", data)
     for sock_fd in MASTER_LIST:
         if sock_fd in SOCKET_LIST:
             try:
@@ -256,6 +286,7 @@ def send_to_masters(data):
                 sock_fd.send('\n'.encode())
             except socket.error:
                 close_socket(sock_fd)
+    logger.debug("Done sending data to masters")
 
 
 def send_to_device(ident, cmd):
@@ -371,7 +402,10 @@ if __name__ == "__main__":
 
     set_api_host(args.server)
 
-    report_task_queue, result_queue = start_consumers()
+    report_task_queue, result_queue = start_consumers(bin_results=False)
+    # report_task_queue, result_queue = start_consumers()
+    if result_queue:
+        SOCKET_LIST.append(result_queue._reader)
     logger.info("Task queue is %s", report_task_queue)
     logger.info("Result queue is %s", result_queue)
-    sys.exit(chat_server(args.port, report_task_queue, args.disconnect_unidentified))
+    sys.exit(chat_server(args.port, report_task_queue, result_queue, args.disconnect_unidentified))

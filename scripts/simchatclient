@@ -47,7 +47,7 @@ def chat_client(host, port, imei, version):
                 else:
                     # print data
                     sys.stdout.write(data.decode())
-                    sys.stdout.write('[Me] ');
+                    sys.stdout.write('[Me] ')
                     sys.stdout.flush()
 
             else:
@@ -62,7 +62,7 @@ def chat_client(host, port, imei, version):
                     s.send(encrypted_data)
                 else:
                     s.send(msg.encode())
-                sys.stdout.write('[Me] ');
+                sys.stdout.write('[Me] ')
                 sys.stdout.flush()
 
 

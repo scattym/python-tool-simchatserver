@@ -4,6 +4,7 @@ import logging
 from queue import Queue
 
 from sim_chat_lib.geotool_api import device_api
+from sim_chat_lib.geotool_api import meitrack_config_api
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,9 @@ class Consumer(multiprocessing.Process):
     def run(self):
         proc_name = self.name
         while True:
+            logger.debug("Asking for next item")
             next_task = self.task_queue.get()
+            logger.debug("Got a new task %s", next_task)
             if next_task is None:
                 # Poison pill means shutdown
                 # print '%s: Exiting' % proc_name
@@ -27,8 +30,9 @@ class Consumer(multiprocessing.Process):
                 break
             # print '%s: %s' % (proc_name, next_task)
             answer = next_task()
+            logger
             self.task_queue.task_done()
-            if self.result_queue:
+            if self.result_queue and answer:
                 self.result_queue.put(answer)
             try:
                 if self.task_queue.qsize() > self.alarm_size:
@@ -86,9 +90,47 @@ class Task(object):
         return '%s -> %s' % (self.report.imei, self.result)
 
 
+class MeitrackConfigRequestTask(object):
+    def __init__(self, config_request):
+        logger.debug("init of meitrack config request")
+        self.config_request = config_request
+        self.result = None
+
+    def __call__(self):
+        logger.debug("Calling config request for imei %s", self.config_request.imei)
+        if self.config_request.imei:
+            try:
+                device_pk = device_api.get_device_pk(self.config_request.imei)
+                config = meitrack_config_api.get_device_config(device_pk)
+                self.result = {
+                    "type": "config",
+                    "imei": self.config_request.imei,
+                    "response": config,
+                }
+            except Exception as err:
+                logger.error("Exception in async task, logging gps entry %s", err)
+
+        return self.result
+
+    def __str__(self):
+        return '%s -> %s' % (self.config_request.imei, self.result)
+
+
 def queue_report(report, task_queue, blocking=False, timeout=1):
     try:
         task_queue.put(Task(report), blocking, timeout)
+        return True
+    except Queue.Full as err:
+        logger.error("Task queue is full. Not adding item.")
+        return False
+
+
+def queue_config_request(config_request, task_queue, blocking=False, timeout=1):
+
+    try:
+        logger.debug("Adding config request to queue")
+        task_queue.put(MeitrackConfigRequestTask(config_request), blocking, timeout)
+        logger.debug("Added config request to queue")
         return True
     except Queue.Full as err:
         logger.error("Task queue is full. Not adding item.")
@@ -100,7 +142,7 @@ def start_consumers(num_consumers=10, queue_depth=1000, bin_results=True):
     results = None
     alarm_size = (queue_depth * 0.75)
     if not bin_results:
-        results = multiprocessing.Queue()
+        results = multiprocessing.Queue(queue_depth)
 
     # Start consumers
     num_consumers = int(num_consumers)
@@ -111,6 +153,14 @@ def start_consumers(num_consumers=10, queue_depth=1000, bin_results=True):
         w.start()
 
     return tasks, results
+
+
+def get_result(result_queue, blocking=False, timeout=1):
+    logger.debug("Getting response from result queue")
+    if result_queue:
+        result = result_queue.get(block=blocking, timeout=timeout)
+        return result
+    return None
 
 
 def stop_consumers(task_queue, wait_for_finish=True, num_consumers=10):

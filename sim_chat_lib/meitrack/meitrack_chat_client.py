@@ -9,6 +9,7 @@ from sim_chat_lib.meitrack.error import GPRSError
 from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
 from sim_chat_lib.meitrack.build_message import stc_request_location_message, stc_request_device_info
 from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report
+from sim_chat_lib.report import MeitrackConfigRequest
 import traceback
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class MeitrackChatClient(BaseChatClient):
         self.imei = imei
         self.buffer = b''
         if imei:
-            super(MeitrackChatClient, self).on_login()
+            self.on_login()
 
     def check_login(self):
         return True
@@ -37,14 +38,27 @@ class MeitrackChatClient(BaseChatClient):
     def ident(self):
         return "imei-%s" % (self.imei,)
 
+    def on_login(self):
+        super(MeitrackChatClient, self).on_login()
+        config_request = MeitrackConfigRequest()
+        config_request.imei = self.imei
+        logger.debug("Add config request to queue %s", config_request)
+        self.queue_config_request(config_request)
+        logger.debug("end of on login")
+
+    def parse_config(self, response):
+        logger.info("Parsing config response %s", response)
+
     def process_data(self, data):
         super(MeitrackChatClient, self).update_last_tick()
-        if len(self.buffer) <= 1024:
+        if len(self.buffer) <= 2048:
             try:
                 self.buffer += data
             except UnicodeDecodeError as err:
                 logger.error("Unable to convert bytes to string %s", data)
                 raise ChatError("Unable to convert bytes to string")
+        else:
+            raise ChatError("Buffer too long")
 
         try:
             gprs_list, before, after = parse_data_payload(self.buffer.decode())

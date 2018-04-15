@@ -2,7 +2,7 @@ import datetime
 import logging
 import socket
 from sim_chat_lib.exception import ClientClosedError
-from sim_chat_lib.report.async_api import queue_report
+from sim_chat_lib.report.async_api import queue_report, queue_config_request
 
 logger = logging.getLogger(__name__)
 
@@ -34,12 +34,12 @@ class ChatClient(object):
 
     def receive_data(self):
         data = self.sock_fd.recv(RECV_BUFFER)
+        self.update_last_tick()
         if data:
             return self.process_data(data)
         else:
             self.on_client_close()
             raise ClientClosedError("No data on receive. Client went away.")
-        self.update_last_tick()
 
     def get_remote_ip(self):
         return "%s:%s" % (self.ip_address, self.port)
@@ -52,6 +52,9 @@ class ChatClient(object):
 
     def process_data(self, data):
         return "Base client cannot parse data"
+
+    def process_response_data(self, data):
+        logger.error("Unable to process response in base class. Response is %s", data)
 
     def update_last_tick(self):
         self.last_tick = datetime.datetime.utcnow()
@@ -68,6 +71,11 @@ class ChatClient(object):
 
     def on_client_close(self):
         logger.debug("Client closed connection: %s", self.ident())
+
+    def queue_config_request(self, config_request):
+        logger.debug("Queue config request start")
+        result = queue_config_request(config_request, self.report_queue)
+        logger.debug("Queue config request finished")
 
     def queue_report(self, report):
         return queue_report(report, self.report_queue)
