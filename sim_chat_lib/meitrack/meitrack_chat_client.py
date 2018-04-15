@@ -7,7 +7,7 @@ from sim_chat_lib.exception import LoginError, ProtocolError
 from sim_chat_lib.meitrack import GPRSParseError
 from sim_chat_lib.meitrack.error import GPRSError
 from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
-from sim_chat_lib.meitrack.build_message import stc_request_location_message, stc_request_device_info
+from sim_chat_lib.meitrack import build_message
 from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report
 from sim_chat_lib.report import MeitrackConfigRequest
 import traceback
@@ -48,6 +48,18 @@ class MeitrackChatClient(BaseChatClient):
 
     def parse_config(self, response):
         logger.info("Parsing config response %s", response)
+        if response.get("heartbeat_interval"):
+            gprs = build_message.stc_set_heartbeat_interval(self.imei, response.get("heartbeat_interval"))
+            self.send_data(repr(gprs))
+        if response.get("time_interval"):
+            gprs = build_message.stc_set_tracking_by_time_interval(self.imei, response.get("heartbeat_interval"))
+            self.send_data(repr(gprs))
+        if response.get("cornering_angle"):
+            gprs = build_message.stc_set_cornering_angle(self.imei, response.get("cornering_angle"))
+            self.send_data(repr(gprs))
+        if response.get("tracking_by_distance"):
+            gprs = build_message.stc_set_tracking_by_distance(self.imei, response.get("tracking_by_distance"))
+            self.send_data(repr(gprs))
 
     def process_data(self, data):
         super(MeitrackChatClient, self).update_last_tick()
@@ -91,7 +103,7 @@ class MeitrackChatClient(BaseChatClient):
             logger.error("Unable to request location as client id not yet known")
         else:
             try:
-                gprs = stc_request_location_message(self.imei)
+                gprs = build_message.stc_request_location_message(self.imei)
                 self.send_data(repr(gprs))
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send.")
@@ -101,7 +113,7 @@ class MeitrackChatClient(BaseChatClient):
             logger.error("Unable to request client info as client id not yet known")
         else:
             try:
-                gprs = stc_request_device_info(self.imei)
+                gprs = build_message.stc_request_device_info(self.imei)
                 logger.debug(gprs)
                 logger.debug(repr(gprs))
                 self.send_data(repr(gprs))

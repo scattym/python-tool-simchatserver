@@ -6,12 +6,11 @@ from sim_chat_lib.meitrack.gprs_protocol import GPRS
 logger = logging.getLogger(__name__)
 SPURIOUS_REPORT = """$$D160,864507032228727,AAA,35,24.819116,121.026091,180323023615,A,7,16,0,176,1.3,83,7,1174,466|97|527B|01035DB4,0000,0001|0000|0000|019A|0981,00000001,,3,,,36,23*DC\r\n""",
 REQUEST_TO_RESPONSE = {
-    """A11,10""": """$$S28,353358017784062,A11,OK*FE\r\n""",
-    """A10""": """$$Q164,864507032228727,AAA,35,24.818910,121.025936,180329052345,A,7,13,0,16,1.2,69,2720,86125,466|97|527B|01035DB4,0000,0001|0000|0000|019E|097F,00000001,,3,,,124,96*F2\r\n""",
-    """A11,10""": """$$S28,353358017784062,A11,OK*FE\r\n""",
-    """A12,6""": """$$V28,353358017784062,A12,OK*02\r\n""",
-    """A13,120""": """$$X28,353358017784062,A13,OK*05\r\n""",
-    """A14,1000""": """$$D28,353358017784062,A14,OK*F2\r\n""",
+    """A11,""": """$$S28,353358017784062,A11,OK*FE\r\n""",
+    """A10,""": """$$Q164,864507032228727,AAA,35,24.818910,121.025936,180329052345,A,7,13,0,16,1.2,69,2720,86125,466|97|527B|01035DB4,0000,0001|0000|0000|019E|097F,00000001,,3,,,124,96*F2\r\n""",
+    """A12,""": """$$V28,353358017784062,A12,OK*02\r\n""",
+    """A13,""": """$$X28,353358017784062,A13,OK*05\r\n""",
+    """A14,""": """$$D28,353358017784062,A14,OK*F2\r\n""",
     """A15,6""": """$$E28,353358017784062,A15,OK*F4\r\n""",
     """A16,0""": """$$F28,353358017784062,A16,OK*F6\r\n""",
     """A17,1""": """$$T28,353358017784062,A17,OK*05\r\n""",
@@ -73,10 +72,12 @@ class NotMyIMEIError(Exception):
 
 
 def request_to_response(request_command, imei):
-    if request_command in REQUEST_TO_RESPONSE:
-        return_gprs = GPRS(REQUEST_TO_RESPONSE[request_command])
-        return_gprs.imei = imei
-        return repr(return_gprs)
+    for key in REQUEST_TO_RESPONSE:
+        command_length = len(key)
+        if request_command[0:command_length] == key:
+            return_gprs = GPRS(REQUEST_TO_RESPONSE[key])
+            return_gprs.imei = imei
+            return repr(return_gprs)
     return None
 
 

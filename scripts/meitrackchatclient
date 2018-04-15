@@ -58,8 +58,11 @@ def chat_client(host, port, imei, version):
                     for gprs in gprs_list:
                         command = repr(gprs.enclosed_data)
                         response = stub_processor.request_to_response(command, imei)
-                        print("Sending response %s" % (response,))
-                        s.send(response.encode())
+                        if response:
+                            print("Sending response %s" % (response,))
+                            s.send(response.encode())
+                        else:
+                            print("No response to send for incoming command {}".format(command))
                     sys.stdout.write('[Me] ')
                     sys.stdout.flush()
             else:

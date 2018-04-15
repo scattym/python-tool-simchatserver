@@ -12,7 +12,7 @@ from sim_chat_lib.geotool_api.common import set_api_host
 import sim_chat_lib
 from sim_chat_lib.exception import Error as SimChatError
 from sim_chat_lib.exception import ProtocolError
-from sim_chat_lib.report.async_api import start_consumers, get_result
+from sim_chat_lib.report.async_api import start_consumers, get_result, stop_consumers
 
 HOST = ''
 SOCKET_LIST = []
@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 CHAT_CLIENT_LIST = {}
 CHAT_CLIENT_IDENT_LIST = {}
+
+QUIT_FLAG = False
 
 
 def close_socket(sock_fd):
@@ -63,6 +65,7 @@ def close_socket(sock_fd):
 
 
 def execute_command(data):
+    global QUIT_FLAG
     logger.info("Executing command: %s", data)
     if ',' in data:
         line = data.split(",", 1)
@@ -92,7 +95,7 @@ def execute_command(data):
             root_logger = logging.getLogger('')
             root_logger.setLevel(logging.INFO)
         if data == "quit":
-            quit_flag = True
+            QUIT_FLAG = True
 
 
 def is_master(sock_fd):
@@ -101,8 +104,8 @@ def is_master(sock_fd):
     return False
 
 
-def identify_client(sock_fd, task_queue, buffer):
-    client = sim_chat_lib.parse_client_connect(sock_fd, task_queue, buffer)
+def identify_client(sock_fd, task_queue, client_buffer):
+    client = sim_chat_lib.parse_client_connect(sock_fd, task_queue, client_buffer)
     if client:
         CHAT_CLIENT_LIST[sock_fd] = client
         ident = client.ident()
@@ -131,6 +134,7 @@ def get_client(ident):
 
 
 def chat_server(port, task_queue, result_queue, disconnect_unidentified):
+    global QUIT_FLAG
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((HOST, port))
@@ -141,12 +145,11 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
 
     logger.info("Chat server started on port " + str(PORT))
 
-    quit_flag = False
-    while not quit_flag:
+    QUIT_FLAG = False
+    while not QUIT_FLAG:
 
         # get the list sockets which are ready to be read through select
         # 4th arg, time_out  = 0 : poll and never block
-        logger.debug("About to call select")
         ready_to_read, ready_to_write, in_error = select.select(SOCKET_LIST, [], [], 30)
 
         for sock in ready_to_read:
@@ -273,6 +276,8 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                         "Chat protocol exception (%s). Closing: %s" % (err.message, sock)
                     )
                     close_socket(sock)
+
+    stop_consumers(task_queue)
 
     server_socket.close()
 
