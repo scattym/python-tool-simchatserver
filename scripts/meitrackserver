@@ -1,0 +1,101 @@
+import argparse
+import logging
+from twisted.internet import protocol, reactor
+from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
+from sim_chat_lib.geotool_api.common import set_api_host
+from sim_chat_lib.report.async_api import start_consumers, get_result, stop_consumers
+
+
+logger = logging.getLogger(__name__)
+
+
+class MeitrackProtocol(protocol.Protocol):
+    buffer = b""
+
+    def dataReceived(self, data):
+        messages, _, self.buffer = parse_data_payload((self.buffer + data).decode())
+        for message in messages:
+            self.messageReceived(message)
+
+    def messageReceived(self, message):
+        print(message)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        '-d',
+        '--disconnect-unidentified',
+        help="Disconnect clients that have not identified themselves in the first timeout period.",
+        action="store_true",
+        default=False,
+    )
+
+    parser.add_argument(
+        '-l',
+        '--line-numbers',
+        help="Include line numbers in logging output",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        '-p',
+        '--port',
+        help="The port for the webserver to listen on.",
+        type=int,
+        default=65533,
+    )
+    parser.add_argument(
+        '-s',
+        '--server',
+        help="The django host to send the data to.",
+        default=os.environ.get("GEO_API_HOST", "localhost:8000"),
+    )
+    parser.add_argument(
+        '-v',
+        dest='debug',
+        help=("Increase the logging level. Can specify this option multiple "
+              "times for more detail."),
+        action="count",
+        default=0,
+    )
+
+    args = parser.parse_args()
+
+    log_level = 11 - args.debug
+
+    logger = logging.getLogger('')
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    if args.line_numbers:
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s'
+        )
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    if args.debug:
+        logger.setLevel(log_level)
+        ch.setLevel(log_level)
+
+    set_api_host(args.server)
+
+    # report_task_queue, result_queue = start_consumers(bin_results=False)
+    # # report_task_queue, result_queue = start_consumers()
+    # if result_queue:
+    #     SOCKET_LIST.append(result_queue._reader)
+    # logger.info("Task queue is %s", report_task_queue)
+    # logger.info("Result queue is %s", result_queue)
+    # sys.exit(chat_server(args.port, report_task_queue, result_queue, args.disconnect_unidentified))
+
+    factory = protocol.Factory()
+    factory.protocol = MeitrackProtocol
+    reactor.listenTCP(65533, factory)
+    reactor.run()

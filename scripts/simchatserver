@@ -139,20 +139,28 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((HOST, port))
     server_socket.listen(10)
+    server_socket.setblocking(0)
 
     # add server socket object to the list of readable connections
     SOCKET_LIST.append(server_socket)
 
     logger.info("Chat server started on port " + str(PORT))
 
+    epoll = select.epoll()
+    epoll.register(server_socket.fileno(), select.EPOLLIN | select.EPOLLET)
+    epoll.register(result_queue._reader)
+    epoll.register(sys.stdout)
+
     QUIT_FLAG = False
     while not QUIT_FLAG:
+        events = epoll.poll(1)
+        for sock, event in events:
 
         # get the list sockets which are ready to be read through select
         # 4th arg, time_out  = 0 : poll and never block
-        ready_to_read, ready_to_write, in_error = select.select(SOCKET_LIST, [], [], 30)
+        # ready_to_read, ready_to_write, in_error = select.select(SOCKET_LIST, [], [], 30)
 
-        for sock in ready_to_read:
+        # for sock in ready_to_read:
             # a new connection request recieved
             logger.debug("Testing if result queue reader")
             if result_queue and sock == result_queue._reader:
@@ -178,6 +186,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                 device_name = None
                 sock_fd, addr = server_socket.accept()
                 SOCKET_LIST.append(sock_fd)
+                epoll.register(sock_fd)
                 logger.info("Client (%s, %s) connected" % addr)
                 try:
                     sock_fd.settimeout(0.5)
