@@ -271,10 +271,9 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                                identify_client(connections[sock_fd], task_queue, data.decode())
                             else:
                                close_socket(connections[sock_fd])
+                               send_to_masters("Client (%s, %s) is offline\n" % addr)
                             # at this stage, no data means probably the connection has been broken
                             # broadcast(server_socket, connections[sock_fd], "Client (%s, %s) is offline\n" % addr)
-                            send_to_masters("Client (%s, %s) is offline\n" % addr)
-
                             # exception
                     except socket.error as err:
                         logger.info("Client (%s, %s) is offline" % addr)
