@@ -272,7 +272,8 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                             else:
                                close_socket(connections[sock_fd])
                             # at this stage, no data means probably the connection has been broken
-                            broadcast(server_socket, connections[sock_fd], "Client (%s, %s) is offline\n" % addr)
+                            # broadcast(server_socket, connections[sock_fd], "Client (%s, %s) is offline\n" % addr)
+                            send_to_masters("Client (%s, %s) is offline\n" % addr)
 
                             # exception
                     except socket.error as err:
@@ -347,11 +348,12 @@ def broadcast(server_socket, sock, message):
         # send the message only to peer
         if sock_fd != server_socket and sock_fd != sock and sock_fd != sys.stdin:
             try:
-                connections[sock_fd].send(message.encode())
+                if connections[sock_fd]:
+                    connections[sock_fd].send(message.encode())
                 # sock_fd.send(message.encode())
             except:
                 # broken socket connection
-                close_socket(sock_fd)
+                close_socket(connections[sock_fd])
 
 
 if __name__ == "__main__":
