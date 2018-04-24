@@ -104,8 +104,8 @@ class Command(object):
             return self.field_dict.get("gsm_signal_strength")
 
     def get_event_type(self):
-        if self.field_dict.get("event_type"):
-            return meitrack_event_type_to_name(self.field_dict.get("event_type"))
+        if self.field_dict.get("event_code"):
+            return meitrack_event_type_to_name(self.field_dict.get("event_code"))
 
 
 EVENT_TYPE_MAP = {
