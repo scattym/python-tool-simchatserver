@@ -93,6 +93,8 @@ class Task(object):
                     0,
                     self.report.event_type
                 )
+                geotool_api.add_sos_event(self.report.imei, datetime.datetime.now())
+
         return self.result
 
     def __str__(self):
