@@ -38,12 +38,14 @@ class Command(object):
     def __getitem__(self, item):
         if item in self.field_dict:
             return self.field_dict[item]
-        raise AttributeError("Field %s not set" % (item,))
+        return None
+        # raise AttributeError("Field %s not set" % (item,))
 
     def __getattr__(self, item):
         if item in self.field_dict:
             return self.field_dict[item]
-        raise AttributeError("Field %s not set" % (item,))
+        return None
+        # raise AttributeError("Field %s not set" % (item,))
 
     def parse_payload(self, payload):
         fields = payload.split(',')
