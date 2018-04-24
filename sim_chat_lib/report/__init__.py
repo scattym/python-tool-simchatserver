@@ -16,6 +16,7 @@ class Report(object):
         self.lac = None
         self.ci = None
         self.rx_level = None
+        self.event_type = None
 
 
 class MeitrackConfigRequest(object):

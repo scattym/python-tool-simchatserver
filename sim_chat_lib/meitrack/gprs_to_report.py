@@ -32,5 +32,6 @@ def gprs_to_report(gprs):
             report.lac = base_station_info["lac"]
             report.ci = base_station_info["ci"]
             report.rx_level = base_station_info["gsm_signal_strength"]
+        report.event_type = gprs.enclosed_data.get_event_type()
         return report
     return None

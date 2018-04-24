@@ -3,6 +3,7 @@ import multiprocessing
 import logging
 from queue import Queue
 
+from sim_chat_lib import geotool_api
 from sim_chat_lib.geotool_api import device_api
 from sim_chat_lib.geotool_api import meitrack_config_api
 
@@ -84,6 +85,9 @@ class Task(object):
             except Exception as err:
                 logger.error("Exception in async task, logging gps entry %s", err)
 
+        if self.report.event_type:
+            if self.report.event_type == "SOS Button Pressed":
+                geotool_api.add_event_log(self.report.imei, event_type=0, event_description=self.report.event_type)
         return self.result
 
     def __str__(self):
