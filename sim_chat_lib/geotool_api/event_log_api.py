@@ -4,8 +4,6 @@ from sim_chat_lib.geotool_api import common
 
 logger = logging.getLogger(__name__)
 
-EVENT_API = "/api/event_log/"
-
 EVENT_TYPE_EMERGENCY = '0'
 EVENT_TYPE_WARNING = '1'
 EVENT_TYPE_INFORMATION = '2'
@@ -18,7 +16,7 @@ def add_event(device_pk, log_time, event_type, event_description):
         "event_type": event_type,
         "event_description": event_description,
     }
-    response = common.post_to_api(EVENT_API, data=data)
+    response = common.post_to_api(common.EVENT_API, data=data)
 
     return response
 

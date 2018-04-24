@@ -42,6 +42,7 @@ TRIP_LOG_API = "/api/trip_log/"
 DEVICE_UPDATE_API = "/api/deviceupdate/"
 CAMERA_API = "/api/camera/"
 MEITRACK_CONFIG_API = "/api/meitrack_config/"
+EVENT_API = "/api/event/"
 
 GEOTOOL_API_CACHE = None
 
