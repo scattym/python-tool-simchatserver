@@ -15,6 +15,7 @@ class TrackerCommand(Command):
         "run_time", "base_station_info", "io_port_status", "analog_input_value", "assisted_event_info",
         "customized_data", "protocol_version", "fuel_percentage",
         "temp_sensors", "max_acceleration_value", "max_deceleration_value",
+        "unknown_1", "unknown_2",
 
     ]
     field_names_50_51 = [
