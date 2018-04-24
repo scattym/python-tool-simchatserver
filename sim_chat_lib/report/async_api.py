@@ -91,7 +91,7 @@ class Task(object):
                     self.report.imei,
                     event_type=0,
                     event_description=self.report.event_type,
-                    log_time=datetime.datetime.now()
+                    log_time=str(datetime.datetime.now()),
                 )
         return self.result
 
