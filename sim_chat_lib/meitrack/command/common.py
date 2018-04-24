@@ -103,6 +103,19 @@ class Command(object):
         if self.field_dict.get("gsm_signal_strength"):
             return self.field_dict.get("gsm_signal_strength")
 
+    def get_event_type(self):
+        if self.field_dict.get("event_type"):
+            return meitrack_event_type_to_name(self.field_dict.get("event_type"))
+
+
+EVENT_TYPE_MAP = {
+    "1": "SOS Button Pressed",
+}
+
+
+def meitrack_event_type_to_name(event_type):
+    return EVENT_TYPE_MAP.get(str(event_type))
+
 
 def meitrack_date_to_datetime(date_time):
     # yymmddHHMMSS
