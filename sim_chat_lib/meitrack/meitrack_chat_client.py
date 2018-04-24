@@ -48,6 +48,9 @@ class MeitrackChatClient(BaseChatClient):
 
     def parse_config(self, response):
         logger.info("Parsing config response %s", response)
+        if not response:
+            logger.error("No response to parse.")
+            return
         if response.get("heartbeat_interval"):
             gprs = build_message.stc_set_heartbeat_interval(self.imei, response.get("heartbeat_interval"))
             self.send_data(repr(gprs))
