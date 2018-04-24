@@ -65,8 +65,6 @@ def close_socket(sock):
         logger.error("Socket error on close %s", err)
 
 
-
-
 def execute_command(data):
     global QUIT_FLAG
     logger.info("Executing command: %s", data)
@@ -145,7 +143,6 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
     server_socket.setblocking(0)
 
     logger.info("Chat server started on port " + str(PORT))
-
 
     epoll.register(server_socket.fileno(), select.EPOLLIN | select.EPOLLET)
     logger.debug("Result queue file descriptor is %s", result_queue._reader.fileno())
@@ -271,7 +268,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                             data = connections[sock_fd].recv(RECV_BUFFER)
                             if data:
                                logger.error("Spurious data: %s", data)
-                               identify_client(sock_fd, task_queue, data.decode())
+                               identify_client(connections[sock_fd], task_queue, data.decode())
                             else:
                                close_socket(connections[sock_fd])
                             # at this stage, no data means probably the connection has been broken
