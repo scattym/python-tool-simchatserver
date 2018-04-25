@@ -268,7 +268,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                             data = connections[sock_fd].recv(RECV_BUFFER)
                             if data:
                                logger.error("Spurious data: %s", data)
-                               identify_client(connections[sock_fd], task_queue, data.decode())
+                               identify_client(connections[sock_fd], task_queue, data)
                             else:
                                close_socket(connections[sock_fd])
                                send_to_masters("Client (%s, %s) is offline\n" % addr)
