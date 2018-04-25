@@ -110,6 +110,14 @@ class GPRS(object):
         return return_str
 
     def __repr__(self):
+        string_to_sign = "%s%s%s,%s,%s*" % (
+            self.direction,
+            self.data_identifier,
+            self.data_length,
+            self.imei,
+            self.leftover,
+        )
+        self.checksum = "{:02X}".format(calc_signature(string_to_sign))
         return_str = "%s%s%s,%s,%s*%s%s" % (
             self.direction,
             self.data_identifier,
@@ -163,6 +171,15 @@ def parse_data_payload(payload):
 
     return gprs_list, before, leftover
 
+
+def calc_signature(payload):
+    checksum = 0
+    lastchar = payload.find('*')
+    for char in payload[0:lastchar+1]:
+        checksum = checksum + ord(char)
+    checksum = checksum & 0xFF
+    # print("checksum is ", checksum)
+    return checksum
 
 if __name__ == '__main__':
     log_level = 11 - 11
@@ -340,3 +357,5 @@ if __name__ == '__main__':
         if "AAA" in gprs_item:
             print(gprs.enclosed_data["longitude"])
             print(gprs.enclosed_data.longitude)
+
+        print(hex(calc_signature(gprs_item)))
