@@ -34,7 +34,7 @@ class FileDownload(object):
     def is_complete(self):
         if not self.expecting_packets:
             return False
-        for i in range(1, self.expecting_packets+1):
+        for i in range(1, self.expecting_packets):
             if i not in self.packets:
                 logger.debug("File is not yet complete. Missing %s from %s", i, self.expecting_packets)
                 return False
