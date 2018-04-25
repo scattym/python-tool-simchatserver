@@ -26,9 +26,10 @@ class FileDownload(object):
             file_name, num_packets, packet_number, file_bytes = gprs_packet.enclosed_data.get_file_data()
             if file_name == self.file_name:
                 if not self.expecting_packets:
-                    self.expecting_packets = num_packets
+                    self.expecting_packets = int.from_bytes(num_packets, byteorder='big')
                 logger.debug("Adding packet %s to file %s", packet_number, self.file_name)
-                self.packets[packet_number] = file_bytes
+                packet_number_int = int.from_bytes(packet_number, byteorder='big')
+                self.packets[packet_number_int] = file_bytes
 
     def is_complete(self):
         if not self.expecting_packets:
