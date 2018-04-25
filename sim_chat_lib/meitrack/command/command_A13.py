@@ -36,9 +36,9 @@ if __name__ == '__main__':
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    test_command = SetCorneringCommand(0, "A13,120")
-    print(repr(test_command))
+    test_command = SetCorneringCommand(0, b"A13,120")
+    print(test_command.as_bytes())
     print(test_command)
-    test_command = SetCorneringCommand(1, "A13,OK")
-    print(repr(test_command))
+    test_command = SetCorneringCommand(1, b"A13,OK")
+    print(test_command.as_bytes())
     print(test_command)

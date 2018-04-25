@@ -29,8 +29,12 @@ class ChatClient(object):
         logger.error("On login not implemented in base class")
 
     def send_data(self, data):
-        logger.debug("Sending data to {}. Data: {}".format(self.ident(), data.encode()))
-        self.sock_fd.send(data.encode())
+        try:
+            data = data.encode()
+        except AttributeError as err:
+            logger.debug("Already encoded")
+        logger.debug("Sending data to {}. Data: {}".format(self.ident(), data))
+        self.sock_fd.send(data)
         self.update_last_tick()
 
     def receive_data(self):

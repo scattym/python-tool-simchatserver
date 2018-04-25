@@ -42,9 +42,9 @@ if __name__ == '__main__':
         """E91,FWV1.00,12345678""",
     ]
 
-    test_command = RequestDeviceInfoCommand(0, "E91")
-    print(repr(test_command))
+    test_command = RequestDeviceInfoCommand(0, b"E91")
+    print(test_command.as_bytes())
     print(test_command)
-    test_command = RequestDeviceInfoCommand(1, "E91,FWV1.00,12345678")
-    print(repr(test_command))
+    test_command = RequestDeviceInfoCommand(1, b"E91,FWV1.00,12345678")
+    print(test_command.as_bytes())
     print(test_command)

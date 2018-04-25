@@ -53,16 +53,16 @@ class MeitrackChatClient(BaseChatClient):
             return
         if response.get("heartbeat_interval"):
             gprs = build_message.stc_set_heartbeat_interval(self.imei, response.get("heartbeat_interval"))
-            self.send_data(repr(gprs))
+            self.send_data((gprs.as_bytes()))
         if response.get("time_interval"):
             gprs = build_message.stc_set_tracking_by_time_interval(self.imei, response.get("heartbeat_interval"))
-            self.send_data(repr(gprs))
+            self.send_data((gprs.as_bytes()))
         if response.get("cornering_angle"):
             gprs = build_message.stc_set_cornering_angle(self.imei, response.get("cornering_angle"))
-            self.send_data(repr(gprs))
+            self.send_data((gprs.as_bytes()))
         if response.get("tracking_by_distance"):
             gprs = build_message.stc_set_tracking_by_distance(self.imei, response.get("tracking_by_distance"))
-            self.send_data(repr(gprs))
+            self.send_data((gprs.as_bytes()))
 
     def process_data(self, data):
         super(MeitrackChatClient, self).update_last_tick()
@@ -94,8 +94,8 @@ class MeitrackChatClient(BaseChatClient):
             report = gprs_to_report(gprs)
             queue_result = self.queue_report(report)
             if not queue_result:
-                logger.error("Unable to add record to queue: %s", repr(gprs))
-            return_str += repr(gprs)
+                logger.error("Unable to add record to queue: %s", (gprs.as_bytes()))
+            return_str += (gprs.as_bytes())
 
         logger.debug("Leftover bytes count %s, with data: %s", len(after), after)
         self.buffer = (after or "").encode()
@@ -107,7 +107,7 @@ class MeitrackChatClient(BaseChatClient):
         else:
             try:
                 gprs = build_message.stc_request_location_message(self.imei)
-                self.send_data(repr(gprs))
+                self.send_data((gprs.as_bytes()))
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send.")
 
@@ -118,8 +118,8 @@ class MeitrackChatClient(BaseChatClient):
             try:
                 gprs = build_message.stc_request_device_info(self.imei)
                 logger.debug(gprs)
-                logger.debug(repr(gprs))
-                self.send_data(repr(gprs))
+                logger.debug(gprs.as_bytes())
+                self.send_data((gprs.as_bytes()))
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send.")
 
@@ -129,7 +129,7 @@ class MeitrackChatClient(BaseChatClient):
         else:
             try:
                 gprs = build_message.stc_request_photo_list(self.imei)
-                self.send_data(repr(gprs))
+                self.send_data((gprs.as_bytes()))
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send.")
 
@@ -139,6 +139,6 @@ class MeitrackChatClient(BaseChatClient):
         else:
             try:
                 gprs = build_message.stc_request_take_photo(self.imei, camera_number, file_name)
-                self.send_data(repr(gprs))
+                self.send_data((gprs.as_bytes()))
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send.")

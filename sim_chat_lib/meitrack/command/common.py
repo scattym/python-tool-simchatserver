@@ -20,7 +20,7 @@ class Command(object):
             result_str += "\tField %s has value %s\n" % (field, self.field_dict[field])
         return result_str
 
-    def __repr__(self):
+    def as_bytes(self):
         fields = []
         if self.field_name_selector:
             for field in self.field_name_selector:
@@ -31,7 +31,7 @@ class Command(object):
                     else:
                         fields.append(self.field_dict.get(field))
         if fields:
-            return ','.join(fields)
+            return b','.join(fields)
         else:
             return self.payload
 
@@ -48,7 +48,7 @@ class Command(object):
         # raise AttributeError("Field %s not set" % (item,))
 
     def parse_payload(self, payload):
-        fields = payload.split(',')
+        fields = payload.split(b',')
         if len(fields) < 1:
             raise GPRSParseError("Field length does not include event code", self.payload)
         if self.field_name_selector is None:
@@ -72,7 +72,7 @@ class Command(object):
 
     def get_analog_input_value(self, input_number):
         if self.field_dict.get("analog_input_value"):
-            analog_list = self.field_dict.get("analog_input_value").split("|")
+            analog_list = self.field_dict.get("analog_input_value").split(b"|")
             if input_number <= len(analog_list):
                 print(analog_list[input_number-1])
                 print(int(analog_list[input_number-1], 16))
@@ -119,10 +119,10 @@ def meitrack_event_type_to_name(event_type):
 
 def meitrack_date_to_datetime(date_time):
     # yymmddHHMMSS
-    date_time = "%s%s" % (date_time, "Z")
+    date_time = "%s%s" % (date_time.decode(), "Z")
     d = datetime.datetime.strptime(date_time, "%y%m%d%H%M%SZ")
     return d
 
 
 def datetime_to_meitrack_date(date_time):
-    return date_time.strftime("%y%m%d%H%M%S")
+    return date_time.strftime("%y%m%d%H%M%S").encode()
