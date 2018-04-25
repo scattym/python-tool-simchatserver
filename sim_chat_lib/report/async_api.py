@@ -89,12 +89,12 @@ class Task(object):
 
         if self.report.file_name is not None and self.report.file_data is not None:
             try:
-                image_base64 = base64.b64encode(self.report.file_data)
+                # image_base64 = base64.b64encode(self.report.)
                 self.result = geotool_api.add_camera_image(
                     self.report.imei,
                     0,
                     datetime.datetime.utcnow(),
-                    image_base64
+                    self.file_data
                 )
             except Exception as err:
                 logger.error("Exception in async task, logging gps entry %s", err)
