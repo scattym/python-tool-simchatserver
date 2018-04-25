@@ -95,7 +95,11 @@ class MeitrackChatClient(BaseChatClient):
             queue_result = self.queue_report(report)
             if not queue_result:
                 logger.error("Unable to add record to queue: %s", (gprs.as_bytes()))
-            return_str += (gprs.as_bytes()).decode()
+            try:
+                return_str += (gprs.as_bytes()).decode()
+            except UnicodeDecodeError as err:
+                logger.error("Unable to decode response to send to masters")
+                return_str += "Binary data"
 
         logger.debug("Leftover bytes count %s, with data: %s", len(after), after)
         self.buffer = (after or "").encode()
