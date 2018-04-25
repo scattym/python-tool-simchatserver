@@ -94,7 +94,7 @@ class Task(object):
                     self.report.imei,
                     0,
                     datetime.datetime.utcnow(),
-                    self.file_data
+                    self.report.file_data
                 )
             except Exception as err:
                 logger.error("Exception in async task, logging gps entry %s", err)
