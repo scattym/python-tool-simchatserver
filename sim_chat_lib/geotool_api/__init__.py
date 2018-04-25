@@ -1,5 +1,5 @@
 
-from sim_chat_lib.geotool_api import device_api, firmware_api, common
+from sim_chat_lib.geotool_api import device_api, firmware_api, common, camera_api
 from sim_chat_lib.geotool_api import session_key_api
 from sim_chat_lib.geotool_api import device_key_api
 from sim_chat_lib.geotool_api import event_log_api
@@ -55,3 +55,9 @@ def add_sos_event(imei, log_time):
     device_pk = device_api.get_device_pk(imei)
     if device_pk:
         return event_log_api.add_sos_event(device_pk, log_time)
+
+
+def add_camera_image(imei, camera_number, camera_time, image_data_jpg):
+    device_pk = device_api.get_device_pk(imei)
+    if device_pk:
+        return camera_api.add_camera_image(device_pk, camera_number, camera_time, image_data_jpg)

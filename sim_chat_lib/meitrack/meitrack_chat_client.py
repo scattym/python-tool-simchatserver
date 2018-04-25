@@ -8,11 +8,47 @@ from sim_chat_lib.meitrack import GPRSParseError
 from sim_chat_lib.meitrack.error import GPRSError
 from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
 from sim_chat_lib.meitrack import build_message
-from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report
+from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, file_download_to_report
 from sim_chat_lib.report import MeitrackConfigRequest
 import traceback
 
 logger = logging.getLogger(__name__)
+
+
+class FileDownload(object):
+    def __init__(self, file_name):
+        self.file_name = file_name
+        self.expecting_packets = None
+        self.packets = {}
+
+    def add_packet(self, gprs_packet):
+        if gprs_packet and gprs_packet.enclosed_data:
+            file_name, num_packets, packet_number, file_bytes = gprs_packet.enclosed_data.get_file_data()
+            if file_name == self.file_name:
+                if not self.expecting_packets:
+                    self.expecting_packets = num_packets
+                logger.debug("Adding packet %s to file %s", packet_number, self.file_name)
+                self.packets[packet_number] = file_bytes
+
+    def is_complete(self):
+        if not self.expecting_packets:
+            return False
+        for i in range(1, self.expecting_packets+1):
+            if i not in self.packets:
+                logger.debug("File is not yet complete. Missing %s from %s", i, self.expecting_packets)
+                return False
+        logger.debug("File is complete")
+        return True
+
+    def return_file_contents(self):
+        if not self.is_complete():
+            logger.debug("File is not complete yet. Returning None")
+            return None
+        else:
+            file_bytes = b""
+            for i in range(1, self.expecting_packets+1):
+                file_bytes = file_bytes + self.packets[i]
+            return file_bytes
 
 
 class MeitrackChatClient(BaseChatClient):
@@ -22,6 +58,8 @@ class MeitrackChatClient(BaseChatClient):
         self.buffer = b''
         if imei:
             self.on_login()
+        self.file_list = []
+        self.file_download_list = []
 
     def check_login(self):
         return True
@@ -103,6 +141,19 @@ class MeitrackChatClient(BaseChatClient):
 
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
+                found = False
+                for file_download in self.file_download_list:
+                    if file_download.file_name == file_name:
+                        found = True
+                        file_download.add_packet(gprs)
+                        if file_download.is_complete():
+                            report = file_download_to_report(self.imei.decode(), file_download)
+                            self.queue_report(report)
+
+                if not found:
+                    file_download = FileDownload(file_name)
+                    file_download.add_packet(gprs)
+                    self.file_download_list.append(file_download)
                 if file_name:
                     os_file_name = "/tmp/%s" % file_name.decode()
                     logger.debug("Writing to file %s", os_file_name)

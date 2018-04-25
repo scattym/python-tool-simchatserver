@@ -45,3 +45,11 @@ def gprs_to_report(gprs):
         report.event_type = gprs.enclosed_data.get_event_type()
         return report
     return None
+
+
+def file_download_to_report(imei, file_download):
+    report = Report()
+    report.imei = imei
+    report.file_name = file_download.file_name
+    report.file_data = file_download.return_file_contents()
+    return report
