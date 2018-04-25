@@ -2,6 +2,8 @@
 import logging
 
 import sys
+import time
+
 from sim_chat_lib.meitrack import event
 from sim_chat_lib.meitrack.command.command_AAA import TrackerCommand
 from sim_chat_lib.meitrack.command.command_E91 import RequestDeviceInfoCommand
@@ -72,6 +74,12 @@ def command_to_object(direction, command_type, payload):
         return COMMAND_LIST[command_type]["class"](direction, payload)
     else:
         return Command(direction, payload)
+
+
+def stc_request_take_photo(camera_number, file_name):
+    if file_name is None:
+        file_name = "camera-{}-{}.jpg".format(camera_number, int(time.time()))
+    return Command(0, "D03,{},{}".format(camera_number, file_name))
 
 
 def stc_request_photo_list():
