@@ -128,6 +128,8 @@ def host_to_token_header(host):
 def post_to_api(endpoint, data, primary_key=None, cacheable=False, files=None):
     try:
         url = 'http://%s%s' % (API_HOST, endpoint)
+        logger.debug(url)
+        logger.debug(data)
 
         content_type="application/json"
         headers = host_to_token_header(API_HOST)
