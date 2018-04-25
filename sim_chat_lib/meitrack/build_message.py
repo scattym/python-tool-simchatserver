@@ -3,6 +3,17 @@ from sim_chat_lib.meitrack.gprs_protocol import GPRS
 from sim_chat_lib.meitrack.error import GPRSParameterError
 
 
+def stc_request_get_file(imei, file_name):
+    com = command.stc_request_file_download(file_name)
+    gprs = GPRS()
+    gprs.direction = b'@@'
+    gprs.data_identifier = b'X'
+    gprs.enclosed_data = com
+    gprs.imei = imei
+
+    return gprs
+
+
 def stc_request_take_photo(imei, camera_number, file_name):
     com = command.stc_request_take_photo(camera_number, file_name=file_name)
     gprs = GPRS()
