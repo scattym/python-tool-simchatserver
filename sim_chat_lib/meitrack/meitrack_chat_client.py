@@ -142,26 +142,27 @@ class MeitrackChatClient(BaseChatClient):
 
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
-                found = False
-                for file_download in self.file_download_list:
-                    if file_download.file_name == file_name:
-                        found = True
-                        file_download.add_packet(gprs)
-                        if file_download.is_complete():
-                            report = file_download_to_report(self.imei.decode(), file_download)
-                            self.queue_report(report)
-                            self.file_download_list.remove(file_download)
+                if file_name and file_bytes:
+                    found = False
+                    for file_download in self.file_download_list:
+                        if file_download.file_name == file_name:
+                            found = True
+                            file_download.add_packet(gprs)
+                            if file_download.is_complete():
+                                report = file_download_to_report(self.imei.decode(), file_download)
+                                self.queue_report(report)
+                                self.file_download_list.remove(file_download)
 
-                if not found:
-                    file_download = FileDownload(file_name)
-                    file_download.add_packet(gprs)
-                    self.file_download_list.append(file_download)
-                if file_name:
-                    os_file_name = "/tmp/%s" % file_name.decode()
-                    logger.debug("Writing to file %s", os_file_name)
-                    file = open(os_file_name, 'ab')
-                    file.write(file_bytes)
-                    file.close()
+                    if not found:
+                        file_download = FileDownload(file_name)
+                        file_download.add_packet(gprs)
+                        self.file_download_list.append(file_download)
+                    if file_name:
+                        os_file_name = "/tmp/%s" % file_name.decode()
+                        logger.debug("Writing to file %s", os_file_name)
+                        file = open(os_file_name, 'ab')
+                        file.write(file_bytes)
+                        file.close()
 
         logger.debug("Leftover bytes count %s, with data: %s", len(after), after)
         self.buffer = (after or "").encode()
