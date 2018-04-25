@@ -47,8 +47,11 @@ class Command(object):
         return None
         # raise AttributeError("Field %s not set" % (item,))
 
-    def parse_payload(self, payload):
-        fields = payload.split(b',')
+    def parse_payload(self, payload, max_split=None):
+        if max_split:
+            fields = payload.split(b',', max_split)
+        else:
+            fields = payload.split(b',')
         if len(fields) < 1:
             raise GPRSParseError("Field length does not include event code", self.payload)
         if self.field_name_selector is None:
@@ -107,6 +110,16 @@ class Command(object):
         if self.field_dict.get("event_code"):
             return meitrack_event_type_to_name(self.field_dict.get("event_code"))
 
+    def get_file_data(self):
+        if self.field_dict.get("file_bytes"):
+            return (
+                self.field_dict.get("file_name"),
+                self.field_dict.get("number_of_data_packets"),
+                self.field_dict.get("data_packet_number"),
+                self.field_dict.get("file_bytes")
+            )
+        else:
+            return None, None, None, None
 
 EVENT_TYPE_MAP = {
     "1": "SOS Button Pressed",

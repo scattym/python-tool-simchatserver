@@ -6,6 +6,7 @@ import time
 
 from sim_chat_lib.meitrack import event
 from sim_chat_lib.meitrack.command.command_AAA import TrackerCommand
+from sim_chat_lib.meitrack.command.command_D00 import FileDownloadCommand
 from sim_chat_lib.meitrack.command.command_E91 import RequestDeviceInfoCommand
 from sim_chat_lib.meitrack.command.common import Command
 from sim_chat_lib.meitrack.error import GPRSParameterError
@@ -48,6 +49,7 @@ COMMAND_LIST = {
     b"C43": {"name": "Setting a Temperature Value for the High/Low Temperature Alarm and Logical Name", "class": None},
     b"C44": {"name": "Reading Temperature Sensor Parameters", "class": None},
     b"C46": {"name": "Checking Temperature Sensor Parameters", "class": None},
+    b"D00": {"name": "File download command", "class": FileDownloadCommand},
     b"D10": {"name": "Authorizing an iButton key", "class": None},
     b"D11": {"name": "Authorizing iButton Keys in Batches", "class": None},
     b"D12": {"name": "Checking iButton Authorization", "class": None},

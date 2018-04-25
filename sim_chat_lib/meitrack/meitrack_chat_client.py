@@ -101,6 +101,14 @@ class MeitrackChatClient(BaseChatClient):
                 logger.error("Unable to decode response to send to masters")
                 return_str += "Binary data"
 
+            file_name, num_packets, packet_number, file_bytes = gprs.get_file_data()
+            if file_name:
+                os_file_name = "/tmp/%s" % file_name.decode()
+                logger.debug("Writing to file %s", os_file_name)
+                file = open(os_file_name, 'wab')
+                file.write(file_bytes)
+                file.close()
+
         logger.debug("Leftover bytes count %s, with data: %s", len(after), after)
         self.buffer = (after or "").encode()
         return return_str
