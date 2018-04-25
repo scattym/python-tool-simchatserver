@@ -41,6 +41,12 @@ class FileDownload(object):
         logger.debug("File is complete")
         return True
 
+    def fragment_list_as_string(self):
+        return_str = ""
+        for i in self.packets:
+            return_str += "{} ".format(i)
+        return return_str
+
     def return_file_contents(self):
         if not self.is_complete():
             logger.debug("File is not complete yet. Returning None")
@@ -72,7 +78,17 @@ class MeitrackChatClient(BaseChatClient):
         start = super(MeitrackChatClient, self).get_client_details()
         return "type: meitrack, ident: %s, remote: %s, age: %s" % (
             self.ident(), start, self.age()
-        )
+        ) + self.get_download_details()
+
+    def get_download_details(self):
+        if self.file_download_list:
+            return_str = "File Downloads\n"
+            for file_download in self.file_download_list:
+                return_str += "{}, {}, {}".format(
+                    file_download.file_name,
+                    file_download.expecting_packets,
+                    file_download.fragment_list_as_string()
+                )
 
     def ident(self):
         return "imei-%s" % (self.imei.decode())
@@ -142,6 +158,11 @@ class MeitrackChatClient(BaseChatClient):
 
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
+                return_str += "File: %s, packet: %s, of: %s" % (
+                    file_name.decode(),
+                    packet_number.decode(),
+                    num_packets.decode()
+                )
                 if file_name and file_bytes:
                     found = False
                     for file_download in self.file_download_list:
