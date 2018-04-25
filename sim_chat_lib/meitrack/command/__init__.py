@@ -74,6 +74,10 @@ def command_to_object(direction, command_type, payload):
         return Command(direction, payload)
 
 
+def stc_request_photo_list():
+    return Command(0, "D01,0")
+
+
 def stc_request_location():
     return Command(0, "A10")
 

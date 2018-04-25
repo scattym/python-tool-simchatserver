@@ -92,6 +92,8 @@ class ChatClient(object):
     def request_client_info(self):
         logger.debug("Client info not implemented for this device.")
 
+    def request_client_photo_list(self):
+        logger.debug("Client photo list not implemented for this device.")
+
     def set_heartbeat_interval(self, seconds):
         logger.debug("Setting heartbeat not implemented for this device.")
-
