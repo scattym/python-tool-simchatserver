@@ -88,13 +88,13 @@ class Command(object):
 
     def get_base_station_info(self):
         if self.field_dict.get("base_station_info"):
-            fields = self.field_dict.get("base_station_info").split("|")
+            fields = self.field_dict.get("base_station_info").split(b"|")
             if len(fields) == 4:
                 return_dict = {
                     "mcc": fields[0],
                     "mnc": fields[1],
-                    "lac": str(int(fields[2], 16)),
-                    "ci": str(int(fields[3], 16)),
+                    "lac": str(int(fields[2], 16)).encode(),
+                    "ci": str(int(fields[3], 16)).encode(),
                     "gsm_signal_strength": self.get_gsm_signal_strength()
                 }
                 return return_dict

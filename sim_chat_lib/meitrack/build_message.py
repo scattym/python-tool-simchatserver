@@ -93,5 +93,6 @@ def stc_request_device_info(imei):
 
 
 if __name__ == '__main__':
-    test_gprs = stc_request_location_message("testimei")
+    test_gprs = stc_request_location_message(b"testimei")
     print(test_gprs.as_bytes())
+    print(stc_request_device_info(b"0407").as_bytes())

@@ -29,7 +29,7 @@ class GPRS(object):
         self.payload = b""
         self.direction = None
         self.data_identifier = None
-        self.data_length = 0
+        self.data_length = b"0"
         self.data_payload = None
         self.imei = None
         self.command_type = None
@@ -42,9 +42,12 @@ class GPRS(object):
     def parse_data_payload(self, payload):
         self.payload = payload
         self.direction = payload[0:2]
-        self.data_identifier = payload[2]
+        self.data_identifier = chr(payload[2]).encode()
         self.checksum = payload[-4:-2]
         first_comma = payload.find(b',')
+        print("Data length is")
+        print(payload[3:first_comma])
+        print(type(payload[3:first_comma]))
         self.data_length = payload[3:first_comma]
         self.data_payload = payload[first_comma:]
         self.leftover = payload[first_comma+1:-5]
@@ -83,17 +86,15 @@ class GPRS(object):
 
     @property
     def data_length(self):
-        data = ",%s,%s*%s%s" % (
-            self.imei,
-            self.leftover,
-            self.checksum,
-            END_OF_MESSAGE_STRING
+        data = (
+                b"," + self.imei + b"," +
+                self.leftover + b"*" + self.checksum + END_OF_MESSAGE_STRING
         )
-        return len(data)
+        return str(len(data)).encode()
 
     @data_length.setter
     def data_length(self, data_length):
-        self.__data_length = data_length
+        self.__data_length = str(data_length).encode()
 
     def __str__(self):
         return_str = "Payload: %s\n" % (self.payload,)
@@ -110,22 +111,24 @@ class GPRS(object):
         return return_str
 
     def as_bytes(self):
-        string_to_sign = "%s%s%s,%s,%s*" % (
-            self.direction,
-            self.data_identifier,
-            self.data_length,
-            self.imei,
-            self.leftover,
+        #print(chr(self.data_identifier).encode())
+        #print(type(chr(self.data_identifier).encode()))
+        print(self.data_length)
+        string_to_sign = (
+                self.direction + self.data_identifier + self.data_length
+                + b"," + self.imei + b"," + self.leftover + b"*"
         )
-        checksum_hex = "{:02X}".format(calc_signature(string_to_sign.encode()))
+        checksum_hex = "{:02X}".format(calc_signature(string_to_sign))
         self.checksum = checksum_hex.encode()
         # self.checksum = "{:02X}".format(calc_signature(string_to_sign))
         print(type(self.data_identifier))
         return_str = (
-                self.direction + self.data_identifier.to_bytes(1, 'big') + str(self.data_length).encode()
+                self.direction + self.data_identifier + self.data_length
                 + b"," + self.imei + b"," +
                  self.leftover + b"*" + self.checksum + END_OF_MESSAGE_STRING
         )
+        print("RETURN STRING")
+        print(return_str)
         # return_str = "%s%s%s,%s,%s*%s%s" % (
         #     self.direction,
         #     self.data_identifier,
@@ -161,6 +164,7 @@ def parse_data_payload(payload):
 
         first_comma = payload.find(b',')
 
+        logger.debug("Data length is %s", payload[3:first_comma])
         data_length = int(payload[3:first_comma])
 
         if len(payload[first_comma:]) != data_length:

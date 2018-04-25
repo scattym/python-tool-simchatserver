@@ -25,7 +25,7 @@ def parse_client_connect(sock_fd, report_queue, connect_line):
                 if chat_client:
                     # Re-encode connect line as we decoded it on the
                     # way into this function
-                    chat_client.process_data(connect_line.encode())
+                    chat_client.process_data(connect_line)
                 return chat_client
     except GPRSParseError:
         logger.error("Unable to parse connect string for meitrack device.")

@@ -93,25 +93,25 @@ def stc_request_location():
 def stc_set_heartbeat(minutes=0):
     if minutes < 0 or minutes > 65535:
         raise GPRSParameterError("Heartbeat must be between 0 and 65535. Was %s" % (minutes,))
-    return Command(0, b"A11,%s" % (minutes,))
+    return Command(0, b"A11,%b" % (str(minutes).encode(),))
 
 
 def stc_set_tracking_by_time_interval(deci_seconds=0):
     if deci_seconds < 0 or deci_seconds > 65535:
         raise GPRSParameterError("Time interval must be between 0 and 65535. Was %s" % (deci_seconds,))
-    return Command(0, b"A12,%s" % (deci_seconds,))
+    return Command(0, b"A12,%b" % (str(deci_seconds).encode(),))
 
 
 def stc_set_cornering_angle(angle=0):
     if angle < 0 or angle > 359:
         raise GPRSParameterError("Cornering angle must be between 0 and 359. Was %s" % (angle,))
-    return Command(0, b"A13,%s" % (angle,))
+    return Command(0, b"A13,%s" % (str(angle).encode(),))
 
 
 def stc_set_tracking_by_distance(meters=0):
     if meters < 0 or meters > 65535:
         raise GPRSParameterError("Tracking by distance must be between 0 and 65535. Was %s" % (meters,))
-    return Command(0, b"A14,%s" % (meters,))
+    return Command(0, b"A14,%s" % (str(meters).encode(),))
 
 
 def stc_request_info():

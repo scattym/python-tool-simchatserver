@@ -38,8 +38,8 @@ if __name__ == '__main__':
     logger.addHandler(ch)
 
     tests = [
-        """E91""",
-        """E91,FWV1.00,12345678""",
+        b"""E91""",
+        b"""E91,FWV1.00,12345678""",
     ]
 
     test_command = RequestDeviceInfoCommand(0, b"E91")

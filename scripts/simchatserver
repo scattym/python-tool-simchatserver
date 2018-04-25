@@ -118,7 +118,7 @@ def identify_client(sock, task_queue, client_buffer):
         send_to_masters(client.get_client_details())
     else:
         logger.error("No chat client instantiated")
-        close_socket(sock)
+        #close_socket(sock)
 
 
 def is_available(ident):
@@ -195,10 +195,10 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                         logger.error("No data on connect.")
                         close_socket(connection)
                     else:
-                        imei_line = imei_line.decode()
+                        imei_line = imei_line
 
                         connection.settimeout(None)
-                        if 'M@ST#R:' in imei_line[0:7] and (addr[0] == "127.0.0.1" or addr[0][0:6] == "172.17"):
+                        if b'M@ST#R:' in imei_line[0:7] and (addr[0] == "127.0.0.1" or addr[0][0:6] == "172.17"):
                             logger.info("New master connection from %s:%s" % addr)
                             send_to_masters("New master connection from %s:%s" % addr)
                             MASTER_LIST.append(connection)

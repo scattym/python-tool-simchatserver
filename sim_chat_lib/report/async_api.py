@@ -108,14 +108,20 @@ class MeitrackConfigRequestTask(object):
         self.result = None
 
     def __call__(self):
-        logger.debug("Calling config request for imei %s", self.config_request.imei)
-        if self.config_request.imei:
+        try:
+            imei = self.config_request.imei.decode()
+        except AttributeError as err:
+            logger.error("Unable to decode imei")
+            imei = self.config_request.imei
+        logger.debug("Calling config request for imei %s", imei)
+
+        if imei:
             try:
-                device_pk = device_api.get_device_pk(self.config_request.imei)
+                device_pk = device_api.get_device_pk(imei)
                 config = meitrack_config_api.get_device_config(device_pk)
                 self.result = {
                     "type": "config",
-                    "imei": self.config_request.imei,
+                    "imei": imei,
                     "response": config,
                 }
             except Exception as err:

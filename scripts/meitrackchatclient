@@ -11,24 +11,24 @@ from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
 
 
 def chat_client(host, port, imei, version):
+    imei = imei.encode()
 
     gprs_list, before, after = parse_data_payload(
-        "$$`164,864507032228727,AAA,35,24.818910,121.025936,180329052345,A,7,13,0,16,1.2,69,2720,86125,466|97|527B"
-        "|01035DB4,0000,0001|0000|0000|019E|097F,00000001,,3,,,124,96*F2\r\n"
+        b"$$`164,864507032228727,AAA,35,24.818910,121.025936,180329052345,A,7,13,0,16,1.2,69,2720,86125,466|97|527B|01035DB4,0000,0001|0000|0000|019E|097F,00000001,,3,,,124,96*F2\r\n"
     )
     if len(gprs_list) != 1:
         sys.exit(1)
 
     gprs = gprs_list[0]
     gprs.imei = imei
-    message = repr(gprs)
+    message = gprs.as_bytes()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2)
 
     # connect to remote host
     try:
         s.connect((host, port))
-        s.send(message.encode())
+        s.send(message)
     except Exception as err:
         print('Unable to connect: %s' % (err,))
         sys.exit()
@@ -53,14 +53,15 @@ def chat_client(host, port, imei, version):
                     sys.exit()
                 else:
                     sys.stdout.write("\n")
+                    print(data)
                     sys.stdout.write(data.decode())
-                    gprs_list, before, after = parse_data_payload(data.decode())
+                    gprs_list, before, after = parse_data_payload(data)
                     for gprs in gprs_list:
-                        command = repr(gprs.enclosed_data)
+                        command = gprs.enclosed_data.as_bytes()
                         response = stub_processor.request_to_response(command, imei)
                         if response:
                             print("Sending response %s" % (response,))
-                            s.send(response.encode())
+                            s.send(response)
                         else:
                             print("No response to send for incoming command {}".format(command))
                     sys.stdout.write('[Me] ')

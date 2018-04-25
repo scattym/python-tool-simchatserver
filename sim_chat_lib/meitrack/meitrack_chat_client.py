@@ -36,7 +36,7 @@ class MeitrackChatClient(BaseChatClient):
         )
 
     def ident(self):
-        return "imei-%s" % (self.imei,)
+        return "imei-%s" % (self.imei.decode())
 
     def on_login(self):
         super(MeitrackChatClient, self).on_login()
@@ -53,16 +53,16 @@ class MeitrackChatClient(BaseChatClient):
             return
         if response.get("heartbeat_interval"):
             gprs = build_message.stc_set_heartbeat_interval(self.imei, response.get("heartbeat_interval"))
-            self.send_data((gprs.as_bytes()))
+            self.send_data(gprs.as_bytes())
         if response.get("time_interval"):
             gprs = build_message.stc_set_tracking_by_time_interval(self.imei, response.get("heartbeat_interval"))
-            self.send_data((gprs.as_bytes()))
+            self.send_data(gprs.as_bytes())
         if response.get("cornering_angle"):
             gprs = build_message.stc_set_cornering_angle(self.imei, response.get("cornering_angle"))
-            self.send_data((gprs.as_bytes()))
+            self.send_data(gprs.as_bytes())
         if response.get("tracking_by_distance"):
             gprs = build_message.stc_set_tracking_by_distance(self.imei, response.get("tracking_by_distance"))
-            self.send_data((gprs.as_bytes()))
+            self.send_data(gprs.as_bytes())
 
     def process_data(self, data):
         super(MeitrackChatClient, self).update_last_tick()
@@ -76,7 +76,7 @@ class MeitrackChatClient(BaseChatClient):
             raise ChatError("Buffer too long")
 
         try:
-            gprs_list, before, after = parse_data_payload(self.buffer.decode())
+            gprs_list, before, after = parse_data_payload(self.buffer)
         except UnicodeDecodeError as err:
             logger.error("Unicode decode error on buffer %s", self.buffer)
             logger.debug(traceback.print_exc())
@@ -95,7 +95,7 @@ class MeitrackChatClient(BaseChatClient):
             queue_result = self.queue_report(report)
             if not queue_result:
                 logger.error("Unable to add record to queue: %s", (gprs.as_bytes()))
-            return_str += (gprs.as_bytes())
+            return_str += (gprs.as_bytes()).decode()
 
         logger.debug("Leftover bytes count %s, with data: %s", len(after), after)
         self.buffer = (after or "").encode()
