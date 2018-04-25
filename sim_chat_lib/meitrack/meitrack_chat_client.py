@@ -158,12 +158,13 @@ class MeitrackChatClient(BaseChatClient):
 
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
-                return_str += "File: %s, packet: %s, of: %s" % (
-                    file_name.decode(),
-                    packet_number.decode(),
-                    num_packets.decode()
-                )
                 if file_name and file_bytes:
+                    return_str += "File: %s, packet: %s, of: %s" % (
+                        file_name.decode(),
+                        packet_number.decode(),
+                        num_packets.decode()
+                    )
+
                     found = False
                     for file_download in self.file_download_list:
                         if file_download.file_name == file_name:
