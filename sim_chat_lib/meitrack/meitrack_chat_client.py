@@ -53,7 +53,7 @@ class FileDownload(object):
             return None
         else:
             file_bytes = b""
-            for i in range(1, self.expecting_packets+1):
+            for i in range(1, self.expecting_packets):
                 file_bytes = file_bytes + self.packets[i]
             return file_bytes
 
