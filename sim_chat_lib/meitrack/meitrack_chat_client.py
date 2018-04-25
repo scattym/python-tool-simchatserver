@@ -76,9 +76,9 @@ class MeitrackChatClient(BaseChatClient):
 
     def get_client_details(self):
         start = super(MeitrackChatClient, self).get_client_details()
-        return "type: meitrack, ident: %s, remote: %s, age: %s" % (
-            self.ident(), start, self.age()
-        ) + self.get_download_details()
+        return "type: meitrack, ident: %s, remote: %s, age: %s\n%s" % (
+            self.ident(), start, self.age(), self.get_download_details()
+        )
 
     def get_download_details(self):
         if self.file_download_list:
