@@ -156,12 +156,12 @@ class MeitrackChatClient(BaseChatClient):
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send.")
 
-    def request_get_file(self, file_name):
+    def request_get_file(self, file_name, payload_start_index=0):
         if not self.imei:
             logger.error("Unable to request client to take a photo as client id not yet known")
         else:
             try:
-                gprs = build_message.stc_request_get_file(self.imei, file_name)
+                gprs = build_message.stc_request_get_file(self.imei, file_name, payload_start_index)
                 self.send_data((gprs.as_bytes()))
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send.")

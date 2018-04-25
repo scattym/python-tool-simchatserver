@@ -330,12 +330,16 @@ def send_to_device(ident, cmd):
                         if len(cmd_arr) >= 3:
                             file_name = cmd_arr[2]
                         CHAT_CLIENT_LIST[sock_fd].request_client_take_photo(camera_number)
-                    elif "get_photo" in cmd:
+                    elif "get_file" in cmd:
                         file_name = None
+                        payload_start_index = 0
                         cmd_arr = cmd.split(",")
                         if len(cmd_arr) >= 2:
                             file_name = cmd_arr[1]
-                        CHAT_CLIENT_LIST[sock_fd].request_get_file(file_name)
+                        if len(cmd_arr) >= 3:
+                            payload_start_index = cmd_arr[2]
+                        if file_name:
+                            CHAT_CLIENT_LIST[sock_fd].request_get_file(file_name, payload_start_index)
 
                     else:
                         CHAT_CLIENT_LIST[sock_fd].send_command(cmd)

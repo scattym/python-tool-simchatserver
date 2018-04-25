@@ -78,8 +78,8 @@ def command_to_object(direction, command_type, payload):
         return Command(direction, payload)
 
 
-def stc_request_file_download(file_name):
-    return Command(0, b"D00," + str(file_name).encode() + b",0")
+def stc_request_file_download(file_name, payload_start_index):
+    return Command(0, b"D00," + str(file_name).encode() + b"," + str(payload_start_index).encode())
 
 
 def stc_request_take_photo(camera_number, file_name):

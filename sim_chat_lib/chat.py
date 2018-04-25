@@ -103,7 +103,7 @@ class ChatClient(object):
     def request_client_take_photo(self, camera_number, file_name):
         logger.debug("Client photo list not implemented for this device.")
 
-    def request_get_file(self, file_name):
+    def request_get_file(self, file_name, payload_start_index=0):
         logger.debug("Client file retrieval not implemented for this device.")
 
     def set_heartbeat_interval(self, seconds):
