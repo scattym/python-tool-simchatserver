@@ -79,7 +79,7 @@ def command_to_object(direction, command_type, payload):
 def stc_request_take_photo(camera_number, file_name):
     if file_name is None:
         file_name = "camera-{}-{}.jpg".format(camera_number, int(time.time()))
-    return Command(0, b"D03,{},{}".format(camera_number, file_name))
+    return Command(0, b"D03," + str(camera_number).encode() + b"," + str(file_name).encode())
 
 
 def stc_request_photo_list():
