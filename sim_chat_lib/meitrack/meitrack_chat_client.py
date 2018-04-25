@@ -106,7 +106,7 @@ class MeitrackChatClient(BaseChatClient):
                 if file_name:
                     os_file_name = "/tmp/%s" % file_name.decode()
                     logger.debug("Writing to file %s", os_file_name)
-                    file = open(os_file_name, 'wab')
+                    file = open(os_file_name, 'ab')
                     file.write(file_bytes)
                     file.close()
 
