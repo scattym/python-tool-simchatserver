@@ -54,7 +54,7 @@ class FileDownload(object):
         else:
             file_bytes = b""
             for i in range(0, self.expecting_packets):
-                file_bytes = file_bytes + self.packets[i]
+                file_bytes = b"".join([file_bytes, self.packets[i]])
             return file_bytes
 
 
@@ -81,14 +81,16 @@ class MeitrackChatClient(BaseChatClient):
         )
 
     def get_download_details(self):
+        return_str = ""
         if self.file_download_list:
             return_str = "File Downloads\n"
             for file_download in self.file_download_list:
-                return_str += "{}, {}, {}".format(
+                return_str += "{}, {}, {}\n".format(
                     file_download.file_name,
                     file_download.expecting_packets,
                     file_download.fragment_list_as_string()
                 )
+        return return_str
 
     def ident(self):
         return "imei-%s" % (self.imei.decode())
@@ -171,6 +173,7 @@ class MeitrackChatClient(BaseChatClient):
                             found = True
                             file_download.add_packet(gprs)
                             if file_download.is_complete():
+                                logger.debug("File is not ")
                                 report = file_download_to_report(self.imei.decode(), file_download)
                                 self.queue_report(report)
                                 self.file_download_list.remove(file_download)
