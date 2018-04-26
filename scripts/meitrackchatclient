@@ -96,7 +96,7 @@ def chat_client(host, port, imei, version):
                         b = list(part)
                         num_sent = s.send(bytes(b))
                         print(num_sent)
-                        time.sleep(0.1)
+                        #time.sleep(0.1)
                 else:
                     s.send(("%s%s" % (msg, "\r\n")).encode())
                 sys.stdout.write('[Me] ')
