@@ -181,12 +181,14 @@ class MeitrackChatClient(BaseChatClient):
                         file_download = FileDownload(file_name)
                         file_download.add_packet(gprs)
                         self.file_download_list.append(file_download)
-                    # if file_name:
-                    #     os_file_name = "/tmp/%s" % file_name.decode()
-                    #     logger.debug("Writing to file %s", os_file_name)
-                    #     file = open(os_file_name, 'ab')
-                    #     file.write(file_bytes)
-                    #     file.close()
+
+                    if int(packet_number.decode()) % 8 == 7 and int(num_packets.decode()) > int(packet_number.decode())+1:
+                        ask_for_more = build_message.stc_request_get_file(
+                            self.imei,
+                            file_name,
+                            int(packet_number.decode())+1
+                        )
+                        self.send_data(ask_for_more.as_bytes())
 
         if before != b'':
             logger.error("Got data before start of packet. Should not be possible.")
