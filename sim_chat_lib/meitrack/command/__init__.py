@@ -79,7 +79,11 @@ def command_to_object(direction, command_type, payload):
 
 
 def stc_request_file_download(file_name, payload_start_index):
-    return Command(0, b"D00," + str(file_name).encode() + b"," + str(payload_start_index).encode())
+    try:
+        file_name = file_name.encode()
+    except AttributeError:
+        pass
+    return Command(0, b"D00," + file_name + b"," + str(payload_start_index).encode())
 
 
 def stc_request_take_photo(camera_number, file_name):
