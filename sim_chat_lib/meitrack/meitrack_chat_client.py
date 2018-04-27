@@ -157,6 +157,13 @@ class MeitrackChatClient(BaseChatClient):
                 logger.error("Unable to decode response to send to masters")
                 return_str += "Binary data"
 
+            if gprs.enclosed_data["event_code"] == b'39':
+                ask_for_file = build_message.stc_request_get_file(
+                    self.imei,
+                    gprs.enclosed_data["file_name"]
+                )
+                self.send_data(ask_for_file.as_bytes())
+
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
                 if file_name and file_bytes:
