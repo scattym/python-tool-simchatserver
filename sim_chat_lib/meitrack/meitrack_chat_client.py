@@ -24,7 +24,7 @@ class FileDownload(object):
     def add_packet(self, gprs_packet):
         if gprs_packet and gprs_packet.enclosed_data:
             file_name, num_packets, packet_number, file_bytes = gprs_packet.enclosed_data.get_file_data()
-            if file_name == self.file_name:
+            if file_name and file_name == self.file_name:
                 if not self.expecting_packets:
                     self.expecting_packets = int(num_packets.decode())
                 logger.debug("Adding packet %s to file %s", packet_number, self.file_name)
@@ -76,8 +76,8 @@ class MeitrackChatClient(BaseChatClient):
 
     def get_client_details(self):
         start = super(MeitrackChatClient, self).get_client_details()
-        return "type: meitrack, ident: %s, remote: %s, age: %s\n%s" % (
-            self.ident(), start, self.age(), self.get_download_details()
+        return "type: meitrack, ident: %s, remote: %s, age: %s\n%s\n%s" % (
+            self.ident(), start, self.age(), self.get_download_details(), self.buffer
         )
 
     def get_download_details(self):
@@ -122,10 +122,9 @@ class MeitrackChatClient(BaseChatClient):
             self.send_data(gprs.as_bytes())
 
     def process_data(self, data):
-        super(MeitrackChatClient, self).update_last_tick()
-        if len(self.buffer) <= 2048:
+        if len(self.buffer) <= 65536:
             try:
-                self.buffer += data
+                self.buffer = b"".join([self.buffer, data])
             except UnicodeDecodeError as err:
                 logger.error("Unable to convert bytes to string %s", data)
                 raise ChatError("Unable to convert bytes to string")
@@ -147,7 +146,7 @@ class MeitrackChatClient(BaseChatClient):
         for gprs in gprs_list:
             if not self.imei:
                 self.imei = gprs.imei
-            print(gprs)
+            # print(gprs)
             report = gprs_to_report(gprs)
             queue_result = self.queue_report(report)
             if not queue_result:
@@ -161,7 +160,7 @@ class MeitrackChatClient(BaseChatClient):
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
                 if file_name and file_bytes:
-                    return_str += "File: %s, packet: %s, of: %s" % (
+                    return_str += "File: %s, packet: %s, of: %s\n" % (
                         file_name.decode(),
                         packet_number.decode(),
                         num_packets.decode()
@@ -182,15 +181,17 @@ class MeitrackChatClient(BaseChatClient):
                         file_download = FileDownload(file_name)
                         file_download.add_packet(gprs)
                         self.file_download_list.append(file_download)
-                    if file_name:
-                        os_file_name = "/tmp/%s" % file_name.decode()
-                        logger.debug("Writing to file %s", os_file_name)
-                        file = open(os_file_name, 'ab')
-                        file.write(file_bytes)
-                        file.close()
+                    # if file_name:
+                    #     os_file_name = "/tmp/%s" % file_name.decode()
+                    #     logger.debug("Writing to file %s", os_file_name)
+                    #     file = open(os_file_name, 'ab')
+                    #     file.write(file_bytes)
+                    #     file.close()
 
+        if before != b'':
+            logger.error("Got data before start of packet. Should not be possible.")
         logger.debug("Leftover bytes count %s, with data: %s", len(after), after)
-        self.buffer = (after or "").encode()
+        self.buffer = after
         return return_str
 
     def request_client_location(self):

@@ -144,7 +144,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
 
     logger.info("Chat server started on port " + str(PORT))
 
-    epoll.register(server_socket.fileno(), select.EPOLLIN | select.EPOLLET)
+    epoll.register(server_socket.fileno(), select.EPOLLIN)
     logger.debug("Result queue file descriptor is %s", result_queue._reader.fileno())
     epoll.register(result_queue._reader, select.EPOLLIN)
     epoll.register(sys.stdin, select.EPOLLIN)
@@ -185,7 +185,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                 device_name = None
                 connection, addr = server_socket.accept()
                 connections[connection.fileno()] = connection
-                epoll.register(connection, select.EPOLLIN | select.EPOLLET)
+                epoll.register(connection, select.EPOLLIN )
                 logger.info("Client (%s, %s) connected" % addr)
                 logger.info("New client has fd %s", connection.fileno())
                 try:
@@ -289,9 +289,9 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                         )
                         close_socket(connections[sock_fd])
             elif event & select.EPOLLOUT:
-                logger.debug("Is an epollout event, with fd %s", sock_fd)
+                logger.error("Is an epollout event, with fd %s", sock_fd)
             elif event & select.EPOLLHUP:
-                logger.debug("Is an epollhup event")
+                logger.error("Is an epollhup event")
 
     stop_consumers(task_queue)
 

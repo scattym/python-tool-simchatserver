@@ -45,9 +45,9 @@ class GPRS(object):
         self.data_identifier = chr(payload[2]).encode()
         self.checksum = payload[-4:-2]
         first_comma = payload.find(b',')
-        print("Data length is")
-        print(payload[3:first_comma])
-        print(type(payload[3:first_comma]))
+        # print("Data length is")
+        # print(payload[3:first_comma])
+        # print(type(payload[3:first_comma]))
         self.data_length = payload[3:first_comma]
         self.data_payload = payload[first_comma:]
         self.leftover = payload[first_comma+1:-5]
@@ -111,9 +111,9 @@ class GPRS(object):
         return return_str
 
     def as_bytes(self):
-        #print(chr(self.data_identifier).encode())
-        #print(type(chr(self.data_identifier).encode()))
-        print(self.data_length)
+        # print(chr(self.data_identifier).encode())
+        # print(type(chr(self.data_identifier).encode()))
+        # print(self.data_length)
         string_to_sign = (
                 self.direction + self.data_identifier + self.data_length
                 + b"," + self.imei + b"," + self.leftover + b"*"
@@ -121,14 +121,14 @@ class GPRS(object):
         checksum_hex = "{:02X}".format(calc_signature(string_to_sign))
         self.checksum = checksum_hex.encode()
         # self.checksum = "{:02X}".format(calc_signature(string_to_sign))
-        print(type(self.data_identifier))
+        # print(type(self.data_identifier))
         return_str = (
                 self.direction + self.data_identifier + self.data_length
                 + b"," + self.imei + b"," +
                  self.leftover + b"*" + self.checksum + END_OF_MESSAGE_STRING
         )
-        print("RETURN STRING")
-        print(return_str)
+        # print("RETURN STRING")
+        # print(return_str)
         # return_str = "%s%s%s,%s,%s*%s%s" % (
         #     self.direction,
         #     self.data_identifier,
@@ -142,8 +142,8 @@ class GPRS(object):
 
 
 def parse_data_payload(payload):
-    leftover = ""
-    before = ""
+    leftover = b''
+    before = b''
     gprs_list = []
     while len(payload) > 0:
 
@@ -151,42 +151,49 @@ def parse_data_payload(payload):
         if direction_start < 0:
             direction_start = payload.find(SERVER_TO_CLIENT_PREFIX)
         if direction_start < 0:
-            print(payload)
-            raise GPRSParseError("Unable to find start of payload")
-
-        direction_end = direction_start + 2
-        if direction_start > 0:
-            before = payload[0:direction_start]
-
-        payload = payload[direction_start:]
-
-        data_identifier = payload[2]
-
-        first_comma = payload.find(b',')
-
-        logger.debug("Data length is %s", payload[3:first_comma])
-        data_length = int(payload[3:first_comma])
-
-        if len(payload[first_comma:]) != data_length:
-            print(payload)
-        message = payload[:first_comma+data_length]
-        if message[-2:] != END_OF_MESSAGE_STRING:
-            logger.debug("Last two characters of message is >%s<", message[-2:])
-            raise GPRSParseError("Found begin token, but length does not lead to end of payload. %s", payload)
-        current_gprs = GPRS(message)
-        gprs_list.append(current_gprs)
-
-        if len(payload[first_comma:]) > data_length:
-            payload = payload[first_comma+data_length:]
+            logger.error("Unable to find start payload")
+            leftover = payload
+            payload = b''
         else:
-            payload = b""
+            direction_end = direction_start + 2
+            if direction_start > 0:
+                before = payload[0:direction_start]
+
+            payload = payload[direction_start:]
+
+            data_identifier = payload[2]
+
+            first_comma = payload.find(b',')
+            if not first_comma:
+                logger.error("No first comma found. Can't get to calculate length of payload")
+                leftover = payload
+                payload = b''
+            else:
+                logger.debug("Data length is %s", payload[3:first_comma])
+                data_length = int(payload[3:first_comma])
+
+                if len(payload) >= (first_comma + data_length):
+                    logger.debug("Start of payload is {}".format(payload[0:2]))
+                    logger.debug("End of payload is {}".format(payload[-2:]))
+                    message = payload[:first_comma+data_length]
+                    payload = payload[first_comma+data_length:]
+
+                    if message[-2:] != END_OF_MESSAGE_STRING:
+                        logger.error("Last two characters of message is >%s<", message[-2:])
+                        raise GPRSParseError("Found begin token, but length does not lead to end of payload. %s", payload)
+
+                    current_gprs = GPRS(message)
+                    gprs_list.append(current_gprs)
+                else:
+                    leftover = payload
+                    payload = b''
 
     return gprs_list, before, leftover
 
 
 def calc_signature(payload):
-    print(type(payload))
-    print(payload)
+    # print(type(payload))
+    # print(payload)
     checksum = 0
     lastchar = payload.find(b'*')
     for char in payload[0:lastchar+1]:

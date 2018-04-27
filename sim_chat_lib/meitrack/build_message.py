@@ -92,6 +92,7 @@ def stc_set_tracking_by_distance(imei, meters=0):
 
     return gprs
 
+
 def stc_request_device_info(imei):
     com = command.stc_request_info()
     gprs = GPRS()
