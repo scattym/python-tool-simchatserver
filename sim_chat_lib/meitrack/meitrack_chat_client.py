@@ -31,6 +31,14 @@ class FileDownload(object):
                 packet_number_int = int(packet_number.decode())
                 self.packets[packet_number_int] = file_bytes
 
+    def next_packet(self):
+        if not self.expecting_packets:
+            return 0
+        for i in range(0, self.expecting_packets):
+            if i not in self.packets:
+                return i
+        return None
+
     def is_complete(self):
         if not self.expecting_packets:
             return False
@@ -158,7 +166,7 @@ class MeitrackChatClient(BaseChatClient):
                 logger.error("Unable to decode response to send to masters")
                 return_str += "Binary data"
 
-            if gprs.enclosed_data["event_code"] == b'39':
+            if gprs and gprs.enclosed_data and gprs.enclosed_data["event_code"] == b'39':
                 if len(self.file_download_list) == 0:
                     logger.debug("No current downloads. Asking for file.")
 
@@ -191,7 +199,7 @@ class MeitrackChatClient(BaseChatClient):
                             file_download.add_packet(gprs)
                             if file_download.is_complete():
                                 logger.debug("File is not ")
-                                report = file_download_to_report(self.imei.decode(), file_download)
+                                report = file_download_to_report(self.imei, file_download)
                                 self.queue_report(report)
                                 self.file_download_list.remove(file_download)
 
@@ -207,6 +215,17 @@ class MeitrackChatClient(BaseChatClient):
                             int(packet_number.decode())+1
                         )
                         self.send_data(ask_for_more.as_bytes())
+                else:
+                    if len(self.file_download_list) > 0:
+                        file_name = self.file_download_list[0].file_name
+                        next_packet = self.file_download_list[0].next_packet()
+                        ask_for_more = build_message.stc_request_get_file(
+                            self.imei,
+                            file_name,
+                            next_packet
+                        )
+                        self.send_data(ask_for_more.as_bytes())
+
 
         if before != b'':
             logger.error("Got data before start of packet. Should not be possible.")
