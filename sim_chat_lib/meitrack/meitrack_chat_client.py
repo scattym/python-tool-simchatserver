@@ -1,4 +1,5 @@
 import binascii
+import datetime
 import logging
 
 from sim_chat_lib.chat import ChatClient as BaseChatClient
@@ -76,6 +77,8 @@ class MeitrackChatClient(BaseChatClient):
         self.file_list = []
         self.file_download_list = []
         self.download_list = []
+        self.last_file_request = datetime.datetime.now()
+
 
     def check_login(self):
         return True
@@ -216,7 +219,7 @@ class MeitrackChatClient(BaseChatClient):
                         )
                         self.send_data(ask_for_more.as_bytes())
                 else:
-                    if len(self.file_download_list) > 0:
+                    if len(self.file_download_list) > 0 and datetime.datetime.now() - self.last_file_request > datetime.timedelta(seconds=30):
                         file_name = self.file_download_list[-1].file_name
                         next_packet = self.file_download_list[-1].next_packet()
                         ask_for_more = build_message.stc_request_get_file(
