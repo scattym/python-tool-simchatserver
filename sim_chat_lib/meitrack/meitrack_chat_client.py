@@ -198,7 +198,7 @@ class MeitrackChatClient(BaseChatClient):
                             found = True
                             file_download.add_packet(gprs)
                             if file_download.is_complete():
-                                logger.debug("File is not ")
+                                logger.debug("File is complete. Sending to geotool. ")
                                 report = file_download_to_report(self.imei, file_download)
                                 self.queue_report(report)
                                 self.file_download_list.remove(file_download)
@@ -217,8 +217,8 @@ class MeitrackChatClient(BaseChatClient):
                         self.send_data(ask_for_more.as_bytes())
                 else:
                     if len(self.file_download_list) > 0:
-                        file_name = self.file_download_list[0].file_name
-                        next_packet = self.file_download_list[0].next_packet()
+                        file_name = self.file_download_list[-1].file_name
+                        next_packet = self.file_download_list[-1].next_packet()
                         ask_for_more = build_message.stc_request_get_file(
                             self.imei,
                             file_name,
