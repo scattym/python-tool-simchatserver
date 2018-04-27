@@ -65,6 +65,22 @@ def close_socket(sock):
         logger.error("Socket error on close %s", err)
 
 
+def sock_fd_to_socket(sock_fd):
+    sock = connections.get(sock_fd)
+    if sock:
+        logger.debug("Found socket file descriptor {} in connection list".format(sock_fd))
+        return sock
+    else:
+        logger.error("Did not find a connection for file descriptor {} in connection list".format(sock_fd))
+    return None
+
+
+def track_socket(sock):
+    if sock and sock.fileno():
+        logger.debug("Tracking file descriptor {} with socket {}".format(sock.fileno(), sock))
+        connections[sock.fileno()] = sock
+
+
 def execute_command(data):
     global QUIT_FLAG
     logger.info("Executing command: %s", data)
@@ -99,8 +115,8 @@ def execute_command(data):
             QUIT_FLAG = True
 
 
-def is_master(sock_fd):
-    if sock_fd in MASTER_LIST:
+def is_master_by_socket(sock):
+    if sock in MASTER_LIST:
         return True
     return False
 
@@ -184,7 +200,8 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                 login_hash = None
                 device_name = None
                 connection, addr = server_socket.accept()
-                connections[connection.fileno()] = connection
+                track_socket(connection)
+                # connections[connection.fileno()] = connection
                 epoll.register(connection, select.EPOLLIN )
                 logger.info("Client (%s, %s) connected" % addr)
                 logger.info("New client has fd %s", connection.fileno())
@@ -238,7 +255,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
 
             elif event & select.EPOLLIN:
                 logger.debug("Is an epollin event")
-                if sock_fd == sys.stdin:
+                if sock_fd == sys.stdin.fileno():
                     data = sys.stdin.readline().rstrip()
                     if data:
                         execute_command(data)
@@ -246,48 +263,51 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                 # a message from a client, not a new connection
                 else:
                     # process data recieved from client,
-                    try:
-                        # receiving data from the socket.
-                        logger.debug("Received data on socket %s", sock_fd)
-                        if is_master(connections[sock_fd]):
-                            data = connections[sock_fd].recv(RECV_BUFFER)
-                            if not data:
-                                close_socket(connections[sock_fd])
-                            else:
-                                execute_command(data.decode().rstrip())
+                    logger.debug("Received data on socket %s", sock_fd)
+                    sock = sock_fd_to_socket(sock_fd)
+                    if not sock:
+                        logger.error("Not able to find an associated socket for processing.")
+                    else:
+                        try:
+                            if is_master_by_socket(sock):
+                                data = sock.recv(RECV_BUFFER)
+                                if not data:
+                                    close_socket(sock)
+                                else:
+                                    execute_command(data.decode().rstrip())
 
-                        elif CHAT_CLIENT_LIST.get(sock_fd):
-                            logger.debug("Found a client in the list %s", CHAT_CLIENT_LIST.get(sock_fd))
-                            result = CHAT_CLIENT_LIST.get(sock_fd).receive_data()
-                            logger.debug("Received the following data: %s", result)
-                            if result:
-                                logger.debug("Result is ok, sending to masters")
-                                send_to_masters(result)
-                        else:
-                            logger.debug("Must be data to read but not on an expected fd")
-                            data = connections[sock_fd].recv(RECV_BUFFER)
-                            if data:
-                               logger.error("Spurious data: %s", data)
-                               identify_client(connections[sock_fd], task_queue, data)
+                            elif CHAT_CLIENT_LIST.get(sock_fd):
+                                logger.debug("Found a client in the list %s", CHAT_CLIENT_LIST.get(sock_fd))
+                                result = CHAT_CLIENT_LIST.get(sock_fd).receive_data()
+                                logger.debug("Received the following data: %s", result)
+                                if result:
+                                    logger.debug("Result is ok, sending to masters")
+                                    send_to_masters(result)
                             else:
-                               close_socket(connections[sock_fd])
-                               send_to_masters("Client (%s, %s) is offline\n" % addr)
+                                logger.debug("Must be data to read but not on an expected fd")
+                                data = sock.recv(RECV_BUFFER)
+                                if data:
+                                   logger.error("Spurious data: %s", data)
+                                   identify_client(sock, task_queue, data)
+                                else:
+                                   close_socket(sock)
+                                   send_to_masters("Client (%s, %s) is offline\n" % addr)
                             # at this stage, no data means probably the connection has been broken
                             # broadcast(server_socket, connections[sock_fd], "Client (%s, %s) is offline\n" % addr)
                             # exception
-                    except socket.error as err:
-                        logger.info("Client (%s, %s) is offline" % addr)
-                        close_socket(connections[sock_fd])
-                        send_to_masters("Client (%s, %s) is offline" % addr)
-                        # broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
-                    except SimChatError as err:
-                        logger.error(
-                            "Chat protocol exception (%s). Closing: %s" % (err.message, sock_fd)
-                        )
-                        send_to_masters(
-                            "Chat protocol exception (%s). Closing: %s" % (err.message, sock_fd)
-                        )
-                        close_socket(connections[sock_fd])
+                        except socket.error as err:
+                            logger.info("Client (%s, %s) is offline" % addr)
+                            close_socket(sock)
+                            send_to_masters("Client (%s, %s) is offline" % addr)
+                            # broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
+                        except SimChatError as err:
+                            logger.error(
+                                "Chat protocol exception (%s). Closing: %s" % (err.message, sock_fd)
+                            )
+                            send_to_masters(
+                                "Chat protocol exception (%s). Closing: %s" % (err.message, sock_fd)
+                            )
+                            close_socket(sock)
             elif event & select.EPOLLOUT:
                 logger.error("Is an epollout event, with fd %s", sock_fd)
             elif event & select.EPOLLHUP:
@@ -300,12 +320,12 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
 
 def send_to_masters(data):
     logger.debug("Sending %s to masters", data)
-    for sock_fd in MASTER_LIST:
+    for sock in MASTER_LIST:
         try:
-            sock_fd.send(data.encode())
-            sock_fd.send('\n'.encode())
+            sock.send(data.encode())
+            sock.send('\n'.encode())
         except socket.error:
-            close_socket(connections[sock_fd])
+            close_socket(sock)
     logger.debug("Done sending data to masters")
 
 
