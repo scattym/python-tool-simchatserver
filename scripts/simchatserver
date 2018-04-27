@@ -259,7 +259,6 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                     data = sys.stdin.readline().rstrip()
                     if data:
                         execute_command(data)
-    #                broadcast(server_socket, sock, "\r" + '[master] ' + data)
                 # a message from a client, not a new connection
                 else:
                     # process data recieved from client,

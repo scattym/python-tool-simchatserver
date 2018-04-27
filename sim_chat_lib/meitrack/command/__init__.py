@@ -83,7 +83,10 @@ def stc_request_file_download(file_name, payload_start_index):
         file_name = file_name.encode()
     except AttributeError:
         pass
-    return Command(0, b"D00," + file_name + b"," + str(payload_start_index).encode())
+    if isinstance(payload_start_index, int):
+        payload_start_index = str(payload_start_index).encode()
+
+    return Command(0, b','.join([b"D00", file_name, payload_start_index]))
 
 
 def stc_request_take_photo(camera_number, file_name):
@@ -143,3 +146,6 @@ if __name__ == '__main__':
 
     for each_command in COMMAND_LIST:
         print("%s: %s" % (each_command, COMMAND_LIST[each_command]))
+
+    print(stc_request_file_download(b"test_file", b"0"))
+    print(stc_request_file_download(b"test_file", 0))
