@@ -77,7 +77,7 @@ class MeitrackChatClient(BaseChatClient):
 
     def get_client_details(self):
         start = super(MeitrackChatClient, self).get_client_details()
-        return "type: meitrack, ident: %s, remote: %s, age: %s\n%s\n%s\n%s" % (
+        return "type: meitrack, ident: %s, remote: %s, age: %s\n%s\nBuffer: %s\nDownload list: %s" % (
             self.ident(), start, self.age(), self.get_download_details(), self.buffer, self.download_list
         )
 
@@ -159,12 +159,21 @@ class MeitrackChatClient(BaseChatClient):
                 return_str += "Binary data"
 
             if gprs.enclosed_data["event_code"] == b'39':
-                self.download_list.append(gprs.enclosed_data["file_name"])
-                # ask_for_file = build_message.stc_request_get_file(
-                #     self.imei,
-                #     gprs.enclosed_data["file_name"]
-                # )
-                # self.send_data(ask_for_file.as_bytes())
+                if len(self.file_download_list) == 0:
+                    logger.debug("No current downloads. Asking for file.")
+
+                    ask_for_file = build_message.stc_request_get_file(
+                        self.imei,
+                        gprs.enclosed_data["file_name"]
+                    )
+                    self.send_data(ask_for_file.as_bytes())
+
+                else:
+                    logger.debug(
+                        "Download already in progress, queue file for download later %s",
+                        gprs.enclosed_data["file_name"]
+                    )
+                    self.download_list.append(gprs.enclosed_data["file_name"])
 
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
