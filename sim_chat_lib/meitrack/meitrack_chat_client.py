@@ -1,4 +1,5 @@
 import binascii
+import copy
 import datetime
 import logging
 
@@ -30,7 +31,7 @@ class FileDownload(object):
                     self.expecting_packets = int(num_packets.decode())
                 logger.debug("Adding packet %s to file %s", packet_number, self.file_name)
                 packet_number_int = int(packet_number.decode())
-                self.packets[packet_number_int] = file_bytes
+                self.packets[packet_number_int] = copy.deepcopy(file_bytes)
 
     def next_packet(self):
         if not self.expecting_packets:
