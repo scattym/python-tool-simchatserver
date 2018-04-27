@@ -1,3 +1,4 @@
+import copy
 import datetime
 import traceback
 
@@ -132,8 +133,8 @@ def post_to_api(endpoint, data, primary_key=None, cacheable=False, files=None):
         logger.debug(data)
         logger.debug(files)
 
-        content_type="application/json"
-        headers = host_to_token_header(API_HOST)
+        # content_type = "application/json"
+        headers = copy.deepcopy(host_to_token_header(API_HOST))
         if data:
             headers["Content-Type"] = "application/json"
         if data:

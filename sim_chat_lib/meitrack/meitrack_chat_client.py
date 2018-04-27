@@ -54,7 +54,7 @@ class FileDownload(object):
     def fragment_list_as_string(self):
         return_str = ""
         for i in self.packets:
-            return_str += "{} ".format(i)
+            return_str += "{}({}) ".format(i, len(self.packets[i]))
         return return_str
 
     def return_file_contents(self):
@@ -79,7 +79,6 @@ class MeitrackChatClient(BaseChatClient):
         self.file_download_list = []
         self.download_list = []
         self.last_file_request = datetime.datetime.now()
-
 
     def check_login(self):
         return True
