@@ -120,10 +120,17 @@ def set_api_host(host):
 
 
 def host_to_token_header(host):
+    """
+    Get a copy of the headers for a particular host. This includes the auth token
+    information. Make sure to make a deep copy so that any updates are not kept
+    in the top level global variable.
+    :param host: The host we are connecting to
+    :return: header dictionary ready for passing to requests library
+    """
     if "geotool.scattym.com" in host or "10.1.1.4" in host:
-        return HEADERS['home']
+        return copy.deepcopy(HEADERS['home'])
 
-    return HEADERS['do']
+    return copy.deepcopy(HEADERS['do'])
 
 
 def post_to_api(endpoint, data, primary_key=None, cacheable=False, files=None):
@@ -133,8 +140,8 @@ def post_to_api(endpoint, data, primary_key=None, cacheable=False, files=None):
         logger.debug(data)
         logger.debug(files)
 
-        # content_type = "application/json"
-        headers = copy.deepcopy(host_to_token_header(API_HOST))
+        # need to get a copy
+        headers = host_to_token_header(API_HOST)
         if data:
             headers["Content-Type"] = "application/json"
         if data:
@@ -205,9 +212,9 @@ def get_from_api(endpoint, filter_str, cacheable=False):
     if cacheable:
         try:
             if response.status_code != 200:
-                logger.warn("Not caching errors, status code is %s", response.status_code)
+                logger.warning("Not caching errors, status code is %s", response.status_code)
             elif response.json()["count"] == 0:
-                logger.warn("Not caching empty response")
+                logger.warning("Not caching empty response")
             else:
                 add_cached_content(url, response.json())
         except ValueError as err:
