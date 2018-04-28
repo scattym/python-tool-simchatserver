@@ -319,7 +319,10 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
             elif event & select.EPOLLOUT:
                 logger.error("Is an epollout event, with fd %s", sock_fd)
             elif event & select.EPOLLHUP:
-                logger.error("Is an epollhup event")
+                logger.error("Is an epollhup event on fd %s", sock_fd)
+                epoll.unregister(sock_fd)
+                if sock_fd in connections:
+                    connections[sock_fd] = None
 
     stop_consumers(task_queue)
 
