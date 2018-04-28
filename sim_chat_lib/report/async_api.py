@@ -108,6 +108,13 @@ class Task(object):
                     self.report.event_type
                 )
                 geotool_api.add_sos_event(self.report.imei, datetime.datetime.now())
+            else:
+                geotool_api.add_event_log(
+                    self.report.imei,
+                    datetime.datetime.now(),
+                    2,
+                    self.report.event_type
+                )
 
         return self.result
 

@@ -61,7 +61,6 @@ class TrackerCommand(Command):
         super(TrackerCommand, self).parse_payload(payload)
 
 
-
 if __name__ == '__main__':
     log_level = 11 - 11
 
