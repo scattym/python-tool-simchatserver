@@ -125,9 +125,15 @@ class Command(object):
 
 def meitrack_date_to_datetime(date_time):
     # yymmddHHMMSS
-    date_time = "%s%s" % (date_time.decode(), "Z")
-    d = datetime.datetime.strptime(date_time, "%y%m%d%H%M%SZ")
-    return d
+    try:
+        date_time = "%s%s" % (date_time.decode(), "Z")
+        d = datetime.datetime.strptime(date_time, "%y%m%d%H%M%SZ")
+        return d
+    except UnicodeDecodeError as err:
+        logger.error("Unable to convert datetime field to a string %s", date_time)
+    except ValueError as err:
+        logger.error("Unable to calculate date from string %s", date_time)
+    return None
 
 
 def datetime_to_meitrack_date(date_time):

@@ -1,4 +1,7 @@
+import datetime
 import logging
+
+from sim_chat_lib.meitrack.command import common
 from sim_chat_lib.meitrack.error import GPRSParseError
 from sim_chat_lib.meitrack.command.common import Command, meitrack_date_to_datetime, datetime_to_meitrack_date
 from sim_chat_lib.meitrack.common import DIRECTION_SERVER_TO_CLIENT, DIRECTION_CLIENT_TO_SERVER
@@ -23,4 +26,15 @@ class FileDownloadCommand(Command):
 
         if payload:
             self.parse_payload(payload, 4)
+
+        self.field_dict['date_time'] = datetime.datetime.now()
+        file_name = self.field_dict.get("file_name")
+        if file_name:
+            # 180428115949_C1E11_N1U1D1.jpg
+            file_name_arr = file_name.split(b"_")
+            if len(file_name_arr) == 3:
+                date = common.meitrack_date_to_datetime(file_name_arr[0])
+                if date:
+                    self.field_dict["date_time"] = date
+
         print(self.field_dict)
