@@ -288,11 +288,11 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                                 logger.debug("Must be data to read but not on an expected fd")
                                 data = sock.recv(RECV_BUFFER)
                                 if data:
-                                   logger.error("Spurious data: %s", data)
-                                   identify_client(sock, task_queue, data)
+                                    logger.error("Spurious data: %s", data)
+                                    identify_client(sock, task_queue, data)
                                 else:
-                                   close_socket(sock)
-                                   send_to_masters("Client (%s, %s) is offline\n" % addr)
+                                    close_socket(sock)
+                                    send_to_masters("Client (%s, %s) is offline\n" % addr)
                             # at this stage, no data means probably the connection has been broken
                             # broadcast(server_socket, connections[sock_fd], "Client (%s, %s) is offline\n" % addr)
                             # exception

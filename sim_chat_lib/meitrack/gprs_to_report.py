@@ -7,10 +7,11 @@ logger = logging.getLogger(__name__)
 def safe_field_get(gprs, field):
     try:
         field_value = gprs.enclosed_data[field]
-        if field != "date_time":
-            return field_value.decode()
-        else:
+        if field == "date_time":
             return field_value
+        else:
+            return field_value.decode()
+
     except AttributeError as err:
         logger.error("Failed to get field %s, returning None", field)
     return None

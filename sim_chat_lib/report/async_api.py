@@ -93,22 +93,30 @@ class Task(object):
                 self.result = geotool_api.add_camera_image(
                     self.report.imei,
                     0,
-                    datetime.datetime.utcnow(),
+                    self.report.timestamp,
                     self.report.file_data
                 )
             except Exception as err:
-                logger.error("Exception in async task, logging gps entry %s", err)
+                logger.error("Exception in async task, logging file entry %s", err)
 
         if self.report.event_type:
-            if self.report.event_type == "SOS Button Pressed":
-                geotool_api.add_sos_event(self.report.imei, datetime.datetime.now())
-            else:
-                geotool_api.add_event_log(
-                    self.report.imei,
-                    datetime.datetime.now(),
-                    2,
-                    self.report.event_type
-                )
+            try:
+                if self.report.event_type == "SOS Button Pressed":
+                    self.result = geotool_api.add_sos_event(self.report.imei, datetime.datetime.now())
+                else:
+                    if self.report.event_type == "Engine On":
+                        geotool_api.add_ignition_event(self.report.imei, self.report.timestamp, "start")
+                    elif self.report.event_type == "Engine Off":
+                        geotool_api.add_ignition_event(self.report.imei, self.report.timestamp, "stop")
+
+                    self.result = geotool_api.add_event_log(
+                            self.report.imei,
+                            datetime.datetime.now(),
+                            2,
+                            self.report.event_type
+                    )
+            except Exception as err:
+                logger.error("Exception in async task, logging file entry %s", err)
 
         return self.result
 
