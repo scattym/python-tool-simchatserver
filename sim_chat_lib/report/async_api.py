@@ -105,9 +105,9 @@ class Task(object):
                     self.result = geotool_api.add_sos_event(self.report.imei, self.report.timestamp)
                 else:
                     if self.report.event_type == "Engine On":
-                        geotool_api.add_ignition_event(self.report.imei, self.report.timestamp, "start")
+                        geotool_api.add_trip_log(self.report.imei, self.report.timestamp, "start")
                     elif self.report.event_type == "Engine Off":
-                        geotool_api.add_ignition_event(self.report.imei, self.report.timestamp, "stop")
+                        geotool_api.add_trip_log(self.report.imei, self.report.timestamp, "stop")
 
                     self.result = geotool_api.add_event_log(
                             self.report.imei,

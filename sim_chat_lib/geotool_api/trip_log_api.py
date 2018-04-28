@@ -19,7 +19,7 @@ def get_latest_open_trip_by_device_id(device_id):
             return trip
 
 
-def add_trip_log_by_device_id(device_id, event_time, start_stop='start'):
+def add_trip_log(device_id, event_time, start_stop='start'):
     open_trip = get_latest_open_trip_by_device_id(device_id)
     if start_stop == 'start' and open_trip is not None:
         logger.error("Already an open trip for device %s", device_id)
@@ -43,15 +43,6 @@ def add_trip_log_by_device_id(device_id, event_time, start_stop='start'):
     return None
 
 
-def add_trip_log_by_imei(device_imei, event_time, start_stop='start'):
-    result = None
-    device_pk = device_api.get_device_pk(device_imei)
-    if not device_pk:
-        logger.error("Unable to retrieve device information")
-    else:
-        return add_trip_log_by_device_id(device_pk, event_time, start_stop)
-
-
 if __name__ == '__main__':
     log_level = 11 - 2
 
@@ -68,6 +59,5 @@ if __name__ == '__main__':
     common.set_api_host("localhost:8000")
     print(get_latest_open_trip_by_device_id(20))
     print(get_latest_open_trip_by_device_id(20))
-    print(add_trip_log_by_imei("77070407942500", "2017-07-04 04:07:07Z", "start"))
     print(get_latest_open_trip_by_device_id(20))
-    print(add_trip_log_by_device_id(20, "2017-07-04 04:07:07Z", "stop"))
+    print(add_trip_log(20, "2017-07-04 04:07:07Z", "stop"))

@@ -1,5 +1,5 @@
 
-from sim_chat_lib.geotool_api import device_api, firmware_api, common, camera_api
+from sim_chat_lib.geotool_api import device_api, firmware_api, common, camera_api, trip_log_api
 from sim_chat_lib.geotool_api import session_key_api
 from sim_chat_lib.geotool_api import device_key_api
 from sim_chat_lib.geotool_api import event_log_api
@@ -45,10 +45,10 @@ def add_event_log(imei, log_time, event_type, event_description):
         return event_log_api.add_event(device_pk, log_time, event_type, event_description)
 
 
-def add_ignition_event(imei, log_time, start_stop):
-    device_pk = device_api.get_device_pk(imei)
+def add_trip_log(device_imei, event_time, start_stop='start'):
+    device_pk = device_api.get_device_pk(device_imei)
     if device_pk:
-        return event_log_api.add_ignition_event(device_pk, log_time, start_stop)
+        return trip_log_api.add_trip_log(device_pk, event_time, start_stop)
 
 
 def add_sos_event(imei, log_time):

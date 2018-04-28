@@ -21,13 +21,6 @@ def add_event(device_pk, log_time, event_type, event_description):
     return response
 
 
-def add_ignition_event(device_pk, log_time, start_stop):
-    if start_stop.lower() == "start":
-        return add_event(device_pk, log_time, EVENT_TYPE_INFORMATION, "Engine start")
-    if start_stop.lower() == "stop":
-        return add_event(device_pk, log_time, EVENT_TYPE_INFORMATION, "Engine stop")
-
-
 def add_sos_event(device_pk, log_time):
     return add_event(device_pk, log_time, EVENT_TYPE_EMERGENCY, "SOS button pressed")
 
@@ -58,10 +51,6 @@ if __name__ == '__main__':
 
     common.set_api_host("localhost:8000")
     response = add_event(20, "2018-03-03 12:12:12Z", EVENT_TYPE_INFORMATION, "A message")
-    print(response)
-    response = add_ignition_event(20, "2018-03-03 12:12:12Z", "start")
-    print(response)
-    response = add_ignition_event(20, "2018-03-03 12:12:12Z", "stop")
     print(response)
     response = add_sos_event(20, "2018-03-03 12:12:12Z")
     print(response)
