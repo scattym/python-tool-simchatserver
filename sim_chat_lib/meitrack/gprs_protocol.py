@@ -6,7 +6,7 @@ from sim_chat_lib.meitrack import event
 from sim_chat_lib.meitrack.command import command_to_object
 from sim_chat_lib.meitrack.error import GPRSParseError
 from sim_chat_lib.meitrack.common import CLIENT_TO_SERVER_PREFIX, SERVER_TO_CLIENT_PREFIX, DIRECTION_CLIENT_TO_SERVER
-from sim_chat_lib.meitrack.common import DIRECTION_SERVER_TO_CLIENT, END_OF_MESSAGE_STRING
+from sim_chat_lib.meitrack.common import DIRECTION_SERVER_TO_CLIENT, END_OF_MESSAGE_STRING, MAX_DATA_LENGTH
 
 
 logger = logging.getLogger(__name__)
@@ -170,7 +170,14 @@ def parse_data_payload(payload):
                 payload = b''
             else:
                 logger.debug("Data length is %s", payload[3:first_comma])
-                data_length = int(payload[3:first_comma])
+                try:
+                    data_length = int(payload[3:first_comma])
+                except ValueError as err:
+                    logger.error("Unable to calculate length field.")
+                    raise GPRSParseError("Unable to calculate length from data: {}".format(payload[3:first_comma]))
+
+                if data_length > MAX_DATA_LENGTH:
+                    raise GPRSParseError("Data length is longer than the protocol allows: {}".format(data_length))
 
                 if len(payload) >= (first_comma + data_length):
                     logger.debug("Start of payload is {}".format(payload[0:2]))

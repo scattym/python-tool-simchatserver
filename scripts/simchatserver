@@ -311,7 +311,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                             close_socket(sock)
                         except Exception as err:
                             logger.fatal(
-                                "Generic exception in processing data (%s). Closing: %s" % (err.message, sock_fd)
+                                "Generic exception in processing data (%s). Closing: %s" % (err, sock_fd)
                             )
                             logger.fatal(traceback.format_exc())
                             close_socket(sock)
