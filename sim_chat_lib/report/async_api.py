@@ -101,12 +101,6 @@ class Task(object):
 
         if self.report.event_type:
             if self.report.event_type == "SOS Button Pressed":
-                geotool_api.add_event_log(
-                    self.report.imei,
-                    datetime.datetime.now(),
-                    0,
-                    self.report.event_type
-                )
                 geotool_api.add_sos_event(self.report.imei, datetime.datetime.now())
             else:
                 geotool_api.add_event_log(

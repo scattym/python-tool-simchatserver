@@ -6,26 +6,26 @@ from functools import singledispatch
 
 logger = logging.getLogger(__name__)
 
-EVENT_MAP = {
-    1: "SOS Pressed ",
-    2: "Input 2 Active ",
-    3: "Input 3 Active ",
-    4: "Input 4 Active ",
-    5: "Input 5 Active ",
-    9: "Input 1 Inactive ",
-    10: "Input 2 Inactive ",
-    11: "Input 3 Inactive ",
-    12: "Input 4 Inactive ",
-    13: "Input 5 Inactive ",
-    17: "Low Battery ",
-    18: "Low External Battery ",
-    19: "Speeding ",
-    20: "Enter Geo-fence ",
-    21: "Exit Geo-fence ",
-    22: "External Battery On ",
-    23: "External Battery Cut ",
-    24: "GPS Signal Lost ",
-    25: "GPS Signal Recovery ",
+EVENT_MAP_T333 = {
+    1: "SOS Button Pressed",
+    2: "Input 2 Active",
+    3: "Engine On",
+    4: "Input 4 Active",
+    5: "Input 5 Active",
+    9: "SOS Button Released",
+    10: "Input 2 Inactive",
+    11: "Engine Off",
+    12: "Input 4 Inactive",
+    13: "Input 5 Inactive",
+    17: "Low Battery",
+    18: "Low External Battery",
+    19: "Speeding",
+    20: "Enter Geo-fence",
+    21: "Exit Geo-fence",
+    22: "External Battery On",
+    23: "External Battery Cut",
+    24: "GPS Signal Lost",
+    25: "GPS Signal Recovery",
     26: "Enter Sleep",
     27: "Exit Sleep",
     28: "GPS Antenna Cut",
@@ -69,7 +69,7 @@ EVENT_MAP = {
 
 @singledispatch
 def event_to_name(event_code: int) -> str:
-    return_str = EVENT_MAP.get(event_code)
+    return_str = EVENT_MAP_T333.get(event_code)
     if not return_str:
         logger.error("Unable to lookup event code %s", event_code)
 
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    for key in EVENT_MAP:
+    for key in EVENT_MAP_T333:
         print(event_to_name(key))
         print(event_to_name(str(key).encode()))
         print(event_to_name(str(key)))
