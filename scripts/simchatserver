@@ -7,6 +7,8 @@ import select
 import argparse
 import logging
 import os
+import traceback
+
 from sim_chat_lib.geotool_api.common import set_api_host
 
 import sim_chat_lib
@@ -307,6 +309,13 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                                 "Chat protocol exception (%s). Closing: %s" % (err.message, sock_fd)
                             )
                             close_socket(sock)
+                        except Exception as err:
+                            logger.fatal(
+                                "Generic exception in processing data (%s). Closing: %s" % (err.message, sock_fd)
+                            )
+                            logger.fatal(traceback.format_exc())
+                            close_socket(sock)
+
             elif event & select.EPOLLOUT:
                 logger.error("Is an epollout event, with fd %s", sock_fd)
             elif event & select.EPOLLHUP:
