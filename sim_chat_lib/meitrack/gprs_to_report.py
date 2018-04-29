@@ -1,3 +1,4 @@
+import datetime
 import logging
 from sim_chat_lib.report import Report
 
@@ -57,4 +58,12 @@ def file_download_to_report(imei, file_download):
     report.imei = imei.decode()
     report.file_name = file_download.file_name.decode()
     report.file_data = file_download.return_file_contents()
+    return report
+
+
+def client_disconnect_report(imei):
+    report = Report()
+    report.imei = imei.decode()
+    report.event_type = "Client Disconnected"
+    report.timestamp = datetime.datetime.utcnow()
     return report
