@@ -124,7 +124,7 @@ class MeitrackChatClient(BaseChatClient):
             gprs = build_message.stc_set_heartbeat_interval(self.imei, response.get("heartbeat_interval"))
             self.send_data(gprs.as_bytes())
         if response.get("time_interval") is not None:
-            gprs = build_message.stc_set_tracking_by_time_interval(self.imei, response.get("heartbeat_interval"))
+            gprs = build_message.stc_set_tracking_by_time_interval(self.imei, response.get("time_interval"))
             self.send_data(gprs.as_bytes())
         if response.get("cornering_angle") is not None:
             gprs = build_message.stc_set_cornering_angle(self.imei, response.get("cornering_angle"))
