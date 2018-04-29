@@ -120,17 +120,20 @@ class MeitrackChatClient(BaseChatClient):
         if not response:
             logger.error("No response to parse.")
             return
-        if response.get("heartbeat_interval"):
+        if response.get("heartbeat_interval") is not None:
             gprs = build_message.stc_set_heartbeat_interval(self.imei, response.get("heartbeat_interval"))
             self.send_data(gprs.as_bytes())
-        if response.get("time_interval"):
+        if response.get("time_interval") is not None:
             gprs = build_message.stc_set_tracking_by_time_interval(self.imei, response.get("heartbeat_interval"))
             self.send_data(gprs.as_bytes())
-        if response.get("cornering_angle"):
+        if response.get("cornering_angle") is not None:
             gprs = build_message.stc_set_cornering_angle(self.imei, response.get("cornering_angle"))
             self.send_data(gprs.as_bytes())
-        if response.get("tracking_by_distance"):
+        if response.get("tracking_by_distance") is not None:
             gprs = build_message.stc_set_tracking_by_distance(self.imei, response.get("tracking_by_distance"))
+            self.send_data(gprs.as_bytes())
+        if response.get("time_zone_offset_minutes") is not None:
+            gprs = build_message.stc_set_time_zone(self.imei, response.get("time_zone_offset_minutes"))
             self.send_data(gprs.as_bytes())
 
     def process_data(self, data):
