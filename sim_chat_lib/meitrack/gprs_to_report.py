@@ -14,7 +14,7 @@ def safe_field_get(gprs, field):
             return field_value.decode()
 
     except AttributeError as err:
-        logger.error("Failed to get field %s, returning None", field)
+        logger.debug("Failed to get field %s, returning None", field)
     return None
 
 

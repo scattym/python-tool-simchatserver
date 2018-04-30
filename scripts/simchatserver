@@ -107,6 +107,8 @@ def execute_command(data):
                     message = CHAT_CLIENT_LIST[sock_fd].get_client_details()
                     logger.debug(message)
                     send_to_masters(message)
+            send_to_masters(str(connections))
+            send_to_masters('\n')
         if data == "debug":
             root_logger = logging.getLogger('')
             root_logger.setLevel(logging.DEBUG)
@@ -458,12 +460,12 @@ if __name__ == "__main__":
         help=("Increase the logging level. Can specify this option multiple "
               "times for more detail."),
         action="count",
-        default=0,
+        default=int(os.environ.get('DEBUG_LEVEL', 0))
     )
 
     args = parser.parse_args()
 
-    log_level = 11 - args.debug
+    log_level = 15 - args.debug
 
     logger = logging.getLogger('')
     logger.setLevel(logging.INFO)

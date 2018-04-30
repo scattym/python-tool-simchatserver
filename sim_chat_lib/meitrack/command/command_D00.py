@@ -18,7 +18,7 @@ class FileDownloadCommand(Command):
 
     def __init__(self, direction, payload=None):
         super(FileDownloadCommand, self).__init__(direction, payload=payload)
-        print(payload)
+        logger.debug(payload)
         if direction == DIRECTION_SERVER_TO_CLIENT:
             self.field_name_selector = self.request_field_names
         else:
@@ -37,4 +37,4 @@ class FileDownloadCommand(Command):
                 if date:
                     self.field_dict["date_time"] = date
 
-        print(self.field_dict)
+        logger.debug(self.field_dict)

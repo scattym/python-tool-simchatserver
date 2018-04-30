@@ -63,6 +63,10 @@ EVENT_MAP_T333 = {
     79: "Fall",
     80: "Install",
     81: "Drop Off",
+    129: "Harsh Braking",
+    130: "Harsh Acceleration",
+    133: "Idle Overtime",
+    134: "Idle Recovery",
     139: "Maintenance Notice",
 }
 

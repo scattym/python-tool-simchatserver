@@ -60,8 +60,8 @@ class Command(object):
             return
 
         if len(self.field_name_selector) < len(fields):
-            print("%s %s" % (len(fields), len(self.field_name_selector)))
-            print(payload)
+            logger.debug("%s %s", len(fields), len(self.field_name_selector))
+            logger.debug(payload)
             raise GPRSParseError(
                 "Incorrect number of fields for data. Data field length is ", len(fields),
                 " but should be ", len(self.field_name_selector), ". Fields should be ",
@@ -78,8 +78,8 @@ class Command(object):
         if self.field_dict.get("analog_input_value"):
             analog_list = self.field_dict.get("analog_input_value").split(b"|")
             if input_number <= len(analog_list):
-                print(analog_list[input_number-1])
-                print(int(analog_list[input_number-1], 16))
+                logger.debug(analog_list[input_number-1])
+                logger.debug(int(analog_list[input_number-1], 16))
                 return int(analog_list[input_number-1], 16) / 100
 
     def get_battery_voltage(self):
