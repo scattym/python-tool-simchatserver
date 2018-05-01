@@ -93,7 +93,7 @@ def stc_set_tracking_by_distance(imei, meters=0):
     return gprs
 
 
-# B35
+# B36
 def stc_set_time_zone(imei, minutes=0):
     com = command.stc_set_time_zone(minutes)
     gprs = GPRS()

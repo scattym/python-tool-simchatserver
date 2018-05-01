@@ -124,7 +124,7 @@ def stc_set_cornering_angle(angle=0):
 def stc_set_time_zone(minutes=0):
     if minutes < -32768 or minutes > 32768:
         raise GPRSParameterError("Timezone offset must be between -32768 and 32768. Was %s" % (minutes,))
-    return Command(0, b"B35,%s" % (str(minutes).encode(),))
+    return Command(0, b"B36,%s" % (str(minutes).encode(),))
 
 
 def stc_set_tracking_by_distance(meters=0):
