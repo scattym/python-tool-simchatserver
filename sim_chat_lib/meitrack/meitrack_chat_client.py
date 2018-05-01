@@ -10,7 +10,9 @@ from sim_chat_lib.meitrack import GPRSParseError
 from sim_chat_lib.meitrack.error import GPRSError
 from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
 from sim_chat_lib.meitrack import build_message
-from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, file_download_to_report, client_disconnect_report
+from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, file_download_to_report, client_disconnect_report, \
+    event_to_report
+from sim_chat_lib.meitrack.gprs_to_report import server_disconnect_report
 from sim_chat_lib.report import MeitrackConfigRequest
 import traceback
 
@@ -114,9 +116,15 @@ class MeitrackChatClient(BaseChatClient):
         logger.debug("Add config request to queue %s", config_request)
         self.queue_config_request(config_request)
         logger.debug("end of on login")
+        report = event_to_report(self.imei, "Client login")
+        queue_result = self.queue_report(report)
 
     def on_client_close(self):
-        report = client_disconnect_report(self.imei)
+        report = event_to_report(self.imei, "Client disconnected")
+        queue_result = self.queue_report(report)
+
+    def on_server_close(self):
+        report = event_to_report(self.imei, "Server disconnected")
         queue_result = self.queue_report(report)
 
     def parse_config(self, response):

@@ -65,7 +65,8 @@ def file_test(imei, sock, interleave_data_and_messages=False):
 
 trip_start = b'$$\194,864507032323403,AAA,35,-33.815810,151.200106,180428195806,A,9,12,0,200,0.8,72,5819,359456,505|3|00FA|04E381F5,8500,0000|0000|0000|018C|050C,00000001,108,0000,3,0,0|0000|0000|0000|0000|0000*FA\r\n'
 
-def chat_client(host, port, imei, version, file_test_on_start=False):
+
+def chat_client(host, port, imei, version, file_test_on_start=False, send_data=False):
     imei = imei.encode()
 
     gprs_list, before, after = parse_data_payload(
@@ -80,7 +81,6 @@ def chat_client(host, port, imei, version, file_test_on_start=False):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(100)
     s.setblocking(1)
-
 
     # connect to remote host
     try:
@@ -99,9 +99,15 @@ def chat_client(host, port, imei, version, file_test_on_start=False):
 
     while 1:
         socket_list = [sys.stdin, s]
+        timeout = 0
+        if send_data:
+            timeout = 1
 
         # Get the list sockets which are readable
-        ready_to_read, ready_to_write, in_error = select.select(socket_list, [], [])
+        ready_to_read, ready_to_write, in_error = select.select(socket_list, [], [], timeout)
+
+        if not ready_to_read and send_data:
+            s.send(login_gprs.as_bytes())
 
         for sock in ready_to_read:
             if sock == s:
@@ -178,6 +184,13 @@ if __name__ == "__main__":
         default=1
     )
     parser.add_argument(
+        '-s',
+        '--send-data',
+        help="Send data every 5 seconds.",
+        action="store_true",
+        default=False
+    )
+    parser.add_argument(
         '-v',
         dest='debug',
         help=("Increase the logging level. Can specify this option multiple "
@@ -204,4 +217,4 @@ if __name__ == "__main__":
         logger.setLevel(log_level)
         ch.setLevel(log_level)
 
-    sys.exit(chat_client(args.host, args.port, args.imei, args.version, args.file_test))
+    sys.exit(chat_client(args.host, args.port, args.imei, args.version, args.file_test, args.send_data))

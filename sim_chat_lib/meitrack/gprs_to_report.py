@@ -61,9 +61,9 @@ def file_download_to_report(imei, file_download):
     return report
 
 
-def client_disconnect_report(imei):
+def event_to_report(imei, event_text):
     report = Report()
     report.imei = imei.decode()
-    report.event_type = "Client Disconnected"
+    report.event_type = event_text
     report.timestamp = datetime.datetime.utcnow()
     return report

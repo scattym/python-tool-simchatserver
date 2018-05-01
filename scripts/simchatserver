@@ -47,6 +47,7 @@ def close_socket(sock):
 
     if CHAT_CLIENT_LIST.get(sock_fd):
         logger.debug("Found the socket in the chat client list")
+        CHAT_CLIENT_LIST[sock_fd].on_server_close()
         ident = CHAT_CLIENT_LIST[sock_fd].ident()
         CHAT_CLIENT_IDENT_LIST[ident] = None
         CHAT_CLIENT_LIST[sock_fd] = None

@@ -78,6 +78,9 @@ class ChatClient(object):
     def on_client_close(self):
         logger.debug("Client closed connection: %s", self.ident())
 
+    def on_server_close(self):
+        logger.debug("Server closed connection: %s", self.ident())
+
     def queue_config_request(self, config_request):
         logger.debug("Queue config request start")
         result = queue_config_request(config_request, self.report_queue)

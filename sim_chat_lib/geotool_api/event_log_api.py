@@ -9,10 +9,10 @@ EVENT_TYPE_WARNING = '1'
 EVENT_TYPE_INFORMATION = '2'
 
 
-def add_event(device_pk, log_time, event_type, event_description):
+def add_event(device_pk, timestamp, event_type, event_description):
     data = {
         "device": device_pk,
-        "log_time":  str(log_time),
+        "timestamp":  str(timestamp),
         "event_type": event_type,
         "event_description": event_description,
     }
