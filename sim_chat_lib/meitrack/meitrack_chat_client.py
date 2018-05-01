@@ -10,9 +10,7 @@ from sim_chat_lib.meitrack import GPRSParseError
 from sim_chat_lib.meitrack.error import GPRSError
 from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
 from sim_chat_lib.meitrack import build_message
-from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, file_download_to_report, client_disconnect_report, \
-    event_to_report
-from sim_chat_lib.meitrack.gprs_to_report import server_disconnect_report
+from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, file_download_to_report, event_to_report
 from sim_chat_lib.report import MeitrackConfigRequest
 import traceback
 
