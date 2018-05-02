@@ -105,6 +105,18 @@ def stc_set_time_zone(imei, minutes=0):
     return gprs
 
 
+# C50
+def stc_set_driver_license_type(imei, license_type_str=None):
+    com = command.stc_set_driver_license_type(license_type_str)
+    gprs = GPRS()
+    gprs.direction = b'@@'
+    gprs.data_identifier = b'X'
+    gprs.enclosed_data = com
+    gprs.imei = imei
+
+    return gprs
+
+
 def stc_request_device_info(imei):
     com = command.stc_request_info()
     gprs = GPRS()

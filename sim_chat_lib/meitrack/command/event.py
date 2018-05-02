@@ -67,7 +67,11 @@ EVENT_MAP_T333 = {
     130: "Harsh Acceleration",
     133: "Idle Overtime",
     134: "Idle Recovery",
+    135: "Fatigue Driving",
+    136: "Enough Rest After Fatigue Driving",
     139: "Maintenance Notice",
+    144: "Ignition On",
+    145: "Ignition Off",
 }
 
 

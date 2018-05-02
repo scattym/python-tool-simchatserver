@@ -127,6 +127,13 @@ def stc_set_time_zone(minutes=0):
     return Command(0, b"B36,%s" % (str(minutes).encode(),))
 
 
+def stc_set_driver_license_type(license_type_str=""):
+    if license_type_str:
+        return Command(0, b"C50,%s" % (str(license_type_str).encode(),))
+    else:
+        return Command(0, b"C50")
+
+
 def stc_set_tracking_by_distance(meters=0):
     if meters < 0 or meters > 65535:
         raise GPRSParameterError("Tracking by distance must be between 0 and 65535. Was %s" % (meters,))
