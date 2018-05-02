@@ -19,6 +19,8 @@ class Report(object):
         self.event_type = None
         self.file_name = None
         self.file_data = None
+        self.firmware_version = None
+        self.serial_number = None
 
 
 class MeitrackConfigRequest(object):

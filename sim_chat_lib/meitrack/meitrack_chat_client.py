@@ -247,7 +247,6 @@ class MeitrackChatClient(BaseChatClient):
                         )
                         self.send_data(ask_for_more.as_bytes())
 
-
         if before != b'':
             logger.error("Got data before start of packet. Should not be possible.")
         logger.debug("Leftover bytes count %s, with data: %s", len(after), after)

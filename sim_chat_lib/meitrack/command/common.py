@@ -122,6 +122,12 @@ class Command(object):
         if self.field_dict.get("event_code"):
             return event_to_name(self.field_dict.get("event_code"))
 
+    def get_firmware_version(self):
+        return self.field_dict.get("firmware_version")
+
+    def get_serial_number(self):
+        return self.field_dict.get("serial_number")
+
 
 def meitrack_date_to_datetime(date_time):
     # yymmddHHMMSS

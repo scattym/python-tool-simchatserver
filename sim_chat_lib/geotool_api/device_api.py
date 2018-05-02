@@ -53,6 +53,21 @@ def get_device_type_id_by_ident(ident):
     return None
 
 
+def device_parameters(
+        imei, manufacturer, model, revision, name, serial, battery_level, battery_voltage, running_version
+):
+    update = {
+        'manufacturer': manufacturer,
+        'model': model,
+        'revision': revision,
+        'serial': serial,
+        'battery_level': battery_level,
+        'battery_voltage': battery_voltage,
+        'running_version': running_version,
+    }
+    create_device(imei, update)
+
+
 def device_update_by_long_lat(
     imei, longitude, latitude, true_track, ground_speed, altitude, dilution, age_gps_data, num_sats, timestamp, log_time
 ):

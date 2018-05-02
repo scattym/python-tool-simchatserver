@@ -30,9 +30,12 @@ def gprs_to_report(gprs):
         report.horizontal_accuracy = safe_field_get(gprs, "horizontal_accuracy")
         report.num_sats = safe_field_get(gprs, "num_sats")
         report.timestamp = safe_field_get(gprs, "date_time")
+
+        report.firmware_version = gprs.get_firmware_version()
+        report.serial_number = gprs.get_serial_number()
+
         logger.debug(gprs.enclosed_data.get_battery_voltage())
         report.battery_voltage = gprs.enclosed_data.get_battery_voltage()
-        gprs.enclosed_data.get_battery_level()
         report.battery_level = gprs.enclosed_data.get_battery_level()
         logger.debug(gprs.enclosed_data.get_battery_level())
         gprs.enclosed_data.get_base_station_info()

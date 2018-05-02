@@ -87,6 +87,22 @@ class Task(object):
             except Exception as err:
                 logger.error("Exception in async task, logging gps entry %s", err)
 
+        if self.report.firmware_version and self.report.serial_number:
+            try:
+
+                self.result = device_api.device_parameters(
+                    self.report.imei,
+                    "meitrack",
+                    "T333",
+                    self.report.firmware_version,
+                    self.report.serial_number,
+                    self.report.battery_level,
+                    self.report.battery_voltage,
+                    self.report.firmware_version,
+                )
+            except Exception as err:
+                logger.error("Exception in async task, logging file entry %s", err)
+
         if self.report.file_name is not None and self.report.file_data is not None:
             try:
                 # image_base64 = base64.b64encode(self.report.)

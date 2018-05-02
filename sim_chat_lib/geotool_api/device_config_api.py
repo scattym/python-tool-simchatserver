@@ -10,4 +10,3 @@ logger = logging.getLogger(__name__)
 
 def get_device_config(ident):
     device_type = device_api.get_device_type_id_by_ident(ident)
-
