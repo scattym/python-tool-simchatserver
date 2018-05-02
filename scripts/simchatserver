@@ -32,8 +32,8 @@ epoll = select.epoll()
 
 def close_socket(sock):
     global epoll
-    logger.debug("Closing socket %s", sock)
     sock_fd = sock.fileno()
+    logger.debug("Closing socket %s with fd %s", sock, sock_fd)
     peer = [None, None]
     try:
         peer = sock.getpeername()
@@ -63,7 +63,7 @@ def close_socket(sock):
 
     try:
         sock.close()
-        logger.info("Socket closed")
+        logger.info("Socket closed %s", sock_fd)
     except socket.error as err:
         logger.error("Socket error on close %s", err)
 
