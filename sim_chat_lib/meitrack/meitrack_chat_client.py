@@ -148,9 +148,8 @@ class MeitrackChatClient(BaseChatClient):
         if response.get("time_zone_offset_minutes") is not None:
             gprs = build_message.stc_set_time_zone(self.imei, response.get("time_zone_offset_minutes"))
             self.send_data(gprs.as_bytes())
-        if response.get("driving_license_type") is not None:
-            gprs = build_message.stc_set_driver_license_type(self.imei, response.get("driving_license_type"))
-            self.send_data(gprs.as_bytes())
+        gprs = build_message.stc_set_driver_license_type(self.imei, response.get("driving_license_type"))
+        self.send_data(gprs.as_bytes())
 
     def process_data(self, data):
         if len(self.buffer) <= 65536:
