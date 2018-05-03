@@ -52,6 +52,8 @@ def gprs_to_report(gprs):
             report.rx_level = base_station_info["gsm_signal_strength"].decode()
             logger.debug(report.rx_level)
         report.event_type = gprs.enclosed_data.get_event_name()
+        if report.event_type == "RFID":
+            report.license_data = safe_field_get(gprs, "assisted_event_info")
         return report
     return None
 

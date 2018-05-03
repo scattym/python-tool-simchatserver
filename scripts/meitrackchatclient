@@ -69,6 +69,10 @@ event_136 = b'$$N196,864507032323403,AAA,136,-33.815828,151.200083,180502070902,
 gprs_event_136_list, _, _ = parse_data_payload(event_136)
 gprs_event_136 = gprs_event_136_list[0]
 
+license_payload = b'$$e299,864507032323403,AAA,37,-33.815818,151.200091,180503063444,A,11,11,0,0,0.9,66,9995,755819,505|3|00FA|04E381F2,0400,0000|0000|0000|0189|04FA,%  ^SANTIWONG SUVINAI MR.^^?;6007643100400461157=999919741025=?+  3100            1            58003163  00101?,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*29\r\n'
+gprs_license_list, _, _ = parse_data_payload(license_payload)
+gprs_license = gprs_license_list[0]
+
 
 def chat_client(host, port, imei, version, file_test_on_start=False, send_data=False):
     imei = imei.encode()
@@ -144,6 +148,8 @@ def chat_client(host, port, imei, version, file_test_on_start=False, send_data=F
                     data = "This is a test string for encryption"
                 elif msg.rstrip() == 'filetest':
                     file_test(imei, s, True)
+                if msg.rstrip() == "license":
+                    s.send(gprs_license.as_bytes())
                 else:
                     s.send(("%s%s" % (msg, "\r\n")).encode())
                 sys.stdout.write('[Me] ')

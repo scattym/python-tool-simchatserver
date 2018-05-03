@@ -3,7 +3,8 @@ import logging
 import traceback
 from datetime import datetime
 from sim_chat_lib.geotool_api import common
-from sim_chat_lib.geotool_api import device_api
+from sim_chat_lib.geotool_api import device_api, driver_api
+from sim_chat_lib.license import cardreader
 
 logger = logging.getLogger(__name__)
 
@@ -67,13 +68,13 @@ def get_driver_by_id_number(id_number):
 def add_driver(pk, license_number, name, id_number, date_of_birth, expiration_date, phone_number=None):
     try:
         if date_of_birth and len(date_of_birth) == 8:
-            date_of_birth = datetime.datetime.strptime(date_of_birth, "%Y%m%d").strftime("%Y-%m-%d")
+            date_of_birth = datetime.strptime(date_of_birth, "%Y%m%d").strftime("%Y-%m-%d")
         else:
             date_of_birth = None
         if expiration_date == '9999':
             expiration_date = '209912'
         if expiration_date:
-            expiration_date = datetime.datetime.strptime(expiration_date, "%Y%m").strftime("%Y-%m-%d")
+            expiration_date = datetime.strptime(expiration_date, "%Y%m").strftime("%Y-%m-%d")
         data = {
             "pk": pk,
             "license_number": license_number,
@@ -140,6 +141,26 @@ def add_driver_log(device_imei, license_number=None, id_number=None):
         logger.error("Failed to lookup one of the primary keys")
 
     return result
+
+
+def add_driver_log_by_payload(imei, payload):
+    drivers_license = cardreader.License(payload)
+    logger.debug("License is %s", drivers_license)
+    driver = driver_api.add_driver(
+        None,
+        drivers_license.get_field('license_number'),
+        drivers_license.get_field('name'),
+        drivers_license.get_field('id_number'),
+        drivers_license.get_field('date_of_birth'),
+        drivers_license.get_expiration_date(),
+    )
+
+    if driver :
+        result = driver_api.add_driver_log(
+            imei,
+            license_number=driver.get('license_number'),
+            id_number=driver.get('id_number')
+        )
 
 
 if __name__ == '__main__':
