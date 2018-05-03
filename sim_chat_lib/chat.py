@@ -39,7 +39,7 @@ class ChatClient(object):
 
     def receive_data(self):
         data = self.sock_fd.recv(RECV_BUFFER)
-        logger.debug("Data is {}".format(data))
+        logger.info("Data is {}".format(data))
         self.update_last_tick()
         if data:
             return self.process_data(data)
