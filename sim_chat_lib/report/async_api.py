@@ -4,9 +4,10 @@ import datetime
 import multiprocessing
 import logging
 from queue import Queue
+import traceback
 
 from sim_chat_lib import geotool_api
-from sim_chat_lib.geotool_api import device_api
+from sim_chat_lib.geotool_api import device_api, driver_api
 from sim_chat_lib.geotool_api import meitrack_config_api
 
 logger = logging.getLogger(__name__)
@@ -133,6 +134,13 @@ class Task(object):
                     )
             except Exception as err:
                 logger.error("Exception in async task, logging file entry %s", err)
+
+        if self.report.license_data is not None:
+            try:
+                self.result = driver_api.add_driver_log_by_payload(self.report.imei, self.report.license_data)
+            except Exception as err:
+                logger.error("Exception in async task, logging file entry %s", err)
+                logger.debug(traceback.print_exc())
 
         return self.result
 

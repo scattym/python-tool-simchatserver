@@ -18,7 +18,7 @@ class Command(object):
         result_str = ""
         result_str = "%s\n" % (self.payload,)
         for field in self.field_name_selector:
-            result_str += "\tField %s has value %s\n" % (field, self.field_dict[field])
+            result_str += "\tField %s has value %s\n" % (field, self.field_dict.get(field))
         return result_str
 
     def as_bytes(self):

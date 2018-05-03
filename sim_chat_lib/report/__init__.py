@@ -21,6 +21,7 @@ class Report(object):
         self.file_data = None
         self.firmware_version = None
         self.serial_number = None
+        self.license_data = None
 
 
 class MeitrackConfigRequest(object):
