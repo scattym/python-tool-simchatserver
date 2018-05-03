@@ -438,9 +438,9 @@ if __name__ == "__main__":
     parser.add_argument(
         '-l',
         '--line-numbers',
-        help="Include line numbers in logging output",
-        action="store_true",
-        default=False,
+        help="Don't include line numbers in logging output",
+        action="store_false",
+        default=True,
     )
     parser.add_argument(
         '-p',
@@ -473,11 +473,11 @@ if __name__ == "__main__":
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
     )
     if args.line_numbers:
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s'
+            '%(asctime)s - %(levelname)s - %(name)s - %(lineno)d - %(message)s'
         )
     ch.setFormatter(formatter)
     logger.addHandler(ch)
