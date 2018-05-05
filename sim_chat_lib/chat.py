@@ -33,7 +33,7 @@ class ChatClient(object):
             data = data.encode()
         except AttributeError as err:
             logger.debug("Already encoded")
-        logger.debug("Sending data to {}. Data: {}".format(self.ident(), data))
+        logger.info("Sending data to {}. Data: {}".format(self.ident(), data))
         self.sock_fd.send(data)
         self.update_last_tick()
 

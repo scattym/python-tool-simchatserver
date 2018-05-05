@@ -27,23 +27,31 @@ HEADERS = {
 API_HOST = os.environ.get("GEO_API_HOST") or "webui.scattym.com:8000"
 MEMGEOTOOL_API_CACHED_HOST = os.environ.get("MEMGEOTOOL_API_CACHED_HOST", "localhost")
 
+CAMERA_API = "/api/camera/"
+
+CELL_DATA_API = "/api/celldata/"
+CELL_DATA_TO_LOCATION_API = "/api/celldata_to_location/"
 
 DEVICE_API = "/api/device/"
+DEVICE_UPDATE_API = "/api/deviceupdate/"
+DEVICE_IDENT_API = "/api/device_ident/"
+
+DRIVER_API = "/api/driver/"
+DRIVER_LOG_API = "/api/driver_log/"
+
+EVENT_API = "/api/event/"
+
+MEITRACK_CONFIG_API = "/api/meitrack_config/"
+
+OBDII_API = "/api/obdii/"
+
 REPORT_API = "/api/report/"
 REPORT_GPS_API = "/api/reportgps/"
 REPORT_GPS_RMC_API = "/api/reportgpsrmc/"
 REPORT_GPS_VTG_API = "/api/reportgpsvtg/"
 REPORT_GPS_GGA_API = "/api/reportgpsgga/"
-OBDII_API = "/api/obdii/"
-CELL_DATA_API = "/api/celldata/"
-CELL_DATA_TO_LOCATION_API = "/api/celldata_to_location/"
-DRIVER_API = "/api/driver/"
-DRIVER_LOG_API = "/api/driver_log/"
+
 TRIP_LOG_API = "/api/trip_log/"
-DEVICE_UPDATE_API = "/api/deviceupdate/"
-CAMERA_API = "/api/camera/"
-MEITRACK_CONFIG_API = "/api/meitrack_config/"
-EVENT_API = "/api/event/"
 
 GEOTOOL_API_CACHE = None
 
@@ -189,8 +197,10 @@ def get_from_api(endpoint, filter_str, cacheable=False):
             endpoint,
             filter_str
         )
+        logger.debug("Url is %s", url)
         cached_result = get_cached_content(url)
         if cached_result:
+            logger.debug("Using cached result")
             try:
                 if cached_result["count"] == 0:
                     logger.error("Cached result count is 0")
@@ -222,6 +232,7 @@ def get_from_api(endpoint, filter_str, cacheable=False):
             add_cached_content(url, response.json())
 
     if response.status_code == 200:
+        logger.debug("Returning json %s", response.json())
         return response.json()
 
     return None
