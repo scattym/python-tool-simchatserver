@@ -78,6 +78,21 @@ def get_location_from_cell(cell_id, lac, mcc, mnc, rx_level, lookup_method=commo
 
     return result_set
 
+
+def cell_update(device_pk, cell_id, location_area_code, mobile_country_code, mobile_network_code, ecio):
+    update_dict = {
+        "device": device_pk,
+        "cell_id": cell_id,
+        "location_area_code": location_area_code,
+        "mobile_country_code": mobile_country_code,
+        "mobile_network_code": mobile_network_code,
+        "ecio": ecio,
+    }
+
+    result = common.post_to_api(common.CELL_DATA_SIMPLE_API, update_dict)
+    return result
+
+
 if __name__ == '__main__':
     log_level = 11 - 2
 

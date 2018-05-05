@@ -30,6 +30,7 @@ MEMGEOTOOL_API_CACHED_HOST = os.environ.get("MEMGEOTOOL_API_CACHED_HOST", "local
 CAMERA_API = "/api/camera/"
 
 CELL_DATA_API = "/api/celldata/"
+CELL_DATA_SIMPLE_API = "/api/celldata_simple/"
 CELL_DATA_TO_LOCATION_API = "/api/celldata_to_location/"
 
 DEVICE_API = "/api/device/"

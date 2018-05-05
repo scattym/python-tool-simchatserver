@@ -195,7 +195,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                     else:
                         logger.error("Device %s is no longer available for response", response.get("imei"))
                 else:
-                    logger.error("Unable to deliver response %s", response)
+                    logger.debug("Unable to deliver response %s", response)
 
             elif sock_fd == server_socket.fileno():
                 imei = None
