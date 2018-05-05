@@ -4,13 +4,10 @@ from sim_chat_lib.geotool_api import common
 
 logger = logging.getLogger(__name__)
 
-DEVICE_API = "/api/device/"
-DEVICE_TYPE_API = "/api/device_type/"
-
 
 def get_device_pk(imei):
     filter_str = "imei=%s" % (imei,)
-    response = common.get_from_api(DEVICE_API, filter_str, cacheable=True)
+    response = common.get_from_api(common.DEVICE_API, filter_str, cacheable=True)
 
     if response:
         result_set = response
@@ -40,7 +37,7 @@ def create_device(imei, **kwargs):
 
 def get_device_type_id_by_ident(ident):
     filter_str = "identifier=%s" % (ident,)
-    response = common.get_from_api(DEVICE_TYPE_API, filter_str, cacheable=True)
+    response = common.get_from_api(common.DEVICE_TYPE_API, filter_str, cacheable=True)
 
     if response:
         result_set = response
@@ -54,25 +51,27 @@ def get_device_type_id_by_ident(ident):
 
 
 def device_parameters(
-        imei, manufacturer, model, revision, name, serial, battery_level, battery_voltage, running_version
+        imei, manufacturer, model, revision, serial, running_version
 ):
-    update = {
+    device_pk = get_device_pk(imei)
+    logger.error("Device pk is %s for imei %s", device_pk, imei)
+    device_update = {
         'manufacturer': manufacturer,
         'model': model,
         'revision': revision,
         'serial': serial,
-        'battery_level': battery_level,
-        'battery_voltage': battery_voltage,
         'running_version': running_version,
     }
-    create_device(imei, update)
+    result = common.post_to_api("%s" % (common.DEVICE_IDENT_API,), device_update, primary_key=device_pk)
+
+    return result
 
 
 def device_update_by_long_lat(
     imei, longitude, latitude, true_track, ground_speed, altitude, dilution, age_gps_data, num_sats, timestamp, log_time
 ):
     location = "SRID=4326;POINT (%s %s)" % (longitude, latitude)
-    device_update_by_location(
+    return device_update_by_location(
         imei, location, true_track, ground_speed, altitude, dilution, age_gps_data, num_sats, timestamp, log_time
     )
 
@@ -120,7 +119,6 @@ def cell_update(
 
 
 if __name__ == '__main__':
-    from timeit import timeit
     import datetime
     log_level = 11 - 11
 

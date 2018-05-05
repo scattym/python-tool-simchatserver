@@ -477,7 +477,7 @@ if __name__ == "__main__":
     )
     if args.line_numbers:
         formatter = logging.Formatter(
-            '%(asctime)s - %(levelname)s - %(name)s - %(lineno)d - %(message)s'
+            '%(asctime)s - %(process)d - %(levelname)s - %(name)s - %(lineno)d - %(message)s'
         )
     ch.setFormatter(formatter)
     logger.addHandler(ch)
