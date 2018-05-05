@@ -54,7 +54,7 @@ def device_parameters(
         imei, manufacturer, model, revision, serial, running_version
 ):
     device_pk = get_device_pk(imei)
-    logger.error("Device pk is %s for imei %s", device_pk, imei)
+    logger.debug("Device pk is %s for imei %s", device_pk, imei)
     device_update = {
         'manufacturer': manufacturer,
         'model': model,

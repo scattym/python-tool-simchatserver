@@ -1,5 +1,5 @@
 
-from sim_chat_lib.geotool_api import device_api, firmware_api, common, camera_api, trip_log_api
+from sim_chat_lib.geotool_api import device_api, firmware_api, common, camera_api, trip_log_api, cell_api
 from sim_chat_lib.geotool_api import session_key_api
 from sim_chat_lib.geotool_api import device_key_api
 from sim_chat_lib.geotool_api import event_log_api
@@ -61,3 +61,9 @@ def add_camera_image(imei, camera_number, camera_time, image_data_jpg):
     device_pk = device_api.get_device_pk(imei)
     if device_pk:
         return camera_api.add_camera_image(device_pk, camera_number, camera_time, image_data_jpg)
+
+
+def cell_update(imei, cell_id, location_area_code, mobile_country_code, mobile_network_code, ecio):
+    device_pk = device_api.get_device_pk(imei)
+    if device_pk:
+        return cell_api.cell_update(device_pk, cell_id, location_area_code, mobile_country_code, mobile_network_code, ecio)

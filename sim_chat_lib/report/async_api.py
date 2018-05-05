@@ -4,6 +4,7 @@ import datetime
 import multiprocessing
 import logging
 from queue import Queue
+import queue
 import traceback
 
 from sim_chat_lib import geotool_api
@@ -74,17 +75,13 @@ class Task(object):
 
         if self.report.battery_level and self.report.battery_voltage and self.report.mnc:
             try:
-                self.result1 = device_api.cell_update(
+                self.result = geotool_api.cell_update(
                     self.report.imei,
-                    self.report.battery_level,
-                    self.report.battery_voltage,
+                    self.report.ci,
+                    self.report.lac,
                     self.report.mcc,
                     self.report.mnc,
-                    self.report.lac,
-                    self.report.ci,
                     self.report.rx_level,
-                    self.report.timestamp,
-                    log_time
                 )
             except Exception as err:
                 logger.error("Exception in async task, logging gps entry %s", err)
@@ -183,7 +180,7 @@ def queue_report(report, task_queue, blocking=False, timeout=1):
     try:
         task_queue.put(Task(report), blocking, timeout)
         return True
-    except Queue.Full as err:
+    except queue.Full as err:
         logger.error("Task queue is full. Not adding item.")
         return False
 
@@ -195,7 +192,7 @@ def queue_config_request(config_request, task_queue, blocking=False, timeout=1):
         task_queue.put(MeitrackConfigRequestTask(config_request), blocking, timeout)
         logger.debug("Added config request to queue")
         return True
-    except Queue.Full as err:
+    except queue.Full as err:
         logger.error("Task queue is full. Not adding item.")
         return False
 
