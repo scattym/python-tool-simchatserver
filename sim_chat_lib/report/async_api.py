@@ -26,8 +26,8 @@ class Consumer(multiprocessing.Process):
         self.connection = None
         self.channel = None
         if MQ_HOST:
-            self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-            self.channel = self.connection.channel()
+            self.mq_conxn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+            self.channel = self.mq_conxn.channel()
             # self.channel.exchange_declare(exchange='logs',
             #                          exchange_type='fanout')
             self.channel.queue_declare(queue='firmware_update')
