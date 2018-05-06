@@ -9,12 +9,13 @@ EVENT_TYPE_WARNING = '1'
 EVENT_TYPE_INFORMATION = '2'
 
 
-def add_event(device_pk, timestamp, event_type, event_description):
+def add_event(device_pk, timestamp, event_type, event_description, log_time):
     data = {
         "device": device_pk,
         "timestamp":  str(timestamp),
         "event_type": event_type,
         "event_description": event_description,
+        "log_time": str(log_time),
     }
     response = common.post_to_api(common.EVENT_API, data=data)
 

@@ -23,6 +23,7 @@ setup(
             "simplejson",
             "cachetools",
             "python-memcached",
+            'pika',
       ],
       zip_safe=False
 )

@@ -1,0 +1,6 @@
+pycrypto
+requests
+simplejson
+cachetools
+python-memcached
+pika

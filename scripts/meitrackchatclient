@@ -107,7 +107,7 @@ def chat_client(host, port, imei, version, file_test_on_start=False, send_data=F
 
     while 1:
         socket_list = [sys.stdin, s]
-        timeout = 0
+        timeout = 1000
         if send_data:
             timeout = 5
 
