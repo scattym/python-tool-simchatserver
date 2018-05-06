@@ -39,10 +39,10 @@ def get_or_create_device_key(imei):
         return key
 
 
-def add_event_log(imei, log_time, event_type, event_description):
+def add_event_log(imei, timestamp, event_type, event_description, log_time):
     device_pk = device_api.get_device_pk(imei)
     if device_pk:
-        return event_log_api.add_event(device_pk, log_time, event_type, event_description)
+        return event_log_api.add_event(device_pk, timestamp, event_type, event_description, log_time)
 
 
 def add_trip_log(device_imei, event_time, start_stop='start'):
@@ -63,7 +63,9 @@ def add_camera_image(imei, camera_number, camera_time, image_data_jpg):
         return camera_api.add_camera_image(device_pk, camera_number, camera_time, image_data_jpg)
 
 
-def cell_update(imei, cell_id, location_area_code, mobile_country_code, mobile_network_code, ecio):
+def cell_update(imei, log_time, cell_id, location_area_code, mobile_country_code, mobile_network_code, ecio):
     device_pk = device_api.get_device_pk(imei)
     if device_pk:
-        return cell_api.cell_update(device_pk, cell_id, location_area_code, mobile_country_code, mobile_network_code, ecio)
+        return cell_api.cell_update(
+            device_pk, log_time, cell_id, location_area_code, mobile_country_code, mobile_network_code, ecio
+        )

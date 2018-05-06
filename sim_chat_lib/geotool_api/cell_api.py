@@ -79,8 +79,9 @@ def get_location_from_cell(cell_id, lac, mcc, mnc, rx_level, lookup_method=commo
     return result_set
 
 
-def cell_update(device_pk, cell_id, location_area_code, mobile_country_code, mobile_network_code, ecio):
+def cell_update(device_pk, log_time, cell_id, location_area_code, mobile_country_code, mobile_network_code, ecio):
     update_dict = {
+        "log_time": str(log_time),
         "device": device_pk,
         "cell_id": cell_id,
         "location_area_code": location_area_code,

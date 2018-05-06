@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+import json
+
+import pika
+import psycopg2
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+channel = connection.channel()
+sql = """ 
+ INSERT INTO device_celldata (log_time, cell_id, location_area_code, mobile_country_code, mobile_network_code, primary_scrambling_code, secondary_synchronisation_code, rx_level, lookup_method, device_id)
+  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+"""
+
+try:
+    conn = psycopg2.connect("dbname='geotool' user='django' host='localhost' password='tiapw4gd2u'")
+except:
+    print("I am unable to connect to the database")
+cur = conn.cursor()
+
+imei_map = {}
+
+def callback(ch, method, properties, body):
+    print(" [x] Received %r" % body)
+    data = json.loads(body.decode())
+    print("Imei is %s" % data["imei"])
+    if imei_map.get(data["imei"]):
+        device_id = imei_map.get(data["imei"])
+    else:
+        cur.execute("""select id from device_device where imei=%s""", (data["imei"],))
+        rows = cur.fetchall()
+        device_id = rows[0][0]
+        imei_map[data["imei"]] = device_id
+    # keys = data.keys()
+    # values = [data[column] for column in data.remove("log_time")]
+    result = cur.execute(
+        sql, (
+            data["log_time"], data["cell_id"], data["location_area_code"], data["mobile_country_code"],
+            data["mobile_network_code"],
+            data["primary_scrambling_code"], data["secondary_sychronisation_code"],
+            data["rx_level"],
+            "0",
+            device_id,
+        )
+    )
+    print(result)
+    updated_rows = cur.rowcount
+    print(updated_rows)
+    result = conn.commit()
+    print(result)
+
+
+channel.basic_consume(callback,
+                      queue='cell_update',
+                      no_ack=True)
+
+channel.queue_declare(queue='cell_update')
+
+print(' [*] Waiting for messages. To exit press CTRL+C')
+channel.start_consuming()
