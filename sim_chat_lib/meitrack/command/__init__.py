@@ -127,6 +127,24 @@ def stc_set_time_zone(minutes=0):
     return Command(0, b"B36,%s" % (str(minutes).encode(),))
 
 
+def stc_set_fatigue_driving_alert(consecutive_driving_time_mins=0, alert_time_secs=0, acc_off_time_mins=0):
+    if consecutive_driving_time_mins is None or consecutive_driving_time_mins < 0 or consecutive_driving_time_mins > 1000:
+        raise GPRSParameterError("Consecutive alert time must be between 0 and 1000. Was %s" % (consecutive_driving_time_mins,))
+    if alert_time_secs is None or alert_time_secs < 0 or alert_time_secs > 60000:
+        raise GPRSParameterError("Alert time must be between 0 and 60000. Was %s" % (alert_time_secs,))
+    if acc_off_time_mins is None or acc_off_time_mins < 0 or acc_off_time_mins > 1000:
+        raise GPRSParameterError("Acc off time must be between 0 and 1000. Was %s" % (alert_time_secs,))
+
+    return Command(
+        0,
+        b"B15,%s,%s,%s" % (
+            str(consecutive_driving_time_mins).encode(),
+            str(alert_time_secs).encode(),
+            str(acc_off_time_mins).encode(),
+        )
+    )
+
+
 def stc_set_driver_license_type(license_type_str=""):
     if license_type_str:
         return Command(0, b"C50,%s" % (str(license_type_str).encode(),))

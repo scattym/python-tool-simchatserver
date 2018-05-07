@@ -70,6 +70,17 @@ def stc_set_cornering_angle(imei, angle=30):
     return gprs
 
 
+# B15
+def stc_fatigue_driving_alert_time(imei, consecutive_driving_time_mins=0, alert_time_secs=0, acc_off_time_mins=0):
+    com = command.stc_set_fatigue_driving_alert(consecutive_driving_time_mins, alert_time_secs, acc_off_time_mins)
+    gprs = GPRS()
+    gprs.direction = b'@@'
+    gprs.data_identifier = b'X'
+    gprs.enclosed_data = com
+    gprs.imei = imei
+
+    return gprs
+
 # C50
 def stc_set_driver_license_type(imei, license_type_str=None):
     com = command.stc_set_driver_license_type(license_type_str)
