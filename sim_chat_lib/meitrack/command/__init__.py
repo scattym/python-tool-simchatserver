@@ -163,6 +163,25 @@ def stc_set_idle_alert_time(consecutive_speed_time_secs=0, speed_kmh=0, alert_ti
     )
 
 
+def stc_set_speeding_alert(speed_kmh=0, disabled=True):
+    if speed_kmh is None or speed_kmh < 0 or speed_kmh > 255:
+        raise GPRSParameterError("Speed must be between 0 and 255. Was %s" % (speed_kmh,))
+    if disabled is None or (disabled not in [True, False]):
+        raise GPRSParameterError("Disabled must be True or False. Was %s" % (speed_kmh,))
+
+    if disabled is True:
+        disabled_value = "1"
+    else:
+        disabled_value = "0"
+    return Command(
+        0,
+        b"B07,%s,%s" % (
+            str(speed_kmh).encode(),
+            str(disabled_value).encode(),
+        )
+    )
+
+
 def stc_set_driver_license_type(license_type_str=""):
     if license_type_str:
         return Command(0, b"C50,%s" % (str(license_type_str).encode(),))
