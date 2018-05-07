@@ -145,6 +145,24 @@ def stc_set_fatigue_driving_alert(consecutive_driving_time_mins=0, alert_time_se
     )
 
 
+def stc_set_idle_alert_time(consecutive_speed_time_secs=0, speed_kmh=0, alert_time_secs=0):
+    if consecutive_speed_time_secs is None or consecutive_speed_time_secs < 0 or consecutive_speed_time_secs > 60000:
+        raise GPRSParameterError("Consecutive speed time must be between 0 and 60000. Was %s" % (consecutive_speed_time_secs,))
+    if speed_kmh is None or speed_kmh < 0 or speed_kmh > 200:
+        raise GPRSParameterError("Speed must be between 0 and 200. Was %s" % (speed_kmh,))
+    if alert_time_secs is None or alert_time_secs < 0 or alert_time_secs > 60000:
+        raise GPRSParameterError("Alert time must be between 0 and 60000. Was %s" % (alert_time_secs,))
+
+    return Command(
+        0,
+        b"B14,%s,%s,%s" % (
+            str(consecutive_speed_time_secs).encode(),
+            str(speed_kmh).encode(),
+            str(alert_time_secs).encode(),
+        )
+    )
+
+
 def stc_set_driver_license_type(license_type_str=""):
     if license_type_str:
         return Command(0, b"C50,%s" % (str(license_type_str).encode(),))
