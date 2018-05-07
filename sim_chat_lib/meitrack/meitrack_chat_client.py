@@ -175,6 +175,16 @@ class MeitrackChatClient(BaseChatClient):
                 alert_time,
             )
             self.send_data(gprs.as_bytes())
+        if response.get("speeding_alert_speed") is not None or \
+                response.get("speeding_alert_disabled") is not None:
+            speed = response.get("speeding_alert_speed") or 480
+            disabled = response.get("speeding_alert_disabled") or True
+            gprs = build_message.stc_set_speeding_alert(
+                self.imei,
+                speed,
+                disabled,
+            )
+            self.send_data(gprs.as_bytes())
         if response.get("driving_license_validity_time") is not None:
             gprs = build_message.stc_set_driver_license_validity_time(
                 self.imei,

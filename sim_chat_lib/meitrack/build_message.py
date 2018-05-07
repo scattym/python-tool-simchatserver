@@ -70,12 +70,24 @@ def stc_set_cornering_angle(imei, angle=30):
     return gprs
 
 
+# B07
+def stc_set_speeding_alert(imei, speed_kmh=0, disabled=True):
+    com = command.stc_set_speeding_alert(speed_kmh, disabled)
+    gprs = GPRS()
+    gprs.direction = b'@@'
+    gprs.data_identifier = b'g'
+    gprs.enclosed_data = com
+    gprs.imei = imei
+
+    return gprs
+
+
 # B14
 def stc_set_idle_alert_time(imei, consecutive_speed_time_secs=0, speed_kmh=0, alert_time_secs=0):
     com = command.stc_set_idle_alert_time(consecutive_speed_time_secs, speed_kmh, alert_time_secs)
     gprs = GPRS()
     gprs.direction = b'@@'
-    gprs.data_identifier = b'g'
+    gprs.data_identifier = b'h'
     gprs.enclosed_data = com
     gprs.imei = imei
 
@@ -86,7 +98,7 @@ def stc_set_fatigue_driving_alert_time(imei, consecutive_driving_time_mins=0, al
     com = command.stc_set_fatigue_driving_alert(consecutive_driving_time_mins, alert_time_secs, acc_off_time_mins)
     gprs = GPRS()
     gprs.direction = b'@@'
-    gprs.data_identifier = b'h'
+    gprs.data_identifier = b'i'
     gprs.enclosed_data = com
     gprs.imei = imei
 
@@ -98,7 +110,7 @@ def stc_set_driver_license_type(imei, license_type_str=None):
     com = command.stc_set_driver_license_type(license_type_str)
     gprs = GPRS()
     gprs.direction = b'@@'
-    gprs.data_identifier = b'i'
+    gprs.data_identifier = b'j'
     gprs.enclosed_data = com
     gprs.imei = imei
 
@@ -110,7 +122,7 @@ def stc_set_driver_license_validity_time(imei, validity_time):
     com = command.stc_set_driver_license_validity_time(validity_time)
     gprs = GPRS()
     gprs.direction = b'@@'
-    gprs.data_identifier = b'j'
+    gprs.data_identifier = b'k'
     gprs.enclosed_data = com
     gprs.imei = imei
 
@@ -121,7 +133,7 @@ def stc_set_heartbeat_interval(imei, minutes=0):
     com = command.stc_set_heartbeat(minutes)
     gprs = GPRS()
     gprs.direction = b'@@'
-    gprs.data_identifier = b'k'
+    gprs.data_identifier = b'l'
     gprs.enclosed_data = com
     gprs.imei = imei
 
@@ -133,7 +145,7 @@ def stc_set_tracking_by_distance(imei, meters=0):
     com = command.stc_set_tracking_by_distance(meters)
     gprs = GPRS()
     gprs.direction = b'@@'
-    gprs.data_identifier = b'l'
+    gprs.data_identifier = b'm'
     gprs.enclosed_data = com
     gprs.imei = imei
 
@@ -145,7 +157,7 @@ def stc_set_time_zone(imei, minutes=0):
     com = command.stc_set_time_zone(minutes)
     gprs = GPRS()
     gprs.direction = b'@@'
-    gprs.data_identifier = b'm'
+    gprs.data_identifier = b'n'
     gprs.enclosed_data = com
     gprs.imei = imei
 
@@ -156,7 +168,7 @@ def stc_set_tracking_by_time_interval(imei, deci_seconds=0):
     com = command.stc_set_tracking_by_time_interval(deci_seconds)
     gprs = GPRS()
     gprs.direction = b'@@'
-    gprs.data_identifier = b'n'
+    gprs.data_identifier = b'o'
     gprs.enclosed_data = com
     gprs.imei = imei
 
