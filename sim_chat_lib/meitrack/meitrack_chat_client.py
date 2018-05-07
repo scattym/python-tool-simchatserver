@@ -151,6 +151,19 @@ class MeitrackChatClient(BaseChatClient):
         if response.get("driving_license_type") is not None:
             gprs = build_message.stc_set_driver_license_type(self.imei, response.get("driving_license_type"))
             self.send_data(gprs.as_bytes())
+        if response.get("fatigue_driving_consecutive_driving_time") is not None or \
+                response.get("fatigue_driving_alert_time") is not None or \
+                response.get("fatigue_driving_acc_off_time_mins") is not None:
+            consec = response.get("fatigue_driving_consecutive_driving_time") or 480
+            alert = response.get("fatigue_driving_alert_time") or 300
+            acc_off = response.get("fatigue_driving_acc_off_time_mins")
+            gprs = build_message.stc_fatigue_driving_alert_time(
+                self.imei,
+                consec,
+                alert,
+                acc_off
+            )
+            self.send_data(gprs.as_bytes())
         if response.get("driving_license_validity_time") is not None:
             gprs = build_message.stc_set_driver_license_validity_time(
                 self.imei,
