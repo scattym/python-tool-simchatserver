@@ -33,6 +33,8 @@ class Consumer(multiprocessing.Process):
             self.channel.queue_declare(queue='firmware_update')
             self.channel.queue_declare(queue='cell_update')
             self.channel.queue_declare(queue='gps_update')
+            self.channel.queue_declare(queue='event_log')
+
             # logger.debug("Starting publisher")
             # self.mq_conxn = ExamplePublisher(
             #     'amqp://guest:guest@localhost:5672/%2F?connection_attempts=3&heartbeat_interval=3600'
@@ -238,6 +240,20 @@ class Task(object):
             data_list.append(data)
             self.report.gps_latitude = None
             self.report.gps_longitude = None
+
+        if self.report.event_type:
+            data = {
+                "key": "event_log",
+                "data": {
+                    "imei": self.report.imei,
+                    "timestamp": str(self.report.timestamp),
+                    "event_description": self.report.event_type,
+                    "log_time": str(self.log_time),
+                    "event_type": 2,
+                }
+            }
+            data_list.append(data)
+            self.report.event_type = None
 
         return data_list
 
