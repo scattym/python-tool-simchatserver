@@ -145,11 +145,45 @@ class MeitrackChatClient(BaseChatClient):
         if response.get("time_zone_offset_minutes") is not None:
             gprs = build_message.stc_set_time_zone(self.imei, response.get("time_zone_offset_minutes"))
             self.send_data(gprs.as_bytes())
-        if response.get("time_zone_offset_minutes") is not None:
-            gprs = build_message.stc_set_time_zone(self.imei, response.get("time_zone_offset_minutes"))
-            self.send_data(gprs.as_bytes())
         if response.get("driving_license_type") is not None:
             gprs = build_message.stc_set_driver_license_type(self.imei, response.get("driving_license_type"))
+            self.send_data(gprs.as_bytes())
+        if response.get("fatigue_driving_consecutive_driving_time") is not None or \
+                response.get("fatigue_driving_alert_time") is not None or \
+                response.get("fatigue_driving_acc_off_time_mins") is not None:
+            consec = response.get("fatigue_driving_consecutive_driving_time") or 480
+            alert = response.get("fatigue_driving_alert_time") or 300
+            acc_off = response.get("fatigue_driving_acc_off_time_mins") or 0
+            gprs = build_message.stc_set_fatigue_driving_alert_time(
+                self.imei,
+                consec,
+                alert,
+                acc_off
+            )
+            self.send_data(gprs.as_bytes())
+        if response.get("idle_alert_consecutive_speed_time") is not None or \
+                response.get("idle_alert_speed_kmh") is not None or \
+                response.get("idle_alert_alert_time") is not None:
+            consec = response.get("idle_alert_consecutive_speed_time") or 480
+            speed = response.get("fatigue_driving_acc_off_time_mins") or 0
+            alert_time = response.get("idle_alert_alert_time") or 300
+
+            gprs = build_message.stc_set_idle_alert_time(
+                self.imei,
+                consec,
+                speed,
+                alert_time,
+            )
+            self.send_data(gprs.as_bytes())
+        if response.get("speeding_alert_speed") is not None or \
+                response.get("speeding_alert_disabled") is not None:
+            speed = response.get("speeding_alert_speed") or 480
+            disabled = response.get("speeding_alert_disabled") or True
+            gprs = build_message.stc_set_speeding_alert(
+                self.imei,
+                speed,
+                disabled,
+            )
             self.send_data(gprs.as_bytes())
         if response.get("driving_license_validity_time") is not None:
             gprs = build_message.stc_set_driver_license_validity_time(
