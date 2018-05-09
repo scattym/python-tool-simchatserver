@@ -7,24 +7,10 @@ import psycopg2
 connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 channel = connection.channel()
 sql = """ 
- INSERT INTO device_deviceupdate (device_id, imei, location, true_track, mag_track, ground_speed, altitude, timestamp, dilution, num_sats, log_time)
-  VALUES (%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s, %s, %s, %s, %s, %s)
+ INSERT INTO event_eventlog (device_id, timestamp, event_description, event_type, log_time, acknowledged_flag)
+  VALUES (%s, %s, %s, %s, %s, %s)
 """
-cache_sql = """ 
- UPDATE
-  device_deviceupdatecache
- SET
-  location=ST_SetSRID(ST_MakePoint(%s, %s), 4326),
-  true_track=%s,
-  mag_track=%s,
-  ground_speed=%s,
-  altitude=%s,
-  timestamp=%s,
-  dilution=%s,
-  num_sats=%s
- WHERE
-  device_id=%s
-"""
+
 try:
     conn = psycopg2.connect("dbname='geotool' user='django' host='localhost' password='tiapw4gd2u'")
 except:
@@ -48,19 +34,8 @@ def callback(ch, method, properties, body):
     # values = [data[column] for column in data.remove("log_time")]
     result = cur.execute(
         sql, (
-            device_id, data["imei"], data["latitude"], data["longitude"], data["true_track"],
-            data["mag_track"],
-            data["ground_speed"], data["altitude"],
-            data["timestamp"], data["dilution"], data["num_sats"], data["log_time"],
-        )
-    )
-    result = cur.execute(
-        cache_sql, (
-            data["latitude"], data["longitude"], data["true_track"],
-            data["mag_track"],
-            data["ground_speed"], data["altitude"],
-            data["timestamp"], int(float(data["dilution"])), data["num_sats"],
-            device_id,
+            device_id, data["timestamp"], data["event_description"], data["event_type"], data["log_time"],
+            False
         )
     )
     print(result)
@@ -71,10 +46,10 @@ def callback(ch, method, properties, body):
 
 
 channel.basic_consume(callback,
-                      queue='gps_update',
+                      queue='event_log',
                       no_ack=True)
 
-channel.queue_declare(queue='gps_update')
+channel.queue_declare(queue='event_log')
 
 print(' [*] Waiting for messages. To exit press CTRL+C')
 channel.start_consuming()

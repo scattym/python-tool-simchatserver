@@ -74,7 +74,7 @@ gprs_license_list, _, _ = parse_data_payload(license_payload)
 gprs_license = gprs_license_list[0]
 
 
-def chat_client(host, port, imei, version, file_test_on_start=False, send_data=False):
+def chat_client(host, port, imei, version, file_test_on_start=False, send_data=False, send_data_interval=5):
     imei = imei.encode()
 
     gprs_list, before, after = parse_data_payload(
@@ -109,7 +109,7 @@ def chat_client(host, port, imei, version, file_test_on_start=False, send_data=F
         socket_list = [sys.stdin, s]
         timeout = 1000
         if send_data:
-            timeout = 5
+            timeout = send_data_interval
 
         # Get the list sockets which are readable
         ready_to_read, ready_to_write, in_error = select.select(socket_list, [], [], timeout)
@@ -197,9 +197,16 @@ if __name__ == "__main__":
     parser.add_argument(
         '-s',
         '--send-data',
-        help="Send data every 5 seconds.",
+        help="Send data on intervals defined by -w.",
         action="store_true",
         default=False
+    )
+    parser.add_argument(
+        '-w',
+        '--wait-time',
+        help="Interval at which to send data if enabled by -s option.",
+        type=int,
+        default=5
     )
     parser.add_argument(
         '-v',
@@ -228,4 +235,8 @@ if __name__ == "__main__":
         logger.setLevel(log_level)
         ch.setLevel(log_level)
 
-    sys.exit(chat_client(args.host, args.port, args.imei, args.version, args.file_test, args.send_data))
+    sys.exit(
+        chat_client(
+            args.host, args.port, args.imei, args.version, args.file_test, args.send_data, args.wait_time
+        )
+    )
