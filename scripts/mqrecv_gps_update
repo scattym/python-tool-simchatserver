@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+import datetime
 import json
 
 import pika
 import psycopg2
+from sim_chat_lib.geotool_db_api.device_api import insert_deviceupdate, update_deviceupdatecache, get_device_id
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 channel = connection.channel()
@@ -40,34 +42,24 @@ def callback(ch, method, properties, body):
     if imei_map.get(data["imei"]):
         device_id = imei_map.get(data["imei"])
     else:
-        cur.execute("""select id from device_device where imei=%s""", (data["imei"],))
-        rows = cur.fetchall()
-        device_id = rows[0][0]
-        imei_map[data["imei"]] = device_id
-    # keys = data.keys()
-    # values = [data[column] for column in data.remove("log_time")]
-    result = cur.execute(
-        sql, (
-            device_id, data["imei"], data["latitude"], data["longitude"], data["true_track"],
-            data["mag_track"],
-            data["ground_speed"], data["altitude"],
-            data["timestamp"], data["dilution"], data["num_sats"], data["log_time"],
-        )
-    )
-    result = cur.execute(
-        cache_sql, (
-            data["latitude"], data["longitude"], data["true_track"],
-            data["mag_track"],
-            data["ground_speed"], data["altitude"],
-            data["timestamp"], int(float(data["dilution"])), data["num_sats"],
-            device_id,
-        )
-    )
-    print(result)
-    updated_rows = cur.rowcount
-    print(updated_rows)
-    result = conn.commit()
-    print(result)
+        device_id = get_device_id(data["imei"])
+        timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
+        log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
+        if device_id:
+            insert_deviceupdate(
+                device_id, data["imei"], float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
+                int(0),
+                int(data["ground_speed"]), float(data["altitude"]),
+                timestamp, float(data["dilution"]), int(data["num_sats"]), log_time,
+            )
+
+            update_deviceupdatecache(
+                float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
+                int(0),
+                int(data["ground_speed"]), float(data["altitude"]),
+                timestamp, float(data["dilution"]), int(data["num_sats"]),
+                device_id,
+            )
 
 
 channel.basic_consume(callback,
