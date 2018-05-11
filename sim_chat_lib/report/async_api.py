@@ -5,6 +5,7 @@ import logging
 import queue
 import traceback
 import pika
+from pika.exceptions import AMQPError
 import os
 
 from sim_chat_lib import geotool_api
@@ -26,26 +27,39 @@ class Consumer(multiprocessing.Process):
         self.connection = None
         self.channel = None
         if MQ_HOST:
-            self.mq_conxn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-            self.channel = self.mq_conxn.channel()
-            # self.channel.exchange_declare(exchange='logs',
-            #                          exchange_type='fanout')
-            self.channel.queue_declare(queue='firmware_update')
-            self.channel.queue_declare(queue='cell_update')
-            self.channel.queue_declare(queue='gps_update')
-            self.channel.queue_declare(queue='event_log')
+            self.open_message_queue_conxn()
 
-            # logger.debug("Starting publisher")
-            # self.mq_conxn = ExamplePublisher(
-            #     'amqp://guest:guest@localhost:5672/%2F?connection_attempts=3&heartbeat_interval=3600'
-            # )
-            # Thread(target=self.mq_conxn.run).start()
+    def open_message_queue_conxn(self):
+        self.mq_conxn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        self.channel = self.mq_conxn.channel()
+        # self.channel.exchange_declare(exchange='logs',
+        #                          exchange_type='fanout')
+        self.channel.queue_declare(queue='firmware_update')
+        self.channel.queue_declare(queue='cell_update')
+        self.channel.queue_declare(queue='gps_update')
+        self.channel.queue_declare(queue='event_log')
+
+    def publish_to_mq(self, routing_key, data):
+        try:
+            if not self.mq_conxn.is_open:
+                self.open_message_queue_conxn()
+            add_result_ok = self.channel.basic_publish(
+                exchange='',
+                routing_key=routing_key,
+                body=json.dumps(data, ensure_ascii=False),
+            )
+            return add_result_ok
+        except pika.exceptions.AMQPError as err:
+            logger.error("Unable to add message to queue. Error: %s", err)
+            self.mq_conxn.close()
+        return False
 
     def run(self):
         proc_name = self.name
         while True:
             logger.debug("Asking for next item")
             next_task = self.task_queue.get()
+            logger.debug("Got a new task %s", next_task)
 
             if next_task is None:
                 # Poison pill means shutdown
@@ -59,14 +73,15 @@ class Consumer(multiprocessing.Process):
                 message_list = next_task.as_json()
                 if message_list:
                     for message in message_list:
-                        add_result_ok = self.channel.basic_publish(
-                            exchange='',
-                            routing_key=message["key"],
-                            body=json.dumps(message["data"], ensure_ascii=False),
-                        )
-                        logger.debug("Add result was %s", add_result_ok)
+                        add_result_ok = self.publish_to_mq(message['key'], message['data'])
+                        if not add_result_ok:
+                            logger.warning("Unable to add message. Retrying")
+                            add_result_ok = self.publish_to_mq(message['key'], message['data'])
+                            if not add_result_ok:
+                                logger.error("Unable to add message to queue")
 
-            logger.debug("Got a new task %s", next_task)
+                    logger.debug("Add result was %s", add_result_ok)
+
             # print '%s: %s' % (proc_name, next_task)
             answer = next_task()
 
