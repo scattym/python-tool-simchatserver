@@ -62,7 +62,6 @@ from sim_chat_lib.geotool_db_api.device_api import get_device_id
 from sim_chat_lib.geotool_db_api.event_api import insert_eventlog
 
 
-
 async def main(loop):
     connection = await aio_pika.connect_robust("amqp://guest:guest@127.0.0.1/", loop=loop)
 
@@ -77,21 +76,26 @@ async def main(loop):
 
     async for message in queue:
         with message.process():
-            print(message.body)
+            # print(message.body)
             data = json.loads(message.body)
             if imei_map.get(data["imei"]):
                 device_id = imei_map.get(data["imei"])
             else:
                 device_id = await get_device_id(data["imei"])
-                print("Device id is %s" % (device_id,))
-                if '.' not in data["timestamp"]:
-                    data["timestamp"] = "{}.0".format(data["timestamp"])
-                timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
-                log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
                 if device_id:
-                    asyncio.ensure_future(insert_eventlog(
-                        device_id, timestamp, data["event_description"], int(data["event_type"]), log_time,
-                    ))
+                    imei_map[data["imei"]] = device_id
+
+            print("Device id is %s" % (device_id,))
+            if '.' not in data["timestamp"]:
+                data["timestamp"] = "{}.0".format(data["timestamp"])
+            timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
+            if "." not in data["log_time"]:
+                data["log_time"] = "{}.0".format(data["log_time"])
+            log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
+            if device_id:
+                loop.create_task(insert_eventlog(
+                    device_id, timestamp, data["event_description"], str(data["event_type"]), log_time,
+                ))
 
             if queue.name in message.body.decode():
                 break

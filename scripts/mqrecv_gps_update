@@ -75,8 +75,7 @@ import asyncio
 import aio_pika
 import json
 import datetime
-from sim_chat_lib.geotool_db_api.device_api import insert_deviceupdate, update_deviceupdatecache, get_device_id
-
+from sim_chat_lib.geotool_db_api.device_api import get_insert_deviceupdate_coroutine, get_update_deviceupdatecache_coroutine, get_device_id
 
 
 async def main(loop):
@@ -93,30 +92,43 @@ async def main(loop):
 
     async for message in queue:
         with message.process():
-            print(message.body)
+            # print(message.body)
             data = json.loads(message.body)
             if imei_map.get(data["imei"]):
                 device_id = imei_map.get(data["imei"])
             else:
                 device_id = await get_device_id(data["imei"])
-                print("Device id is %s" % (device_id,))
-                timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
-                log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
                 if device_id:
-                    asyncio.ensure_future(insert_deviceupdate(
-                        device_id, data["imei"], float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
-                        int(0),
-                        int(data["ground_speed"]), float(data["altitude"]),
-                        timestamp, float(data["dilution"]), int(data["num_sats"]), log_time,
-                    ))
+                    imei_map[data["imei"]] = device_id
 
-                    asyncio.ensure_future(update_deviceupdatecache(
-                        float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
-                        int(0),
-                        int(data["ground_speed"]), float(data["altitude"]),
-                        timestamp, float(data["dilution"]), int(data["num_sats"]),
-                        device_id,
-                    ))
+            print("Device id is %s" % (device_id,))
+            if "." not in data["timestamp"]:
+                data["timestamp"] = "{}.0".format(data["timestamp"])
+            timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
+            if "." not in data["log_time"]:
+                data["log_time"] = "{}.0".format(data["log_time"])
+
+            log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
+            if device_id:
+                insert_coroutine = get_insert_deviceupdate_coroutine(
+                    device_id, data["imei"], float(data["latitude"]), float(data["longitude"]),
+                    int(data["true_track"]),
+                    int(0),
+                    int(data["ground_speed"]), float(data["altitude"]),
+                    timestamp, float(data["dilution"]), int(data["num_sats"]), log_time,
+                )
+                loop.create_task(insert_coroutine)
+                # loop.run_until_complete(insert_coroutine)
+
+                update_coroutine = get_update_deviceupdatecache_coroutine(
+                    float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
+                    int(0), int(data["ground_speed"]), float(data["altitude"]),
+                    timestamp, float(data["dilution"]), int(data["num_sats"]),
+                    device_id,
+                )
+                loop.create_task(update_coroutine)
+                # loop.run_until_complete(update_coroutine)
+
             if queue.name in message.body.decode():
                 break
 
