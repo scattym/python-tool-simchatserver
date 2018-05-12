@@ -13,7 +13,7 @@ while true; do
             docker build --tag=${con} . -f dockerfiles/${con}/Dockerfile
             docker stop ${con}
             docker rm ${con}
-            docker run -dt --restart=always --name=${con} ${con} -vvv
+            docker run -dt --restart=always -e DBHOST=10.1.1.4 --name=${con} ${con} -vvv
         done
 
         docker build . --tag=simchatserver -f dockerfiles/simchatserver/Dockerfile
