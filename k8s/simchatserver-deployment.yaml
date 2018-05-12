@@ -1,0 +1,207 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "49"
+  creationTimestamp: 2017-12-16T02:15:58Z
+  generation: 59
+  labels:
+    app: simchatserver
+  name: simchatserver
+  namespace: default
+  resourceVersion: "14455591"
+  selfLink: /apis/extensions/v1beta1/namespaces/default/deployments/simchatserver
+  uid: 0e1f38c5-e207-11e7-ab16-42010a980011
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simchatserver
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: simchatserver
+    spec:
+      containers:
+      - env:
+        - name: MQ_HOST
+          value: localhost
+        - name: GEO_API_HOST
+          value: geotool-ui:8000
+        - name: MEMCACHE_HOST
+          value: memcache-geotool:11211
+        - name: DBUSER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: cloudsql
+        - name: DBPASS
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: cloudsql
+        image: gcr.io/geotool-test/simchatserver:v2.23
+        imagePullPolicy: Always
+        name: simchatserver
+        ports:
+        - containerPort: 65533
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      - image: rabbitmq:3.7
+        imagePullPolicy: Always
+        name: rabbitmq
+        ports:
+        - containerPort: 5672
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      - env:
+        - name: DBUSER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: cloudsql
+        - name: DBPASS
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: cloudsql
+        image: gcr.io/geotool-test/mqrecv-gps-update:v2.24
+        imagePullPolicy: Always
+        name: mqrecv-gps-update
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      - env:
+        - name: DBUSER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: cloudsql
+        - name: DBPASS
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: cloudsql
+        image: gcr.io/geotool-test/mqrecv-firmware-update:v2.24
+        imagePullPolicy: Always
+        name: mqrecv-firmware-update
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      - env:
+        - name: DBUSER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: cloudsql
+        - name: DBPASS
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: cloudsql
+        image: gcr.io/geotool-test/mqrecv-event:v2.24
+        imagePullPolicy: Always
+        name: mqrecv-event
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      - env:
+        - name: DBUSER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: cloudsql
+        - name: DBPASS
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: cloudsql
+        image: gcr.io/geotool-test/mqrecv-cell-update:v2.24
+        imagePullPolicy: Always
+        name: mqrecv-cell-update
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      - command:
+        - /cloud_sql_proxy
+        - --dir=/cloudsql
+        - -instances=geotool-test:australia-southeast1:geotool=tcp:5432
+        - -credential_file=/secrets/cloudsql/credentials.json
+        image: b.gcr.io/cloudsql-docker/gce-proxy:1.05
+        imagePullPolicy: Always
+        name: cloudsql-proxy
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /secrets/cloudsql
+          name: cloudsql-oauth-credentials
+          readOnly: true
+        - mountPath: /etc/ssl/certs
+          name: ssl-certs
+        - mountPath: /cloudsql
+          name: cloudsql
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: django-storage-geotool-test
+        secret:
+          defaultMode: 420
+          secretName: django-storage-geotool-test
+      - name: cloudsql-oauth-credentials
+        secret:
+          defaultMode: 420
+          secretName: cloudsql-oauth-credentials
+      - hostPath:
+          path: /etc/ssl/certs
+          type: ""
+        name: ssl-certs
+      - emptyDir: {}
+        name: cloudsql
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: 2018-05-05T13:56:24Z
+    lastUpdateTime: 2018-05-05T13:56:24Z
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  observedGeneration: 59
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1
