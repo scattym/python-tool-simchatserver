@@ -78,7 +78,7 @@ async def main(loop):
 
     async for message in queue:
         with message.process():
-            # print(message.body)
+            print(message.body)
             data = json.loads(message.body)
             if imei_map.get(data["imei"]):
                 device_id = imei_map.get(data["imei"])

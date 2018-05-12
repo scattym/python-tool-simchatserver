@@ -13,8 +13,7 @@ INSERT_CELLUPDATE_SQL = """
         )
     VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
-    )
-"""
+    )"""
 
 INSERT_DEVICEUPDATE_SQL = """ 
  INSERT INTO
@@ -24,8 +23,7 @@ INSERT_DEVICEUPDATE_SQL = """
   )
   VALUES (
     $1, $2, ST_SetSRID(ST_MakePoint($3, $4), 4326), $5, $6, $7, $8, $9, $10, $11, $12
-  )
-"""
+  )"""
 
 UPDATE_DEVICE_CACHE_SQL = """ 
  UPDATE
@@ -40,9 +38,17 @@ UPDATE_DEVICE_CACHE_SQL = """
   dilution = $8,
   num_sats = $9
  WHERE
-  device_id=$10
-"""
+  device_id=$10"""
 
+UPDATE_DEVICE_FIRMWARE = """ 
+ UPDATE device_device
+  SET
+    manufacturer = $1,
+    model = $2,
+    revision = $3,
+    serial = $4,
+    running_version = $5
+  WHERE imei = $6"""
 
 async def get_device_id(imei):
     rows = await common.execute_sql_get_a(GET_DEVICE_ID_SQL, imei)
@@ -79,16 +85,13 @@ def get_insert_deviceupdate_coroutine(
     )
 
 
-def get_update_deviceupdatecache_coroutine(
-        latitude: float, longitude: float, true_track: float, mag_track: int, ground_speed: int, altitude: float,
-        timestamp: datetime.datetime, dilution: float, num_sats: int, device_id: int
+def get_update_firmware_coroutine(
+        manufacturer: str, model: str, revision: str, serial: str, running_version: str, imei: str
 ):
     return common.execute_sql_a(
-        UPDATE_DEVICE_CACHE_SQL,
-        latitude, longitude, true_track,
-        mag_track, ground_speed, altitude, timestamp, dilution,
-        num_sats, device_id
-
+        UPDATE_DEVICE_FIRMWARE,
+        manufacturer, model, revision, serial, running_version,
+        imei
     )
 
 
