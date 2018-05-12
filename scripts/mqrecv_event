@@ -59,7 +59,7 @@ import aio_pika
 import json
 import datetime
 from sim_chat_lib.geotool_db_api.device_api import get_device_id
-from sim_chat_lib.geotool_db_api.event_api import insert_eventlog
+from sim_chat_lib.geotool_db_api.event_api import get_insert_eventlog_coroutine
 
 
 async def main(loop):
@@ -93,7 +93,7 @@ async def main(loop):
                 data["log_time"] = "{}.0".format(data["log_time"])
             log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
             if device_id:
-                loop.create_task(insert_eventlog(
+                loop.create_task(get_insert_eventlog_coroutine(
                     device_id, timestamp, data["event_description"], str(data["event_type"]), log_time,
                 ))
 

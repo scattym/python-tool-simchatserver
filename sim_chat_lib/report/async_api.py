@@ -51,7 +51,8 @@ class Consumer(multiprocessing.Process):
             return add_result_ok
         except pika.exceptions.AMQPError as err:
             logger.error("Unable to add message to queue. Error: %s", err)
-            self.mq_conxn.close()
+            if self.mq_conxn.is_open:
+                self.mq_conxn.close()
         return False
 
     def run(self):

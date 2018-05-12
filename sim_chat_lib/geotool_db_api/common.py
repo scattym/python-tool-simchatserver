@@ -1,9 +1,7 @@
-import psycopg2
 import logging
 import os
 import asyncpg
-import asyncio
-from psycopg2.pool import ThreadedConnectionPool
+
 
 logger = logging.getLogger(__name__)
 

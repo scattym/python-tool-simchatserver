@@ -5,13 +5,15 @@ from sim_chat_lib.geotool_db_api import common
 
 GET_DEVICE_ID_SQL = """SELECT id FROM device_device WHERE imei=$1"""
 
-EVENT_LOG_SQL = """ 
- INSERT INTO event_eventlog (device_id, timestamp, event_description, event_type, log_time, acknowledged_flag)
-  VALUES ($1, $2, $3, $4, $5, $6)
+EVENT_LOG_SQL = """
+    INSERT INTO
+        event_eventlog (device_id, timestamp, event_description, event_type, log_time, acknowledged_flag)
+    VALUES
+        ($1, $2, $3, $4, $5, $6)
 """
 
 
-def insert_eventlog(
+def get_insert_eventlog_coroutine(
         device_id: int, timestamp: datetime.datetime, event_description: str,
         event_type: str, log_time: datetime.datetime,
 ):
@@ -33,9 +35,7 @@ if __name__ == '__main__':
     )
     ch.setFormatter(formatter)
     logger.addHandler(ch)
-    import time
-    import traceback
     import datetime
 
-    print(insert_eventlog(25, datetime.datetime.now(), "test", 0, datetime.datetime.now()))
+    print(get_insert_eventlog_coroutine(25, datetime.datetime.now(), "test", 0, datetime.datetime.now()))
 
