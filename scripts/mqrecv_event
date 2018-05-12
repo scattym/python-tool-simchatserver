@@ -83,6 +83,7 @@ async def main(loop):
                 device_id = imei_map.get(data["imei"])
             else:
                 device_id = await get_device_id(data["imei"])
+                print("Device id is %s" % (device_id,))
                 if '.' not in data["timestamp"]:
                     data["timestamp"] = "{}.0".format(data["timestamp"])
                 timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
