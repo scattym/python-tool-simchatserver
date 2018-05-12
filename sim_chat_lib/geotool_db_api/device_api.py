@@ -85,6 +85,19 @@ def get_insert_deviceupdate_coroutine(
     )
 
 
+def get_update_deviceupdatecache_coroutine(
+        latitude: float, longitude: float, true_track: float, mag_track: int, ground_speed: int, altitude: float,
+        timestamp: datetime.datetime, dilution: float, num_sats: int, device_id: int
+):
+    return common.execute_sql_a(
+        UPDATE_DEVICE_CACHE_SQL,
+        latitude, longitude, true_track,
+        mag_track, ground_speed, altitude, timestamp, dilution,
+        num_sats, device_id
+
+    )
+
+
 def get_update_firmware_coroutine(
         manufacturer: str, model: str, revision: str, serial: str, running_version: str, imei: str
 ):

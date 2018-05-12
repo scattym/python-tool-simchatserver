@@ -75,7 +75,8 @@ import asyncio
 import aio_pika
 import json
 import datetime
-from sim_chat_lib.geotool_db_api.device_api import get_insert_deviceupdate_coroutine, get_update_deviceupdatecache_coroutine, get_device_id
+from sim_chat_lib.geotool_db_api.device_api import get_insert_deviceupdate_coroutine
+from sim_chat_lib.geotool_db_api.device_api import get_update_deviceupdatecache_coroutine, get_device_id
 
 
 async def main(loop):
