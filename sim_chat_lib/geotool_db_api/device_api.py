@@ -32,8 +32,8 @@ UPDATE_DEVICE_CACHE_SQL = """
 """
 
 
-async def get_device_id(imei):
-    rows = await common.execute_sql_get_a(GET_DEVICE_ID_SQL, imei)
+def get_device_id(imei):
+    rows = common.execute_sql_get_a(GET_DEVICE_ID_SQL, imei)
     return rows
 
 

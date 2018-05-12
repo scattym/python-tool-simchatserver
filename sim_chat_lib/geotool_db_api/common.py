@@ -30,29 +30,29 @@ async def create_pool_a(*args, **kwargs):
         # CONXN_POOL = ThreadedConnectionPool(1, 10, *args, **kwargs)
 
 
-async def execute_sql_update_a(query, *args):
+def execute_sql_update_a(query, *args):
     # loop = asyncio.get_event_loop()
     print("Executing update sql")
-    global CONXN_POOL
-    if not CONXN_POOL:
-        await create_pool_a(**get_db_from_env())
+    print(*args)
     rows = execute_sql_a(query, *args)
 
     return rows
 
 
 async def execute_sql_a(query, *args):
-    async with CONXN_POOL.acquire() as connection:
-        async with connection.transaction():
-            result = await connection.fetchval(query, *args)
-            yield result
-
-
-async def execute_sql_get_a(query, *args):
-    # loop = asyncio.get_event_loop()
+    print(*args)
     global CONXN_POOL
     if not CONXN_POOL:
         await create_pool_a(**get_db_from_env())
+    async with CONXN_POOL.acquire() as connection:
+        async with connection.transaction():
+            result = await connection.fetchval(query, *args)
+            return result
+
+
+def execute_sql_get_a(query, *args):
+    # loop = asyncio.get_event_loop()
+
     rows = execute_sql_a(query, *args)
 
     return rows
