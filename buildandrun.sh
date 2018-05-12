@@ -5,6 +5,7 @@ running_version=`docker ps | grep simchatserver | awk '{print $NF}' | cut -f 2 -
 if [ "X${version}" != "X" ] ; then
 	if [ "X${version}" != "X${running_version}" ] ; then
 		docker build --tag=simchatserver:v${version} . -f dockerfiles/simchatserver/Dockerfile
+		docker build --tag=mqrecv_cell_update:v${version} . -f dockerfiles/mqrecv_cell_update/Dockerfile
 		if [ $? -eq 0 ] ; then
 			if [ "X${running_version}" != "X" ] ; then
 				docker stop simchatserver-${running_version}
