@@ -7,16 +7,17 @@ GET_DEVICE_ID_SQL = """SELECT id FROM device_device WHERE imei=$1"""
 
 EVENT_LOG_SQL = """ 
  INSERT INTO event_eventlog (device_id, timestamp, event_description, event_type, log_time, acknowledged_flag)
-  VALUES (%s, %s, %s, %s, %s, %s)
+  VALUES ($1, $2, $3, $4, $5, $6)
 """
 
 
 def insert_eventlog(
-        device_id:int, timestamp:datetime.datetime, event_description:str, event_type:int, log_time:datetime.datetime,
+        device_id: int, timestamp: datetime.datetime, event_description: str,
+        event_type: str, log_time: datetime.datetime,
 ):
     result = common.execute_sql_update_a(
         EVENT_LOG_SQL,
-            device_id, timestamp, event_description, event_type, log_time
+            device_id, timestamp, event_description, event_type, log_time, False
 
     )
     return result
