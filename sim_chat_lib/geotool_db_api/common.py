@@ -23,35 +23,36 @@ def get_db_from_env():
     return data
 
 
-async def create_pool(*args, **kwargs):
+async def create_pool_a(*args, **kwargs):
     global CONXN_POOL
     if not CONXN_POOL:
         CONXN_POOL = await asyncpg.create_pool(**get_db_from_env())
         # CONXN_POOL = ThreadedConnectionPool(1, 10, *args, **kwargs)
 
 
-def execute_sql_update(query, *args):
-    loop = asyncio.get_event_loop()
+async def execute_sql_update_a(query, *args):
+    # loop = asyncio.get_event_loop()
+    print("Executing update sql")
     global CONXN_POOL
     if not CONXN_POOL:
-        loop.run_until_complete(create_pool(**get_db_from_env()))
-    rows = loop.run_until_complete(execute_sql(query, *args))
+        await create_pool_a(**get_db_from_env())
+    rows = execute_sql_a(query, *args)
 
     return rows
 
 
-async def execute_sql(query, *args):
+async def execute_sql_a(query, *args):
     async with CONXN_POOL.acquire() as connection:
         async with connection.transaction():
             result = await connection.fetchval(query, *args)
-            return result
+            yield result
 
 
-def execute_sql_get(query, *args):
-    loop = asyncio.get_event_loop()
+async def execute_sql_get_a(query, *args):
+    # loop = asyncio.get_event_loop()
     global CONXN_POOL
     if not CONXN_POOL:
-        loop.run_until_complete(create_pool(**get_db_from_env()))
-    rows = loop.run_until_complete(execute_sql(query, *args))
+        await create_pool_a(**get_db_from_env())
+    rows = execute_sql_a(query, *args)
 
     return rows

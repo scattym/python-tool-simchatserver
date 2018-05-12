@@ -1,72 +1,126 @@
 #!/usr/bin/env python
-import datetime
-import json
+# import datetime
+# import json
+#
+# import pika
+# import psycopg2
+# from sim_chat_lib.geotool_db_api.device_api import insert_deviceupdate, update_deviceupdatecache, get_device_id
+#
+# connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+# channel = connection.channel()
+# sql = """
+#  INSERT INTO device_deviceupdate (device_id, imei, location, true_track, mag_track, ground_speed, altitude, timestamp, dilution, num_sats, log_time)
+#   VALUES (%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s, %s, %s, %s, %s, %s)
+# """
+# cache_sql = """
+#  UPDATE
+#   device_deviceupdatecache
+#  SET
+#   location=ST_SetSRID(ST_MakePoint(%s, %s), 4326),
+#   true_track=%s,
+#   mag_track=%s,
+#   ground_speed=%s,
+#   altitude=%s,
+#   timestamp=%s,
+#   dilution=%s,
+#   num_sats=%s
+#  WHERE
+#   device_id=%s
+# """
+# try:
+#     conn = psycopg2.connect("dbname='geotool' user='django' host='localhost' password='tiapw4gd2u'")
+# except:
+#     print("I am unable to connect to the database")
+# cur = conn.cursor()
+#
+# imei_map = {}
+#
+# def callback(ch, method, properties, body):
+#     print(" [x] Received %r" % body)
+#     data = json.loads(body.decode())
+#     print("Imei is %s" % data["imei"])
+#     if imei_map.get(data["imei"]):
+#         device_id = imei_map.get(data["imei"])
+#     else:
+#         device_id = get_device_id(data["imei"])
+#         timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
+#         log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
+#         if device_id:
+#             insert_deviceupdate(
+#                 device_id, data["imei"], float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
+#                 int(0),
+#                 int(data["ground_speed"]), float(data["altitude"]),
+#                 timestamp, float(data["dilution"]), int(data["num_sats"]), log_time,
+#             )
+#
+#             update_deviceupdatecache(
+#                 float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
+#                 int(0),
+#                 int(data["ground_speed"]), float(data["altitude"]),
+#                 timestamp, float(data["dilution"]), int(data["num_sats"]),
+#                 device_id,
+#             )
+#
+#
+# channel.basic_consume(callback,
+#                       queue='gps_update',
+#                       no_ack=True)
+#
+# channel.queue_declare(queue='gps_update')
+#
+# print(' [*] Waiting for messages. To exit press CTRL+C')
+# channel.start_consuming()
 
-import pika
-import psycopg2
+import asyncio
+import aio_pika
+import json
+import datetime
 from sim_chat_lib.geotool_db_api.device_api import insert_deviceupdate, update_deviceupdatecache, get_device_id
 
-connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-channel = connection.channel()
-sql = """ 
- INSERT INTO device_deviceupdate (device_id, imei, location, true_track, mag_track, ground_speed, altitude, timestamp, dilution, num_sats, log_time)
-  VALUES (%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s, %s, %s, %s, %s, %s)
-"""
-cache_sql = """ 
- UPDATE
-  device_deviceupdatecache
- SET
-  location=ST_SetSRID(ST_MakePoint(%s, %s), 4326),
-  true_track=%s,
-  mag_track=%s,
-  ground_speed=%s,
-  altitude=%s,
-  timestamp=%s,
-  dilution=%s,
-  num_sats=%s
- WHERE
-  device_id=%s
-"""
-try:
-    conn = psycopg2.connect("dbname='geotool' user='django' host='localhost' password='tiapw4gd2u'")
-except:
-    print("I am unable to connect to the database")
-cur = conn.cursor()
-
-imei_map = {}
-
-def callback(ch, method, properties, body):
-    print(" [x] Received %r" % body)
-    data = json.loads(body.decode())
-    print("Imei is %s" % data["imei"])
-    if imei_map.get(data["imei"]):
-        device_id = imei_map.get(data["imei"])
-    else:
-        device_id = get_device_id(data["imei"])
-        timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
-        log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
-        if device_id:
-            insert_deviceupdate(
-                device_id, data["imei"], float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
-                int(0),
-                int(data["ground_speed"]), float(data["altitude"]),
-                timestamp, float(data["dilution"]), int(data["num_sats"]), log_time,
-            )
-
-            update_deviceupdatecache(
-                float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
-                int(0),
-                int(data["ground_speed"]), float(data["altitude"]),
-                timestamp, float(data["dilution"]), int(data["num_sats"]),
-                device_id,
-            )
 
 
-channel.basic_consume(callback,
-                      queue='gps_update',
-                      no_ack=True)
+async def main(loop):
+    connection = await aio_pika.connect_robust("amqp://guest:guest@127.0.0.1/", loop=loop)
 
-channel.queue_declare(queue='gps_update')
+    queue_name = "gps_update"
 
-print(' [*] Waiting for messages. To exit press CTRL+C')
-channel.start_consuming()
+    # Creating channel
+    channel = await connection.channel()    # type: aio_pika.Channel
+
+    # Declaring queue
+    queue = await channel.declare_queue(queue_name)   # type: aio_pika.Queue
+    imei_map = {}
+
+    async for message in queue:
+        with message.process():
+            print(message.body)
+            data = json.loads(message.body)
+            if imei_map.get(data["imei"]):
+                device_id = imei_map.get(data["imei"])
+            else:
+                device_id = await get_device_id(data["imei"])
+                timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
+                log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
+                if device_id:
+                    asyncio.ensure_future(insert_deviceupdate(
+                        device_id, data["imei"], float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
+                        int(0),
+                        int(data["ground_speed"]), float(data["altitude"]),
+                        timestamp, float(data["dilution"]), int(data["num_sats"]), log_time,
+                    ))
+
+                    asyncio.ensure_future(update_deviceupdatecache(
+                        float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
+                        int(0),
+                        int(data["ground_speed"]), float(data["altitude"]),
+                        timestamp, float(data["dilution"]), int(data["num_sats"]),
+                        device_id,
+                    ))
+            if queue.name in message.body.decode():
+                break
+
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main(loop))
+    loop.close()

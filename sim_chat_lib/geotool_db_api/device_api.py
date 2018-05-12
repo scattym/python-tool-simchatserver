@@ -32,8 +32,8 @@ UPDATE_DEVICE_CACHE_SQL = """
 """
 
 
-def get_device_id(imei):
-    rows = common.execute_sql_get(GET_DEVICE_ID_SQL, imei)
+async def get_device_id(imei):
+    rows = await common.execute_sql_get_a(GET_DEVICE_ID_SQL, imei)
     return rows
 
 
@@ -42,11 +42,11 @@ def insert_deviceupdate(
         altitude:float, timestamp:datetime.datetime,
         dilution:float, num_sats:int, log_time:datetime.datetime
 ):
-    result = common.execute_sql_update(
+    result = common.execute_sql_update_a(
         INSERT_DEVICEUPDATE_SQL,
-            device_id, imei, latitude, longitude, true_track,
-            mag_track, ground_speed, altitude, timestamp, dilution,
-            num_sats, log_time,
+        device_id, imei, latitude, longitude, true_track,
+        mag_track, ground_speed, altitude, timestamp, dilution,
+        num_sats, log_time,
 
     )
     return result
@@ -56,11 +56,11 @@ def update_deviceupdatecache(
         latitude:float, longitude:float, true_track:float, mag_track:int, ground_speed:int, altitude:float,
         timestamp:datetime.datetime, dilution:float, num_sats:int, device_id:int
 ):
-    result = common.execute_sql_update(
+    result = common.execute_sql_update_a(
         UPDATE_DEVICE_CACHE_SQL,
-            latitude, longitude, true_track,
-            mag_track, ground_speed, altitude, timestamp, dilution,
-            num_sats, device_id
+        latitude, longitude, true_track,
+        mag_track, ground_speed, altitude, timestamp, dilution,
+        num_sats, device_id
 
     )
     return result
