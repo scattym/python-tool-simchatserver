@@ -2,7 +2,7 @@
 
 version=`git branch | grep '*' | grep -v master | cut -f 2 -d '-'`
 if [ "X${version}" != "X" ] ; then
-    docker build --tag=simchatserver-base:interim . -f dockerfiles/simchatserver/Dockerfile
+    docker build --tag=simchatserver-base:interim . -f dockerfiles/simchatserver-base/Dockerfile
 
     docker build --tag=gcr.io/geotool-test/simchatserver:v${version} . -f dockerfiles/simchatserver/Dockerfile
     docker build --tag=gcr.io/geotool-test/mqrecv-cell-update:v${version} . -f dockerfiles/mqrecv-cell-update/Dockerfile
