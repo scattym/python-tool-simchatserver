@@ -6,14 +6,14 @@ while true; do
     if git pull | grep -q "Already up-to-date" ; then
         echo "`date`: simchatserver already up to date"
     else
-        docker run -dt --restart=always --name=rabbitmq rabbitmq:3.7
+        docker run -dt -p 5672:5672 --restart=always --name=rabbitmq rabbitmq:3.7
         docker build --tag=simchatserver-base:interim . -f dockerfiles/simchatserver-base/Dockerfile
 
         for con in ${CONTAINERS} ; do
             docker build --tag=${con} . -f dockerfiles/${con}/Dockerfile
             docker stop ${con}
             docker rm ${con}
-            docker run -dt --restart=always -e DBHOST=10.1.1.4 --name=${con} ${con} -vvv
+            docker run -dt --restart=always -e MQ_HOST=10.1.1.4 -e DBHOST=10.1.1.4 --name=${con} ${con} -vvv
         done
 
         docker build . --tag=simchatserver -f dockerfiles/simchatserver/Dockerfile
