@@ -30,7 +30,8 @@ class Consumer(multiprocessing.Process):
             self.open_message_queue_conxn()
 
     def open_message_queue_conxn(self):
-        self.mq_conxn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        message_queue_host = os.environ.get("MQ_HOST", 'localhost')
+        self.mq_conxn = pika.BlockingConnection(pika.ConnectionParameters(host=message_queue_host))
         self.channel = self.mq_conxn.channel()
         # self.channel.exchange_declare(exchange='logs',
         #                          exchange_type='fanout')
