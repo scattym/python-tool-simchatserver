@@ -58,12 +58,15 @@ import asyncio
 import aio_pika
 import json
 import datetime
+import os
 from sim_chat_lib.geotool_db_api.device_api import get_device_id
 from sim_chat_lib.geotool_db_api.event_api import get_insert_eventlog_coroutine
 
+MQ_HOST = os.environ.get("MQ_HOST", "127.0.0.1")
+
 
 async def main(loop):
-    connection = await aio_pika.connect_robust("amqp://guest:guest@127.0.0.1/", loop=loop)
+    connection = await aio_pika.connect_robust("amqp://guest:guest@{}/".format(MQ_HOST), loop=loop)
 
     queue_name = "event_log"
 
