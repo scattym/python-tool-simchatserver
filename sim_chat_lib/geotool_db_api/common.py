@@ -24,7 +24,9 @@ def get_db_from_env():
 async def create_pool_a(*args, **kwargs):
     global CONXN_POOL
     if not CONXN_POOL:
-        CONXN_POOL = await asyncpg.create_pool(**get_db_from_env())
+        min_size = os.environ.get("DB_POOL_MIN", 10)
+        max_size = os.environ.get("DB_POOL_MAX", 10)
+        CONXN_POOL = await asyncpg.create_pool(min_size=5, max_size=5, **get_db_from_env())
         # CONXN_POOL = ThreadedConnectionPool(1, 10, *args, **kwargs)
 
 
