@@ -169,21 +169,21 @@ class Task(object):
                 logger.error("Exception in async task, logging file entry %s", err)
                 logger.error(traceback.print_exc())
 
-        if self.report.event_type:
+        if self.report.event_description:
             try:
-                if self.report.event_type == "SOS Button Pressed":
+                if self.report.event_description == "SOS Button Pressed":
                     self.result = geotool_api.add_sos_event(self.report.imei, self.report.timestamp)
                 else:
-                    if self.report.event_type == "Engine On":
+                    if self.report.event_description == "Engine On":
                         geotool_api.add_trip_log(self.report.imei, self.report.timestamp, "start")
-                    elif self.report.event_type == "Engine Off":
+                    elif self.report.event_description == "Engine Off":
                         geotool_api.add_trip_log(self.report.imei, self.report.timestamp, "stop")
 
                     self.result = geotool_api.add_event_log(
                         self.report.imei,
                         self.report.timestamp,
                         2,
-                        self.report.event_type,
+                        self.report.event_description,
                         self.log_time,
                     )
             except Exception as err:
@@ -258,19 +258,20 @@ class Task(object):
             self.report.gps_latitude = None
             self.report.gps_longitude = None
 
-        if self.report.event_type:
+        if self.report.event_description:
             data = {
                 "key": "event_log",
                 "data": {
                     "imei": self.report.imei,
                     "timestamp": str(self.report.timestamp),
-                    "event_description": self.report.event_type,
+                    "event_description": self.report.event_description,
+                    "event_id": self.report.event_id,
                     "log_time": str(self.log_time),
                     "event_type": 2,
                 }
             }
             data_list.append(data)
-            self.report.event_type = None
+            self.report.event_description = None
 
         return data_list
 

@@ -51,8 +51,9 @@ def gprs_to_report(gprs):
             logger.debug(report.ci)
             report.rx_level = base_station_info["gsm_signal_strength"].decode()
             logger.debug(report.rx_level)
-        report.event_type = gprs.enclosed_data.get_event_name()
-        if report.event_type == "RFID":
+        report.event_id = gprs.enclosed_data.get_event_id()
+        report.event_description = gprs.enclosed_data.get_event_name()
+        if report.event_description == "RFID":
             report.license_data = safe_field_get(gprs, "assisted_event_info")
         return report
     return None
@@ -69,6 +70,6 @@ def file_download_to_report(imei, file_download):
 def event_to_report(imei, event_text):
     report = Report()
     report.imei = imei.decode()
-    report.event_type = event_text
+    report.event_description = event_text
     report.timestamp = datetime.datetime.utcnow()
     return report
