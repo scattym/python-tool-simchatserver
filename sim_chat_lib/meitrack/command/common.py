@@ -118,6 +118,10 @@ class Command(object):
         else:
             return None, None, None, None
 
+    def get_event_id(self):
+        if self.field_dict.get("event_code"):
+            return self.field_dict.get("event_code")
+
     def get_event_name(self):
         if self.field_dict.get("event_code"):
             return event_to_name(self.field_dict.get("event_code"))
