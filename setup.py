@@ -28,10 +28,10 @@ setup(
             "cachetools",
             "python-memcached",
             'pika',
-            'geotool_api==1.0',
+            # 'geotool_api==1.0',
       ],
-      dependency_links=[
-            "git+ssh://mjclark1@bitbucket.org/poslive/python-lib-geotool_api.git@1.0#egg=geotool_api-1.0"
-      ],
+      # dependency_links=[
+      #       "git+ssh://mjclark1@bitbucket.org/poslive/python-lib-geotool_api.git@1.0#egg=geotool_api-1.0"
+      # ],
       zip_safe=False
 )
