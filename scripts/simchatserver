@@ -227,7 +227,9 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                         else:
                             logger.debug(imei_line)
                             identify_client(connection, task_queue, imei_line)
-
+                except ConnectionError as err:
+                    logger.error("Connection error on initial connect, with error: %s", err)
+                    close_socket(connection)
                 except socket.timeout as err:
                     if disconnect_unidentified:
                         logger.error("No imei in timeout period from IP: %s:%s. Closing" % addr)
