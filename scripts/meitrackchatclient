@@ -61,7 +61,7 @@ def file_test(imei, sock, interleave_data_and_messages=False):
         print(num_sent)
         if interleave_data_and_messages:
             sock.send(login_gprs.as_bytes())
-        # time.sleep(0.1)
+        # time.sleep(0.01)
 
 
 trip_start = b'$$\194,864507032323403,AAA,35,-33.815810,151.200106,180428195806,A,9,12,0,200,0.8,72,5819,359456,505|3|00FA|04E381F5,8500,0000|0000|0000|018C|050C,00000001,108,0000,3,0,0|0000|0000|0000|0000|0000*FA\r\n'

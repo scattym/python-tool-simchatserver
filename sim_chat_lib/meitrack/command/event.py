@@ -102,6 +102,29 @@ def _(event_code: bytes) -> str:
         logger.error("Unable to process integer from bytes {}".format(event_code))
 
 
+@singledispatch
+def event_to_id(event_code: int) -> int:
+    return event_code
+
+
+@event_to_id.register(str)
+def _(event_code: str) -> str:
+    try:
+        lookup_value = int(event_code)
+        return event_to_id(lookup_value)
+    except ValueError as err:
+        logger.error("Unable to process integer from string {}".format(event_code))
+
+
+@event_to_id.register(bytes)
+def _(event_code: bytes) -> str:
+    try:
+        lookup_value = int(event_code.decode())
+        return event_to_id(lookup_value)
+    except ValueError as err:
+        logger.error("Unable to process integer from bytes {}".format(event_code))
+
+
 if __name__ == "__main__":
     log_level = 11 - 11
 
