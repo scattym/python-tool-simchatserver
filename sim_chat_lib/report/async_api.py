@@ -54,6 +54,10 @@ class Consumer(multiprocessing.Process):
             logger.error("Unable to add message to queue. Error: %s", err)
             if self.mq_conxn.is_open:
                 self.mq_conxn.close()
+        except TypeError as err:
+            logger.error("TypeError: Unable to convert json for publishing to message queue. Data is %s", data)
+        except ValueError as err:
+            logger.error("ValueError: Unable to convert json for publishing to message queue. Data is %s", data)
         return False
 
     def run(self):
