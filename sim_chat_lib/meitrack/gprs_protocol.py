@@ -155,13 +155,13 @@ def parse_data_payload(payload):
             leftover = payload
             payload = b''
         else:
-            direction_end = direction_start + 2
+            # direction_end = direction_start + 2
             if direction_start > 0:
                 before = payload[0:direction_start]
 
             payload = payload[direction_start:]
 
-            data_identifier = payload[2]
+            # data_identifier = payload[2]
 
             first_comma = payload.find(b',')
             if not first_comma:
