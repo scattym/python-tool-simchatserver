@@ -125,7 +125,7 @@ async def main(loop):
                 # loop.run_until_complete(insert_coroutine)
 
                 update_coroutine = get_update_deviceupdatecache_coroutine(
-                    float(data["latitude"]), float(data["longitude"]), int(data["true_track"]),
+                    float(data["longitude"]), float(data["latitude"]), int(data["true_track"]),
                     int(0), int(data["ground_speed"]), float(data["altitude"]),
                     timestamp, float(data["dilution"]), int(data["num_sats"]),
                     device_id,
