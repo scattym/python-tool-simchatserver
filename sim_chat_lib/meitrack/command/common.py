@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-from sim_chat_lib.meitrack.command.event import event_to_name
+from sim_chat_lib.meitrack.command.event import event_to_name, event_to_id
 from sim_chat_lib.meitrack.error import GPRSParseError
 
 logger = logging.getLogger(__name__)
@@ -120,7 +120,7 @@ class Command(object):
 
     def get_event_id(self):
         if self.field_dict.get("event_code"):
-            return self.field_dict.get("event_code")
+            return event_to_id(self.field_dict.get("event_code"))
 
     def get_event_name(self):
         if self.field_dict.get("event_code"):
