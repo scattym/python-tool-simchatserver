@@ -17,6 +17,7 @@ class Report(object):
         self.ci = None
         self.rx_level = None
         self.event_description = None
+        self.event_id = None
         self.file_name = None
         self.file_data = None
         self.firmware_version = None
