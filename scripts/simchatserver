@@ -39,6 +39,8 @@ def close_socket(sock):
         peer = sock.getpeername()
     except socket.error as err:
         logger.error("Socket error on getting peer %s", err)
+        logger.error("Socket is of type: %s", type(sock))
+        logger.error(traceback.print_exc())
 
     # for key in SOCKET_MAP:
     #     if SOCKET_MAP[key] == sock_fd:
@@ -66,6 +68,10 @@ def close_socket(sock):
         logger.info("Socket closed %s", sock_fd)
     except socket.error as err:
         logger.error("Socket error on close %s", err)
+
+    logger.debug("{}".format(connections))
+    logger.debug("{}".format(MASTER_LIST))
+    logger.debug("{}".format(CHAT_CLIENT_LIST))
 
 
 def sock_fd_to_socket(sock_fd):
