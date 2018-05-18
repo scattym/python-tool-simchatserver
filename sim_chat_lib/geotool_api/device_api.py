@@ -56,6 +56,7 @@ def device_parameters(
     device_pk = get_device_pk(imei)
     logger.debug("Device pk is %s for imei %s", device_pk, imei)
     device_update = {
+        'device': device_pk,
         'manufacturer': manufacturer,
         'model': model,
         'revision': revision,

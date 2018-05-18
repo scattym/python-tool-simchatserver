@@ -11,6 +11,7 @@ import os
 from sim_chat_lib import geotool_api
 from sim_chat_lib.geotool_api import device_api, driver_api
 from sim_chat_lib.geotool_api import meitrack_config_api
+from sim_chat_lib.geotool_api.message_queue_api import open_message_queue_conxn, publish_to_mq
 
 logger = logging.getLogger(__name__)
 MQ_HOST = os.environ.get("MQ_HOST")
@@ -28,6 +29,7 @@ class Consumer(multiprocessing.Process):
         self.channel = None
         if MQ_HOST:
             self.open_message_queue_conxn()
+            open_message_queue_conxn()
 
     def open_message_queue_conxn(self):
         message_queue_host = os.environ.get("MQ_HOST", 'localhost')
@@ -206,76 +208,76 @@ class Task(object):
     def as_json(self):
         data = None
         data_list = []
-        if self.report.firmware_version and self.report.serial_number:
-            data = {
-                "key": "firmware_update",
-                "data": {
-                    "log_time": str(self.log_time),
-                    "imei": self.report.imei,
-                    "manufacturer": "meitrack",
-                    "model": "T333",
-                    "revision": self.report.firmware_version,
-                    "serial": self.report.serial_number,
-                    "running_version": self.report.firmware_version,
-                }
-            }
-            data_list.append(data)
-            self.report.firmware_version = None
-            self.report.serial_number = None
+        # if self.report.firmware_version and self.report.serial_number:
+        #     data = {
+        #         "key": "firmware_update",
+        #         "data": {
+        #             "log_time": str(self.log_time),
+        #             "imei": self.report.imei,
+        #             "manufacturer": "meitrack",
+        #             "model": "T333",
+        #             "revision": self.report.firmware_version,
+        #             "serial": self.report.serial_number,
+        #             "running_version": self.report.firmware_version,
+        #         }
+        #     }
+        #     data_list.append(data)
+        #     self.report.firmware_version = None
+        #     self.report.serial_number = None
 
-        if self.report.mnc:
-            data = {
-                "key": "cell_update",
-                "data": {
-                    "imei": self.report.imei,
-                    "log_time": str(self.log_time),
-                    "cell_id": self.report.ci,
-                    "location_area_code": self.report.lac,
-                    "mobile_country_code": self.report.mcc,
-                    "mobile_network_code": self.report.mnc,
-                    "primary_scrambling_code": None,
-                    "secondary_sychronisation_code": None,
-                    "rx_level": self.report.rx_level,
-                }
-            }
-            data_list.append(data)
-            self.report.mnc = None
+        # if self.report.mnc:
+        #     data = {
+        #         "key": "cell_update",
+        #         "data": {
+        #             "imei": self.report.imei,
+        #             "log_time": str(self.log_time),
+        #             "cell_id": self.report.ci,
+        #             "location_area_code": self.report.lac,
+        #             "mobile_country_code": self.report.mcc,
+        #             "mobile_network_code": self.report.mnc,
+        #             "primary_scrambling_code": None,
+        #             "secondary_sychronisation_code": None,
+        #             "rx_level": self.report.rx_level,
+        #         }
+        #     }
+        #     data_list.append(data)
+        #     self.report.mnc = None
 
-        if self.report.imei and self.report.gps_latitude and self.report.gps_longitude:
-            data = {
-                "key": "gps_update",
-                "data": {
-                    "imei": self.report.imei,
-                    "log_time": str(self.log_time),
-                    "latitude": self.report.gps_latitude,
-                    "longitude": self.report.gps_longitude,
-                    "true_track": self.report.direction,
-                    "mag_track": None,
-                    "ground_speed": self.report.speed,
-                    "altitude": self.report.altitude,
-                    "timestamp": str(self.report.timestamp),
-                    "dilution": self.report.horizontal_accuracy,
-                    "num_sats": self.report.num_sats,
-                }
-            }
-            data_list.append(data)
-            self.report.gps_latitude = None
-            self.report.gps_longitude = None
+        # if self.report.imei and self.report.gps_latitude and self.report.gps_longitude:
+        #     data = {
+        #         "key": "gps_update",
+        #         "data": {
+        #             "imei": self.report.imei,
+        #             "log_time": str(self.log_time),
+        #             "latitude": self.report.gps_latitude,
+        #             "longitude": self.report.gps_longitude,
+        #             "true_track": self.report.direction,
+        #             "mag_track": None,
+        #             "ground_speed": self.report.speed,
+        #             "altitude": self.report.altitude,
+        #             "timestamp": str(self.report.timestamp),
+        #             "dilution": self.report.horizontal_accuracy,
+        #             "num_sats": self.report.num_sats,
+        #         }
+        #     }
+        #     data_list.append(data)
+        #     self.report.gps_latitude = None
+        #     self.report.gps_longitude = None
 
-        if self.report.event_description:
-            data = {
-                "key": "event_log",
-                "data": {
-                    "imei": self.report.imei,
-                    "timestamp": str(self.report.timestamp),
-                    "event_description": self.report.event_description,
-                    "event_id": self.report.event_id,
-                    "log_time": str(self.log_time),
-                    "event_type": 2,
-                }
-            }
-            data_list.append(data)
-            self.report.event_description = None
+        # if self.report.event_description:
+        #     data = {
+        #         "key": "event_log",
+        #         "data": {
+        #             "imei": self.report.imei,
+        #             "timestamp": str(self.report.timestamp),
+        #             "event_description": self.report.event_description,
+        #             "event_id": self.report.event_id,
+        #             "log_time": str(self.log_time),
+        #             "event_type": 2,
+        #         }
+        #     }
+        #     data_list.append(data)
+        #     self.report.event_description = None
 
         return data_list
 

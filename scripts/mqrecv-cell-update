@@ -83,26 +83,35 @@ async def main(loop):
         with message.process():
             print(message.body)
             data = json.loads(message.body)
-            if imei_map.get(data["imei"]):
-                device_id = imei_map.get(data["imei"])
-            else:
-                device_id = await get_device_id(data["imei"])
-                if device_id:
-                    imei_map[data["imei"]] = device_id
+            if data.get("imei", None):
+                if imei_map.get(data["imei"]):
+                    device_id = imei_map.get(data["imei"])
+                else:
+                    device_id = await get_device_id(data["imei"])
+                    if device_id:
+                        imei_map[data["imei"]] = device_id
+            elif data.get("device", None):
+                device_id = data["device"]
 
             print("Device id is %s" % (device_id,))
             if "." not in data["log_time"]:
                 data["log_time"] = "{}.0".format(data["log_time"])
             log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
             if device_id:
-                loop.create_task(get_insert_cellupdate_coroutine(
-                    log_time, int(data["cell_id"]), int(data["location_area_code"]), int(data["mobile_country_code"]),
-                    int(data["mobile_network_code"]),
-                    data["primary_scrambling_code"], data["secondary_sychronisation_code"],
-                    str(data["rx_level"]),
-                    "0",
-                    int(device_id),
-                ))
+                loop.create_task(
+                    get_insert_cellupdate_coroutine(
+                        log_time,
+                        int(data["cell_id"]),
+                        int(data["location_area_code"]),
+                        int(data["mobile_country_code"]),
+                        int(data["mobile_network_code"]),
+                        data.get("primary_scrambling_code", None),
+                        data.get("secondary_sychronisation_code", None),
+                        data.get("rx_level", None),
+                        "0",
+                        int(device_id),
+                    )
+                )
 
             if queue.name in message.body.decode():
                 break

@@ -9,6 +9,7 @@ import simplejson
 import os
 import memcache
 from cachetools import LRUCache
+from sim_chat_lib.geotool_api.message_queue_api import publish_to_mq
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,13 @@ GEOTOOL_API_CACHE = None
 
 GEOTOOL_API_CACHE_ENTRIES = {
 
+}
+
+MESSAGE_QUEUE_MAP = {
+    CELL_DATA_SIMPLE_API: 'cell_update',
+    EVENT_API: 'event_log',
+    DEVICE_UPDATE_API: 'gps_update',
+    DEVICE_IDENT_API: 'firmware_update',
 }
 
 
@@ -143,6 +151,12 @@ def host_to_token_header(host):
 
 
 def post_to_api(endpoint, data, primary_key=None, cacheable=False, files=None):
+    global MESSAGE_QUEUE_MAP
+    if endpoint in MESSAGE_QUEUE_MAP:
+        published = publish_to_mq(MESSAGE_QUEUE_MAP[endpoint], data)
+        if published:
+            return {}
+
     try:
         url = 'http://%s%s' % (API_HOST, endpoint)
         logger.debug(url)
