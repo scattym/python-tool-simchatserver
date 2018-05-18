@@ -81,12 +81,15 @@ async def main(loop):
         with message.process():
             print(message.body)
             data = json.loads(message.body)
-            if imei_map.get(data["imei"]):
-                device_id = imei_map.get(data["imei"])
-            else:
-                device_id = await get_device_id(data["imei"])
-                if device_id:
-                    imei_map[data["imei"]] = device_id
+            if data.get("imei", None):
+                if imei_map.get(data["imei"]):
+                    device_id = imei_map.get(data["imei"])
+                else:
+                    device_id = await get_device_id(data["imei"])
+                    if device_id:
+                        imei_map[data["imei"]] = device_id
+            elif data.get("device", None):
+                device_id = data["device"]
 
             print("Device id is %s" % (device_id,))
             if '.' not in data["timestamp"]:

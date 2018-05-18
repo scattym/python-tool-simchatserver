@@ -29,7 +29,7 @@ def get_firmware_by_imei(imei):
 def get_session_key_by_imei(imei, uuid):
     device_pk = device_api.get_device_pk(imei)
     if device_pk:
-        return device_api.get_session_key(device_pk, uuid)
+        return session_key_api.get_session_key(device_pk, uuid)
 
 
 def get_or_create_device_key(imei):

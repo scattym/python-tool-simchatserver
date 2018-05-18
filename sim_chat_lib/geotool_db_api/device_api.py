@@ -48,7 +48,8 @@ UPDATE_DEVICE_FIRMWARE = """
     revision = $3,
     serial = $4,
     running_version = $5
-  WHERE imei = $6"""
+  WHERE id = $6"""
+
 
 async def get_device_id(imei):
     rows = await common.execute_sql_get_a(GET_DEVICE_ID_SQL, imei)
@@ -99,12 +100,12 @@ def get_update_deviceupdatecache_coroutine(
 
 
 def get_update_firmware_coroutine(
-        manufacturer: str, model: str, revision: str, serial: str, running_version: str, imei: str
+        manufacturer: str, model: str, revision: str, serial: str, running_version: str, device_id: int
 ):
     return common.execute_sql_a(
         UPDATE_DEVICE_FIRMWARE,
         manufacturer, model, revision, serial, running_version,
-        imei
+        device_id
     )
 
 
