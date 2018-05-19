@@ -51,7 +51,7 @@ if __name__ == '__main__':
     logger.addHandler(ch)
 
     common.set_api_host("localhost:8000")
-    response = add_event(20, "2018-03-03 12:12:12Z", EVENT_TYPE_INFORMATION, "A message")
-    print(response)
-    response = add_sos_event(20, "2018-03-03 12:12:12Z")
-    print(response)
+    test_response = add_event(20, "2018-03-03 12:12:12Z", EVENT_TYPE_INFORMATION, "A message")
+    print(test_response)
+    test_response = add_sos_event(20, "2018-03-03 12:12:12Z", "2018-03-03 12:12:12Z")
+    print(test_response)

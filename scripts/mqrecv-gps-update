@@ -112,10 +112,10 @@ async def main(loop):
             # "SRID=4326;POINT (151.07571 -33.636995)",
             location = data.get("location", None)
             if location:
-                open = location.find('(')
-                close = location.find(')')
-                print(location[open:close])
-                longitude, latitude = location[open+1:close].split(" ", 1)
+                bracket_open = location.find('(')
+                bracket_close = location.find(')')
+                print(location[bracket_open+1:bracket_close])
+                longitude, latitude = location[bracket_open+1:bracket_close].split(" ", 1)
             else:
                 longitude = data.get("longitude")
                 latitude = data.get("latitude")
