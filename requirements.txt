@@ -8,3 +8,4 @@ aio_pika
 asyncpg
 psycopg2-binary
 geotooldbapi>=1.1
+geotoolapi>=1.3
