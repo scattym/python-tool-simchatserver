@@ -7,7 +7,7 @@ while true; do
         echo "`date`: simchatserver already up to date"
     else
         docker run -dt -p 5672:5672 --restart=always --name=rabbitmq rabbitmq:3.7
-        docker build --tag=simchatserver-base:interim . -f dockerfiles/simchatserver-base/Dockerfile
+        docker build --tag=simchatserver-base:interim . -f dockerfiles/simchatserver-base-dev/Dockerfile
 
         for con in ${CONTAINERS} ; do
             docker build --tag=${con} . -f dockerfiles/${con}/Dockerfile
