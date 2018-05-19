@@ -28,6 +28,7 @@ setup(
             "cachetools",
             "python-memcached",
             'pika',
+            'geotooldbapi',
             # 'geotool_api==1.0',
       ],
       # dependency_links=[
