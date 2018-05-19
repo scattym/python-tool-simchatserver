@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
       name='simchatserver',
-      version='0.1.dev0',
+      version='0.1',
       description=('Project to communicate with simcom devices'),
       url='https://bitbucket.org/mjclark1/python-tool-simchatserver.git',
       author='Matt Clark',
