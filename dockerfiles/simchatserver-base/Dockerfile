@@ -4,6 +4,7 @@ FROM python:3.6-slim
 MAINTAINER Matt Clark <mattjclark0407@hotmail.com>
 
 COPY binaries/python36/* /tmp
+COPY dockerfiles/simchatserver-base/pip.conf /etc/pip.conf
 RUN pip install --no-cache /tmp/pycrypto-2.6.1-cp36-cp36m-linux_x86_64.whl
 RUN pip install --no-cache requests
 RUN pip install --no-cache simplejson
