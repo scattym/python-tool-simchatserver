@@ -6,3 +6,10 @@ exclude .pydevproject
 exclude .settings/*
 exclude .settings
 exclude setup.cfg
+exclude *.sh
+exclude *.txt
+recursive-exclude binaries *.whl
+recursive-exclude dockerfiles *.conf
+recursive-exclude dockerfiles *.sh
+recursive-exclude k8s *.yaml
+
