@@ -7,4 +7,4 @@ pika==0.10.0
 aio_pika
 asyncpg
 psycopg2-binary
-geotooldbapi
+geotooldbapi>=1.1
