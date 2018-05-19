@@ -31,6 +31,7 @@ setup(
             'pika',
             'geotooldbapi>=1.1',
             'geotoolapi>=1.3',
+            'meitrackparser',
             # 'geotool_api==1.0',
       ],
       # dependency_links=[

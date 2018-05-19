@@ -9,9 +9,9 @@ import select
 import argparse
 import logging
 import datetime
-from sim_chat_lib.meitrack.error import GPRSParseError
-from sim_chat_lib.meitrack import gprs_protocol
-from sim_chat_lib.meitrack.build_message import stc_request_location_message
+from meitrack.error import GPRSParseError
+from meitrack import gprs_protocol
+from meitrack.build_message import stc_request_location_message
 
 HOST = ''
 SOCKET_LIST = [sys.stdin]
