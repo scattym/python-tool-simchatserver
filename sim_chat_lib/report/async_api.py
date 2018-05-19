@@ -88,7 +88,7 @@ class Consumer(multiprocessing.Process):
                             if not add_result_ok:
                                 logger.error("Unable to add message to queue")
 
-                    logger.debug("Add result was %s", add_result_ok)
+                        logger.debug("Add result was %s", add_result_ok)
 
             # print '%s: %s' % (proc_name, next_task)
             answer = next_task()
