@@ -2,7 +2,7 @@ import argparse
 import logging
 from twisted.internet import protocol, reactor
 from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
-from sim_chat_lib.geotool_api.common import set_api_host
+from geotool_api.common import set_api_host
 from sim_chat_lib.report.async_api import start_consumers, get_result, stop_consumers
 
 

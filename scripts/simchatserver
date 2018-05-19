@@ -9,7 +9,7 @@ import logging
 import os
 import traceback
 
-from sim_chat_lib.geotool_api.common import set_api_host
+from geotool_api.common import set_api_host
 
 import sim_chat_lib
 from sim_chat_lib.exception import Error as SimChatError

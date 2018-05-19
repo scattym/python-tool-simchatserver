@@ -6,7 +6,7 @@ import time
 import binascii
 import logging
 import argparse
-from sim_chat_lib.geotool_api import camera_api, device_api, common
+from geotool_api import camera_api, device_api, common
 
 
 # The callback for when the client receives a CONNACK response from the server.
