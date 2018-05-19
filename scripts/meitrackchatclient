@@ -64,6 +64,15 @@ def file_test(imei, sock, interleave_data_and_messages=False):
         # time.sleep(0.01)
 
 
+def sos_event(imei, sock):
+    gprs_list, before, after = parse_data_payload(
+        b'$$T189,864507032323403,AAA,1,-33.815855,151.200088,180518235837,A,8,11,0,12,0.9,77,19354,2110546,505|3|00FA|04E381F2,0500,0000|0000|0000|018D|0509,,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*E6\r\n',
+    )
+    sos_gprs = gprs_list[0]
+    sos_gprs.imei = imei
+    sock.send(sos_gprs.as_bytes())
+
+
 trip_start = b'$$\194,864507032323403,AAA,35,-33.815810,151.200106,180428195806,A,9,12,0,200,0.8,72,5819,359456,505|3|00FA|04E381F5,8500,0000|0000|0000|018C|050C,00000001,108,0000,3,0,0|0000|0000|0000|0000|0000*FA\r\n'
 event_136 = b'$$N196,864507032323403,AAA,136,-33.815828,151.200083,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*07\r\n'
 gprs_event_136_list, _, _ = parse_data_payload(event_136)
@@ -148,6 +157,8 @@ def chat_client(host, port, imei, version, file_test_on_start=False, send_data=F
                     data = "This is a test string for encryption"
                 elif msg.rstrip() == 'filetest':
                     file_test(imei, s, True)
+                elif msg.rstrip() == 'sostest':
+                    sos_event(imei, s)
                 if msg.rstrip() == "license":
                     s.send(gprs_license.as_bytes())
                 else:

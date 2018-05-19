@@ -51,10 +51,10 @@ def add_trip_log(device_imei, event_time, start_stop='start'):
         return trip_log_api.add_trip_log(device_pk, event_time, start_stop)
 
 
-def add_sos_event(imei, log_time):
+def add_sos_event(imei, timestamp, log_time):
     device_pk = device_api.get_device_pk(imei)
     if device_pk:
-        return event_log_api.add_sos_event(device_pk, log_time)
+        return event_log_api.add_sos_event(device_pk, timestamp, log_time)
 
 
 def add_camera_image(imei, camera_number, camera_time, image_data_jpg):

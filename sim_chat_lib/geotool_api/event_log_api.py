@@ -22,8 +22,8 @@ def add_event(device_pk, timestamp, event_type, event_description, log_time):
     return response
 
 
-def add_sos_event(device_pk, log_time):
-    return add_event(device_pk, log_time, EVENT_TYPE_EMERGENCY, "SOS button pressed")
+def add_sos_event(device_pk, timestamp, log_time):
+    return add_event(device_pk, timestamp, EVENT_TYPE_EMERGENCY, "SOS button pressed", log_time)
 
 
 """

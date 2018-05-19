@@ -178,7 +178,7 @@ class Task(object):
         if self.report.event_description:
             try:
                 if self.report.event_description == "SOS Button Pressed":
-                    self.result = geotool_api.add_sos_event(self.report.imei, self.report.timestamp)
+                    self.result = geotool_api.add_sos_event(self.report.imei, self.report.timestamp, self.log_time)
                 else:
                     if self.report.event_description == "Engine On":
                         geotool_api.add_trip_log(self.report.imei, self.report.timestamp, "start")
