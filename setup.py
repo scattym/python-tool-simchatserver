@@ -11,6 +11,7 @@ setup(
       scripts=[
             'scripts/meitrackchatserver',
             'scripts/meitrackchatclient',
+            'scripts/meitrackserver',
             'scripts/mqrecv-event',
             'scripts/mqrecv-cell-update',
             'scripts/mqrecv-gps-update',
