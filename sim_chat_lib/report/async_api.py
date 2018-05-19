@@ -8,10 +8,10 @@ import pika
 from pika.exceptions import AMQPError
 import os
 
-from sim_chat_lib import geotool_api
-from sim_chat_lib.geotool_api import device_api, driver_api
-from sim_chat_lib.geotool_api import meitrack_config_api
-from sim_chat_lib.geotool_api.message_queue_api import open_message_queue_conxn, publish_to_mq
+import geotool_api
+from geotool_api import device_api, driver_api
+from geotool_api import meitrack_config_api
+from geotool_api.message_queue_api import open_message_queue_conxn, publish_to_mq
 
 logger = logging.getLogger(__name__)
 MQ_HOST = os.environ.get("MQ_HOST")
