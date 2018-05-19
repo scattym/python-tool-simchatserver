@@ -8,8 +8,10 @@ exclude .settings
 exclude setup.cfg
 exclude *.sh
 exclude *.txt
-recursive-exclude binaries *.whl
-recursive-exclude dockerfiles *.conf
-recursive-exclude dockerfiles *.sh
-recursive-exclude k8s *.yaml
+exclude binaries
+exclude dockerfiles
+exclude k8s
+recursive-exclude binaries *
+recursive-exclude dockerfiles *
+recursive-exclude k8s *
 
