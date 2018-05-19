@@ -1,7 +1,7 @@
 import logging
 import datetime
-from sim_chat_lib.meitrack.gprs_protocol import GPRS, parse_data_payload
-from sim_chat_lib.meitrack.error import GPRSParseError
+from meitrack.gprs_protocol import GPRS, parse_data_payload
+from meitrack.error import GPRSParseError
 from sim_chat_lib.meitrack.meitrack_chat_client import MeitrackChatClient
 
 logger = logging.getLogger(__name__)

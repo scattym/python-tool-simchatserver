@@ -6,10 +6,10 @@ import logging
 from sim_chat_lib.chat import ChatClient as BaseChatClient
 from sim_chat_lib.exception import Error as ChatError
 from sim_chat_lib.exception import LoginError, ProtocolError
-from sim_chat_lib.meitrack import GPRSParseError
-from sim_chat_lib.meitrack.error import GPRSError
-from sim_chat_lib.meitrack.gprs_protocol import parse_data_payload
-from sim_chat_lib.meitrack import build_message
+from meitrack.error import GPRSParseError
+from meitrack.error import GPRSError
+from meitrack.gprs_protocol import parse_data_payload
+from meitrack import build_message
 from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, file_download_to_report, event_to_report
 from sim_chat_lib.report import MeitrackConfigRequest
 import traceback
