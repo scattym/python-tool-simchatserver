@@ -1,6 +1,7 @@
 #!/bin/bash
 
-version=`git branch | grep '*' | grep -v master | cut -f 2 -d '-'`
+#version=`git branch | grep '*' | grep -v master | cut -f 2 -d '-'`
+version=`git describe --tags --dirty`
 if [ "X${version}" != "X" ] ; then
     docker build --tag=simchatserver-base:interim . -f dockerfiles/simchatserver-base/Dockerfile
 
