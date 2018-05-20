@@ -15,7 +15,7 @@ def command_as_json(cmd_type, cmd, hash_key, seed=None):
     if seed is not None:
         sha256.update(seed)
     for key in sorted(config):
-        logger.debug("Key: %s, value: %s", key, config[key])
+        logger.log(13, "Key: %s, value: %s", key, config[key])
         sha256.update(key.encode())
         sha256.update(("%s" % (config[key])).encode())
     sha256.update(hash_key.encode())
@@ -30,7 +30,7 @@ def calc_hash(key, seed, *args):
     if seed is not None:
         sha256.update(seed.encode())
     for value in args:
-        logger.debug("Value: %s", value)
+        logger.log(13, "Value: %s", value)
         sha256.update(("%s" % (value,)).encode())
     sha256.update(key.encode())
 

@@ -10,7 +10,7 @@ DEVICE_NAME_LIST = ["5320", "5360"]
 
 def parse_client_connect(socket, report_queue, connect_line):
     client_details = {}
-    logger.debug(connect_line)
+    logger.log(13, connect_line)
     if connect_line[0:6] != 'C0NXN:':
         logger.error("No start string: %s, %s", connect_line, connect_line[0:6])
         return None
@@ -40,7 +40,7 @@ def parse_client_connect(socket, report_queue, connect_line):
         client_details["login_hash"] = connect_string_list[6]
 
     if client_details["proto_version"] == 1 or (client_details.get("device_name") in DEVICE_NAME_LIST):
-        logger.debug("%s is a version 1 client", client_details["imei"])
+        logger.log(13, "%s is a version 1 client", client_details["imei"])
         return create_chat_client(socket, report_queue, client_details)
     logger.error("Failed to create an instance: %s", client_details)
     return None
@@ -48,7 +48,7 @@ def parse_client_connect(socket, report_queue, connect_line):
 
 def create_chat_client(socket, report_queue, client_details):
     if client_details.get("proto_version") == 1:
-        logger.debug("Creating simcom v1 client")
+        logger.log(13, "Creating simcom v1 client")
         return simcom53XX_chat_client_v1.ChatClient(
             socket,
             report_queue,
@@ -56,7 +56,7 @@ def create_chat_client(socket, report_queue, client_details):
             client_details.get("version")
         )
     if client_details.get("proto_version") == 2:
-        logger.debug("Creating simcom v2 client")
+        logger.log(13, "Creating simcom v2 client")
         return simcom53XX_chat_client_v2.ChatClient(
             socket,
             report_queue,

@@ -22,6 +22,8 @@ PORT = 65533
 
 MASTER_LIST = []
 logger = logging.getLogger(__name__)
+logging.addLevelName(15, "VERBOSE")
+logging.addLevelName(13, "VERBOSE+")
 
 CHAT_CLIENT_LIST = {}
 CHAT_CLIENT_IDENT_LIST = {}
@@ -33,7 +35,7 @@ epoll = select.epoll()
 def close_socket(sock):
     global epoll
     sock_fd = sock.fileno()
-    logger.debug("Closing socket %s with fd %s", sock, sock_fd)
+    logger.log(13, "Closing socket %s with fd %s", sock, sock_fd)
     peer = [None, None]
     try:
         peer = sock.getpeername()
@@ -48,7 +50,7 @@ def close_socket(sock):
     #         SOCKET_MAP[key] = None
 
     if CHAT_CLIENT_LIST.get(sock_fd):
-        logger.debug("Found the socket in the chat client list")
+        logger.log(13, "Found the socket in the chat client list")
         CHAT_CLIENT_LIST[sock_fd].on_server_close()
         ident = CHAT_CLIENT_LIST[sock_fd].ident()
         CHAT_CLIENT_IDENT_LIST[ident] = None
@@ -59,7 +61,7 @@ def close_socket(sock):
         MASTER_LIST.remove(sock)
         # return
 
-    logger.debug("Unregistering socket fd %s from epoll", sock.fileno())
+    logger.log(13, "Unregistering socket fd %s from epoll", sock.fileno())
     epoll.unregister(sock.fileno())
     connections[sock.fileno()] = None
 
@@ -69,15 +71,15 @@ def close_socket(sock):
     except socket.error as err:
         logger.error("Socket error on close %s", err)
 
-    logger.debug("{}".format(connections))
-    logger.debug("{}".format(MASTER_LIST))
-    logger.debug("{}".format(CHAT_CLIENT_LIST))
+    logger.log(13, "{}".format(connections))
+    logger.log(13, "{}".format(MASTER_LIST))
+    logger.log(13, "{}".format(CHAT_CLIENT_LIST))
 
 
 def sock_fd_to_socket(sock_fd):
     sock = connections.get(sock_fd)
     if sock:
-        logger.debug("Found socket file descriptor {} in connection list".format(sock_fd))
+        logger.log(13, "Found socket file descriptor {} in connection list".format(sock_fd))
         return sock
     else:
         logger.error("Did not find a connection for file descriptor {} in connection list".format(sock_fd))
@@ -86,7 +88,7 @@ def sock_fd_to_socket(sock_fd):
 
 def track_socket(sock):
     if sock and sock.fileno():
-        logger.debug("Tracking file descriptor {} with socket {}".format(sock.fileno(), sock))
+        logger.log(13, "Tracking file descriptor {} with socket {}".format(sock.fileno(), sock))
         connections[sock.fileno()] = sock
 
 
@@ -107,12 +109,12 @@ def execute_command(data):
                     send_to_masters("Master is connected from %s:%s" % (peer[0], peer[1]))
                 except socket.error:
                     close_socket(sock)
-            logger.debug("%s", CHAT_CLIENT_LIST)
+            logger.log(13, "%s", CHAT_CLIENT_LIST)
             for sock_fd in CHAT_CLIENT_LIST:
-                logger.debug("Sockfd: %s", sock_fd)
+                logger.log(13, "Sockfd: %s", sock_fd)
                 if CHAT_CLIENT_LIST[sock_fd]:
                     message = CHAT_CLIENT_LIST[sock_fd].get_client_details()
-                    logger.debug(message)
+                    logger.log(13, message)
                     send_to_masters(message)
             send_to_masters(str(connections))
             send_to_masters('\n')
@@ -172,7 +174,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
     logger.info("Chat server started on port " + str(PORT))
 
     epoll.register(server_socket.fileno(), select.EPOLLIN)
-    logger.debug("Result queue file descriptor is %s", result_queue._reader.fileno())
+    logger.log(13, "Result queue file descriptor is %s", result_queue._reader.fileno())
     epoll.register(result_queue._reader, select.EPOLLIN)
     epoll.register(sys.stdin, select.EPOLLIN)
 
@@ -188,9 +190,9 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
 
         # for sock in ready_to_read:
             # a new connection request recieved
-            logger.debug("Testing if result queue reader")
+            logger.log(13, "Testing if result queue reader")
             if result_queue and sock_fd == result_queue._reader.fileno():
-                logger.debug("Is a result queue reader")
+                logger.log(13, "Is a result queue reader")
                 response = get_result(result_queue)
                 if response and response.get("imei"):
                     if is_available("imei-%s" % (response["imei"],)):
@@ -201,7 +203,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                     else:
                         logger.error("Device %s is no longer available for response", response.get("imei"))
                 else:
-                    logger.debug("Unable to deliver response %s", response)
+                    logger.log(13, "Unable to deliver response %s", response)
 
             elif sock_fd == server_socket.fileno():
                 imei = None
@@ -231,7 +233,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                             send_to_masters("New master connection from %s:%s" % addr)
                             MASTER_LIST.append(connection)
                         else:
-                            logger.debug(imei_line)
+                            logger.log(13, imei_line)
                             identify_client(connection, task_queue, imei_line)
                 except ConnectionError as err:
                     logger.error("Connection error on initial connect, with error: %s", err)
@@ -267,7 +269,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                     # broadcast(server_socket, sock_fd, "[%s:%s] entered our chatting room\n" % addr)
 
             elif event & select.EPOLLIN:
-                logger.debug("Is an epollin event")
+                logger.log(13, "Is an epollin event")
                 if sock_fd == sys.stdin.fileno():
                     data = sys.stdin.readline().rstrip()
                     if data:
@@ -275,7 +277,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                 # a message from a client, not a new connection
                 else:
                     # process data recieved from client,
-                    logger.debug("Received data on socket %s", sock_fd)
+                    logger.log(13, "Received data on socket %s", sock_fd)
                     sock = sock_fd_to_socket(sock_fd)
                     if not sock:
                         logger.error("Not able to find an associated socket for processing.")
@@ -289,14 +291,14 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                                     execute_command(data.decode().rstrip())
 
                             elif CHAT_CLIENT_LIST.get(sock_fd):
-                                logger.debug("Found a client in the list %s", CHAT_CLIENT_LIST.get(sock_fd))
+                                logger.log(13, "Found a client in the list %s", CHAT_CLIENT_LIST.get(sock_fd))
                                 result = CHAT_CLIENT_LIST.get(sock_fd).receive_data()
-                                logger.debug("Received the following data: %s", result)
+                                logger.log(13, "Received the following data: %s", result)
                                 if result:
-                                    logger.debug("Result is ok, sending to masters")
+                                    logger.log(13, "Result is ok, sending to masters")
                                     send_to_masters(result)
                             else:
-                                logger.debug("Must be data to read but not on an expected fd")
+                                logger.log(13, "Must be data to read but not on an expected fd")
                                 data = sock.recv(RECV_BUFFER)
                                 if data:
                                     logger.error("Spurious data: %s", data)
@@ -352,14 +354,14 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
 
 
 def send_to_masters(data):
-    logger.debug("Sending %s to masters", data)
+    logger.log(13, "Sending %s to masters", data)
     for sock in MASTER_LIST:
         try:
             sock.send(data.encode())
             sock.send('\n'.encode())
         except socket.error:
             close_socket(sock)
-    logger.debug("Done sending data to masters")
+    logger.log(13, "Done sending data to masters")
 
 
 def send_to_device(ident, cmd):

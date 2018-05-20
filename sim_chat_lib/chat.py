@@ -32,7 +32,7 @@ class ChatClient(object):
         try:
             data = data.encode()
         except AttributeError as err:
-            logger.debug("Already encoded")
+            logger.log(13, "Already encoded")
         logger.info("Sending data to {}. Data: {}".format(self.ident(), data))
         self.sock_fd.send(data)
         self.update_last_tick()
@@ -76,15 +76,15 @@ class ChatClient(object):
         return False
 
     def on_client_close(self):
-        logger.debug("Client closed connection: %s", self.ident())
+        logger.log(13, "Client closed connection: %s", self.ident())
 
     def on_server_close(self):
-        logger.debug("Server closed connection: %s", self.ident())
+        logger.log(13, "Server closed connection: %s", self.ident())
 
     def queue_config_request(self, config_request):
-        logger.debug("Queue config request start")
+        logger.log(13, "Queue config request start")
         result = queue_config_request(config_request, self.report_queue)
-        logger.debug("Queue config request finished")
+        logger.log(13, "Queue config request finished")
 
     def queue_report(self, report):
         return queue_report(report, self.report_queue)
@@ -93,22 +93,22 @@ class ChatClient(object):
         return self.get_client_details()
 
     def reboot(self):
-        logger.debug("Reboot not implemented on this device.")
+        logger.log(13, "Reboot not implemented on this device.")
 
     def request_client_location(self):
-        logger.debug("Current location not implemented on this device.")
+        logger.log(13, "Current location not implemented on this device.")
 
     def request_client_info(self):
-        logger.debug("Client info not implemented for this device.")
+        logger.log(13, "Client info not implemented for this device.")
 
     def request_client_photo_list(self):
-        logger.debug("Client photo list not implemented for this device.")
+        logger.log(13, "Client photo list not implemented for this device.")
 
     def request_client_take_photo(self, camera_number, file_name):
-        logger.debug("Client photo list not implemented for this device.")
+        logger.log(13, "Client photo list not implemented for this device.")
 
     def request_get_file(self, file_name, payload_start_index=0):
-        logger.debug("Client file retrieval not implemented for this device.")
+        logger.log(13, "Client file retrieval not implemented for this device.")
 
     def set_heartbeat_interval(self, seconds):
-        logger.debug("Setting heartbeat not implemented for this device.")
+        logger.log(13, "Setting heartbeat not implemented for this device.")

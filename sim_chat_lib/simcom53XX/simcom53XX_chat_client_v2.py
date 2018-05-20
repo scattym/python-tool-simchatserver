@@ -84,15 +84,15 @@ class ChatClient(BaseChatClient):
                 byte_converter = lambda x: x
 
             super(ChatClient, self).update_last_tick()
-            logger.debug(data[0:6])
+            logger.log(13, data[0:6])
             if data[0:6] == byte_converter("C0NXN>"):
-                logger.debug(
+                logger.log(13,
                     "Received a heartbeat packet from %s with ident %s",
                     self.get_remote_ip(),
                     self.ident()
                 )
             elif data[0:4] == byte_converter("MSG>"):
-                logger.debug(
+                logger.log(13,
                     "Received a message packet from %s with ident %s with data %s",
                     self.get_remote_ip(),
                     self.ident(),
@@ -100,9 +100,9 @@ class ChatClient(BaseChatClient):
                 )
             elif data[0:3] == b"ENC":
                 try:
-                    logger.debug(data)
+                    logger.log(13, data)
                     counter = 0
-                    logger.debug(type(data))
+                    logger.log(13, type(data))
                     delimiter = ord(b'>')
                     if isinstance(data, str):
                         delimiter = '>'
@@ -110,10 +110,10 @@ class ChatClient(BaseChatClient):
                         if data[i] == delimiter:
                             counter = i
                             break
-                    logger.debug("Counter is %s", counter)
+                    logger.log(13, "Counter is %s", counter)
                     counter = counter + 1
                     header = data[0:counter-1].decode()
-                    logger.debug("Header is %s", header)
+                    logger.log(13, "Header is %s", header)
                     enc_data = data[counter:]
                     # header, enc_data = data.split('>', 1)
                     msg_type, msg_bytes = header.split(":", 1)
@@ -121,18 +121,18 @@ class ChatClient(BaseChatClient):
                         msg_bytes_int = int(msg_bytes)
                     except ValueError as err:
                         raise ProtocolError("Unable to calculate encrypted message length")
-                    logger.debug(msg_bytes)
-                    logger.debug(len(enc_data))
-                    logger.debug(binascii.hexlify(enc_data))
+                    logger.log(13, msg_bytes)
+                    logger.log(13, len(enc_data))
+                    logger.log(13, binascii.hexlify(enc_data))
                     if len(enc_data) == msg_bytes_int:
                         decrypted = aes.decrypt(enc_data)
-                        logger.debug(decrypted)
+                        logger.log(13, decrypted)
                         return decrypted
                 except Exception as err:
                     raise ProtocolError("Error in decrypting data")
             else:
-                logger.debug("%s", self.ident())
-                logger.debug(data)
+                logger.log(13, "%s", self.ident())
+                logger.log(13, data)
                 return "IMEI: %s\nDATA: %s" % (self.ident(), data)
         except Exception as err:
             raise ProtocolError("Unknown protocol error in process_data")

@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 def parse_client_connect(sock_fd, report_queue, connect_line):
     client_details = {}
-    logger.debug(connect_line)
+    logger.log(13, connect_line)
     if connect_line[0:2] != b'$$' and connect_line[0:2] != '$$':
         logger.error("No start string: %s, %s", connect_line, connect_line[0:6])
         return None
@@ -33,7 +33,7 @@ def parse_client_connect(sock_fd, report_queue, connect_line):
 
 
 def create_chat_client(socket, report_queue, client_details):
-    logger.debug("Creating meitrack gprs client")
+    logger.log(13, "Creating meitrack gprs client")
     return meitrack_chat_client.MeitrackChatClient(
         socket,
         report_queue,

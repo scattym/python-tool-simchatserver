@@ -27,14 +27,14 @@ def unpad_byte_string(data):
 
 def pad_byte_string(data):
     data_length = len(data)
-    logger.debug("Length is %s", len(data))
+    logger.log(13, "Length is %s", len(data))
     extra_bytes = data_length % 16
     missing_bytes = 16 - extra_bytes
-    logger.debug("Missing bytes is %s", missing_bytes)
+    logger.log(13, "Missing bytes is %s", missing_bytes)
     for i in range(0, missing_bytes):
         data = data + chr(missing_bytes)
-    logger.debug("Length is now %s", len(data))
-    logger.debug(binascii.hexlify(data.encode()))
+    logger.log(13, "Length is now %s", len(data))
+    logger.log(13, binascii.hexlify(data.encode()))
     return data
 
 
@@ -67,7 +67,7 @@ def encrypt(plain):
     cipher = AES.new(key, AES.MODE_CBC, iv)
     # clear = unpad(cipher.decrypt(enc[16:]))
     plain_padded = pad_byte_string(plain)
-    logger.debug(plain)
+    logger.log(13, plain)
     encrypted = cipher.encrypt(plain_padded)
     print(binascii.hexlify(encrypted))
     # return binascii.hexlify(encrypted)

@@ -65,9 +65,9 @@ class Consumer(multiprocessing.Process):
     def run(self):
         proc_name = self.name
         while True:
-            logger.debug("Asking for next item")
+            logger.log(13, "Asking for next item")
             next_task = self.task_queue.get()
-            logger.debug("Got a new task %s", next_task)
+            logger.log(13, "Got a new task %s", next_task)
 
             if next_task is None:
                 # Poison pill means shutdown
@@ -76,7 +76,7 @@ class Consumer(multiprocessing.Process):
                 break
 
             if self.mq_conxn:
-                logger.debug("Adding message to message queue")
+                logger.log(13, "Adding message to message queue")
                 # answer = self.channel.publish_message(next_task)
                 message_list = next_task.as_json()
                 if message_list:
@@ -88,7 +88,7 @@ class Consumer(multiprocessing.Process):
                             if not add_result_ok:
                                 logger.error("Unable to add message to queue")
 
-                        logger.debug("Add result was %s", add_result_ok)
+                        logger.log(13, "Add result was %s", add_result_ok)
 
             # print '%s: %s' % (proc_name, next_task)
             answer = next_task()
@@ -99,9 +99,9 @@ class Consumer(multiprocessing.Process):
             try:
                 if self.task_queue.qsize() > self.alarm_size:
                     logger.error("Queue depth is getting large. Value is %s", self.task_queue.qsize())
-                logger.debug("Task queue depth is %s", self.task_queue.qsize())
+                logger.log(13, "Task queue depth is %s", self.task_queue.qsize())
             except NotImplementedError as err:
-                logger.debug("Task queue depth not implemented on this platform")
+                logger.log(13, "Task queue depth not implemented on this platform")
         return
 
 
@@ -202,7 +202,7 @@ class Task(object):
                 self.result = driver_api.add_driver_log_by_payload(self.report.imei, self.report.license_data)
             except Exception as err:
                 logger.error("Exception in async task, logging file entry %s", err)
-                logger.debug(traceback.print_exc())
+                logger.log(13, traceback.print_exc())
 
         return self.result
 
@@ -288,7 +288,7 @@ class Task(object):
 
 class MeitrackConfigRequestTask(object):
     def __init__(self, config_request):
-        logger.debug("init of meitrack config request")
+        logger.log(13, "init of meitrack config request")
         self.config_request = config_request
         self.result = None
 
@@ -298,7 +298,7 @@ class MeitrackConfigRequestTask(object):
         except AttributeError as err:
             logger.error("Unable to decode imei")
             imei = self.config_request.imei
-        logger.debug("Calling config request for imei %s", imei)
+        logger.log(13, "Calling config request for imei %s", imei)
 
         if imei:
             try:
@@ -333,9 +333,9 @@ def queue_report(report, task_queue, blocking=False, timeout=1):
 def queue_config_request(config_request, task_queue, blocking=False, timeout=1):
 
     try:
-        logger.debug("Adding config request to queue")
+        logger.log(13, "Adding config request to queue")
         task_queue.put(MeitrackConfigRequestTask(config_request), blocking, timeout)
-        logger.debug("Added config request to queue")
+        logger.log(13, "Added config request to queue")
         return True
     except queue.Full as err:
         logger.error("Task queue is full. Not adding item.")
@@ -351,7 +351,7 @@ def start_consumers(num_consumers=10, queue_depth=1000, bin_results=True):
 
     # Start consumers
     num_consumers = int(num_consumers)
-    logger.debug('Creating %d consumers' % num_consumers)
+    logger.log(13, 'Creating %d consumers' % num_consumers)
     consumers = [Consumer(tasks, results, alarm_size) for i in range(num_consumers)]
 
     for w in consumers:
@@ -361,7 +361,7 @@ def start_consumers(num_consumers=10, queue_depth=1000, bin_results=True):
 
 
 def get_result(result_queue, blocking=False, timeout=1):
-    logger.debug("Getting response from result queue")
+    logger.log(13, "Getting response from result queue")
     if result_queue:
         result = result_queue.get(block=blocking, timeout=timeout)
         return result
