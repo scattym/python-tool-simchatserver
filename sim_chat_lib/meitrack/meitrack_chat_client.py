@@ -18,7 +18,8 @@ from sim_chat_lib.report import MeitrackConfigRequest
 
 logger = logging.getLogger(__name__)
 
-MT_PARTIAL_WAIT = int(os.environ.get("MT_PARTIAL_WAIT", "300"))
+MT_PARTIAL_WAIT = int(os.environ.get("MT_PARTIAL_WAIT", "120"))
+MT_NEW_FILE_WAIT = int(os.environ.get("MT_NEW_FILE_WAIT", "300"))
 MT_FILE_LIST_WAIT = int(os.environ.get("MT_FILE_LIST_WAIT", "600"))
 
 
@@ -251,7 +252,7 @@ class MeitrackChatClient(BaseChatClient):
                             next_packet = self.file_download_list[-1].next_packet()
                             self.request_get_file(file_name, next_packet)
                         # else ask for data from the sdcard
-                        elif len(self.file_list_parser.file_arr) > 0:
+                        elif len(self.file_list_parser.file_arr) > 0 and datetime.datetime.now() - self.last_file_request > datetime.timedelta(seconds=MT_NEW_FILE_WAIT):
                             file_name = self.file_list_parser.file_arr[-1]
                             next_packet = 0
                             self.request_get_file(file_name, 0)
