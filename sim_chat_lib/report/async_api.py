@@ -27,9 +27,9 @@ class Consumer(multiprocessing.Process):
         # self.mq_conxn = None
         self.connection = None
         self.channel = None
-        if MQ_HOST:
-            # self.open_message_queue_conxn()
-            open_message_queue_conxn()
+        # if MQ_HOST:
+        #     # self.open_message_queue_conxn()
+        #     open_message_queue_conxn()
 
     def run(self):
         proc_name = self.name
