@@ -1,22 +1,25 @@
-import binascii
-import copy
 import datetime
 import logging
+import os
+import traceback
 
 from meitrack.file_download import FileDownload
 from meitrack.file_list import FileListing, FileListingError
 from sim_chat_lib.chat import ChatClient as BaseChatClient
 from sim_chat_lib.exception import Error as ChatError
-from sim_chat_lib.exception import LoginError, ProtocolError
+from sim_chat_lib.exception import ProtocolError
 from meitrack.error import GPRSParseError
 from meitrack.error import GPRSError
 from meitrack.gprs_protocol import parse_data_payload
 from meitrack import build_message
 from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, file_download_to_report, event_to_report
 from sim_chat_lib.report import MeitrackConfigRequest
-import traceback
+
 
 logger = logging.getLogger(__name__)
+
+MT_PARTIAL_WAIT = int(os.environ.get("MT_PARTIAL_WAIT", "300"))
+MT_FILE_LIST_WAIT = int(os.environ.get("MT_FILE_LIST_WAIT", "600"))
 
 
 class MeitrackChatClient(BaseChatClient):
@@ -230,17 +233,17 @@ class MeitrackChatClient(BaseChatClient):
                     if int(packet_number.decode()) % 8 == 7 and int(num_packets.decode()) > int(packet_number.decode())+1:
                         self.request_get_file(file_name, int(packet_number.decode())+1)
 
-                for file in self.file_download_list:
-                    if file_download.is_complete():
+                for running_download in self.file_download_list:
+                    if running_download.is_complete():
                         logger.log(13, "File is complete. Sending to geotool. ")
-                        report = file_download_to_report(self.imei, file_download)
+                        report = file_download_to_report(self.imei, running_download)
                         self.queue_report(report)
-                        self.file_download_list.remove(file_download)
-                        self.file_list_parser.remove_item(file_download.file_name)
+                        self.file_download_list.remove(running_download)
+                        self.file_list_parser.remove_item(running_download.file_name)
 
                 else:
                     # If we haven't received any file data for a while
-                    if datetime.datetime.now() - self.last_file_request > datetime.timedelta(seconds=5):
+                    if datetime.datetime.now() - self.last_file_request > datetime.timedelta(seconds=MT_PARTIAL_WAIT):
                         # If we have partial downloads stored in memory then try to download more of that file
                         if len(self.file_download_list) > 0:
                             logger.log(13, "We have files in the file download list %s", self.file_download_list)
@@ -254,7 +257,7 @@ class MeitrackChatClient(BaseChatClient):
                             self.request_get_file(file_name, 0)
                         # else if we don't have either of those and it's been long enough then
                         # ask for a full file listing from the device.
-                        elif datetime.datetime.now() - self.last_file_request > datetime.timedelta(seconds=10):
+                        elif datetime.datetime.now() - self.last_file_request > datetime.timedelta(seconds=MT_FILE_LIST_WAIT):
                             self.request_client_photo_list()
 
         if before != b'':
