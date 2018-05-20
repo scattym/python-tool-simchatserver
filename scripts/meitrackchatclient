@@ -142,10 +142,11 @@ def chat_client(host, port, imei, version, file_test_on_start=False, send_data=F
                     gprs_list, before, after = parse_data_payload(data)
                     for gprs in gprs_list:
                         command = gprs.enclosed_data.as_bytes()
-                        response = stub_processor.request_to_response(command, imei)
-                        if response:
-                            print("Sending response %s" % (response,))
-                            s.send(response)
+                        response_list = stub_processor.request_to_response(command, imei)
+                        if response_list:
+                            for response in response_list:
+                                print("Sending response %s" % (response.as_bytes(),))
+                                s.send(response.as_bytes())
                         else:
                             print("No response to send for incoming command {}".format(command))
                     sys.stdout.write('[Me] ')

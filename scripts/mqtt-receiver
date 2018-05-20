@@ -34,16 +34,16 @@ def on_message(client, userdata, msg):
         imei = fields[2].rstrip().lstrip()
         data_record = json.loads(msg.payload)
         # imei, longitude, latitude, true_track, ground_speed, altitude, dilution, age_gps_data, num_sats, timestamp, log_time
-        logger.debug("Data record is %s", data_record)
-        logger.debug(imei)
-        logger.debug(data_record['longitude'])
-        logger.debug(data_record['latitude'])
-        logger.debug(data_record['true_track'])
-        logger.debug(data_record['speed'])
-        logger.debug(data_record['altitude'])
-        logger.debug(data_record['accuracy'])
-        logger.debug(data_record['age_gps_data'])
-        logger.debug(data_record['num_sats'])
+        logger.log(13, "Data record is %s", data_record)
+        logger.log(13, imei)
+        logger.log(13, data_record['longitude'])
+        logger.log(13, data_record['latitude'])
+        logger.log(13, data_record['true_track'])
+        logger.log(13, data_record['speed'])
+        logger.log(13, data_record['altitude'])
+        logger.log(13, data_record['accuracy'])
+        logger.log(13, data_record['age_gps_data'])
+        logger.log(13, data_record['num_sats'])
         age_gps_data = data_record['age_gps_data'] / 1000000000
         device_api.device_update_by_long_lat(
             imei,

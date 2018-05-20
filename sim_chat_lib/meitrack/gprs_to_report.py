@@ -14,7 +14,7 @@ def safe_field_get(gprs, field):
             return field_value.decode()
 
     except AttributeError as err:
-        logger.debug("Failed to get field %s, returning None", field)
+        logger.log(13, "Failed to get field %s, returning None", field)
     return None
 
 
@@ -34,23 +34,23 @@ def gprs_to_report(gprs):
         report.firmware_version = safe_field_get(gprs, "firmware_version")
         report.serial_number = safe_field_get(gprs, "serial_number")
 
-        logger.debug(gprs.enclosed_data.get_battery_voltage())
+        logger.log(13, gprs.enclosed_data.get_battery_voltage())
         report.battery_voltage = gprs.enclosed_data.get_battery_voltage()
         report.battery_level = gprs.enclosed_data.get_battery_level()
-        logger.debug(gprs.enclosed_data.get_battery_level())
+        logger.log(13, gprs.enclosed_data.get_battery_level())
         gprs.enclosed_data.get_base_station_info()
         base_station_info = gprs.enclosed_data.get_base_station_info()
         if base_station_info:
             report.mcc = base_station_info["mcc"].decode()
-            logger.debug(report.mcc)
+            logger.log(13, report.mcc)
             report.mnc = base_station_info["mnc"].decode()
-            logger.debug(report.mnc)
+            logger.log(13, report.mnc)
             report.lac = base_station_info["lac"].decode()
-            logger.debug(report.lac)
+            logger.log(13, report.lac)
             report.ci = base_station_info["ci"].decode()
-            logger.debug(report.ci)
+            logger.log(13, report.ci)
             report.rx_level = base_station_info["gsm_signal_strength"].decode()
-            logger.debug(report.rx_level)
+            logger.log(13, report.rx_level)
         report.event_id = gprs.enclosed_data.get_event_id()
         report.event_description = gprs.enclosed_data.get_event_name()
         if report.event_description == "RFID":

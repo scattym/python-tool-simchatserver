@@ -10,7 +10,7 @@ LOOKUP_CELL_ID = False
 #    "mobileNetworkCode": "mobile_network_code",
 #    "signalStrength": "rx_level",
 def entry_to_cell_tower(entry, api_map):
-    logger.debug(entry)
+    logger.log(13, entry)
     cell = {}
     if "rx_level" in entry and isinstance(entry["rx_level"], basestring):
         if "dbm" in entry["rx_level"] or "dBm" in ["rx_level"]:

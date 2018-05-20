@@ -27,7 +27,7 @@ def callout_to_google(entry):
 
     url = "https://www.googleapis.com/geolocation/v1/geolocate?key=" + API_KEY
     # pprint(google_json)
-    logger.debug(google_json)
+    logger.log(13, google_json)
     r = requests.post(
         url,
         json=google_json,
@@ -94,7 +94,7 @@ def cell_data_to_gapi(entry):
         )
     else:
         request["cellTowers"] = [entry_to_cell_tower(entry, GOOGLE_MAP)]
-    logger.debug("The google api request is: %s" % (request))
+    logger.log(13, "The google api request is: %s" % (request))
     return request
 
 
