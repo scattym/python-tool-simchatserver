@@ -169,7 +169,8 @@ class Task(object):
                     self.report.imei,
                     0,
                     self.report.timestamp,
-                    self.report.file_data
+                    self.report.file_data,
+                    self.report.file_name
                 )
             except Exception as err:
                 logger.error("Exception in async task, logging file entry %s", err)
