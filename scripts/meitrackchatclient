@@ -83,7 +83,7 @@ gprs_license_list, _, _ = parse_data_payload(license_payload)
 gprs_license = gprs_license_list[0]
 
 
-def chat_client(host, port, imei, version, file_test_on_start=False, send_data=False, send_data_interval=5):
+def chat_client(host, port, imei, version, file_test_on_start=False, send_data=False, send_data_interval=5, count=1):
     imei = imei.encode()
 
     gprs_list, before, after = parse_data_payload(
@@ -134,16 +134,8 @@ def chat_client(host, port, imei, version, file_test_on_start=False, send_data=F
         ready_to_read, ready_to_write, in_error = select.select(socket_list, [], [], timeout)
 
         if not ready_to_read and send_data:
-            s.send(login_gprs.as_bytes())
-            s.send(gprs_event_136.as_bytes())
-            s.send(login_gprs.as_bytes())
-            s.send(gprs_event_136.as_bytes())
-            s.send(login_gprs.as_bytes())
-            s.send(gprs_event_136.as_bytes())
-            s.send(login_gprs.as_bytes())
-            s.send(gprs_event_136.as_bytes())
-            s.send(login_gprs.as_bytes())
-            s.send(gprs_event_136.as_bytes())
+            for i in range(0, count):
+                s.send(login_gprs.as_bytes())
 
         for sock in ready_to_read:
             if sock == s:
@@ -189,6 +181,13 @@ def chat_client(host, port, imei, version, file_test_on_start=False, send_data=F
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        '-c',
+        '--packet-count',
+        help="The number of packets to send every interval",
+        default=1,
+        type=int,
     )
     parser.add_argument(
         '-f',
@@ -267,6 +266,7 @@ if __name__ == "__main__":
 
     sys.exit(
         chat_client(
-            args.host, args.port, args.imei, args.version, args.file_test, args.send_data, args.wait_time
+            args.host, args.port, args.imei, args.version, args.file_test, args.send_data, args.wait_time,
+            args.packet_count
         )
     )
