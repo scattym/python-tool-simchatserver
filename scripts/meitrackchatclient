@@ -103,6 +103,16 @@ def chat_client(host, port, imei, version, file_test_on_start=False, send_data=F
     try:
         s.connect((host, port))
         s.send(message)
+        # s.send(login_gprs.as_bytes())
+        # s.send(gprs_event_136.as_bytes())
+        # s.send(login_gprs.as_bytes())
+        # s.send(gprs_event_136.as_bytes())
+        # s.send(login_gprs.as_bytes())
+        # s.send(gprs_event_136.as_bytes())
+        # s.send(login_gprs.as_bytes())
+        # s.send(gprs_event_136.as_bytes())
+        # s.send(login_gprs.as_bytes())
+        # s.send(gprs_event_136.as_bytes())
     except Exception as err:
         print('Unable to connect: %s' % (err,))
         sys.exit()
@@ -124,6 +134,14 @@ def chat_client(host, port, imei, version, file_test_on_start=False, send_data=F
         ready_to_read, ready_to_write, in_error = select.select(socket_list, [], [], timeout)
 
         if not ready_to_read and send_data:
+            s.send(login_gprs.as_bytes())
+            s.send(gprs_event_136.as_bytes())
+            s.send(login_gprs.as_bytes())
+            s.send(gprs_event_136.as_bytes())
+            s.send(login_gprs.as_bytes())
+            s.send(gprs_event_136.as_bytes())
+            s.send(login_gprs.as_bytes())
+            s.send(gprs_event_136.as_bytes())
             s.send(login_gprs.as_bytes())
             s.send(gprs_event_136.as_bytes())
 
