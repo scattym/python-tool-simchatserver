@@ -228,6 +228,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                         imei_line = imei_line
 
                         connection.settimeout(None)
+                        connection.setblocking(0)
                         if b'M@ST#R:' in imei_line[0:7] and (addr[0] == "127.0.0.1" or addr[0][0:6] == "172.17"):
                             logger.info("New master connection from %s:%s" % addr)
                             send_to_masters("New master connection from %s:%s" % addr)
@@ -245,6 +246,10 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                         close_socket(connection)
                     else:
                         logger.error("No connect string but keeping connection alive.")
+                        # Still need to set back to non-blocking as exception has skipped in the above code
+                        connection.settimeout(None)
+                        connection.setblocking(0)
+
                 except UnicodeDecodeError as err:
                     logger.error(
                         "Chat protocol exception unable to convert bytes IP: %s:%s. Closing: %s" % (
