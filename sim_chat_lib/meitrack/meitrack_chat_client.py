@@ -18,9 +18,9 @@ from sim_chat_lib.report import MeitrackConfigRequest
 
 logger = logging.getLogger(__name__)
 
-MT_PARTIAL_WAIT = int(os.environ.get("MT_PARTIAL_WAIT", "120"))
-MT_NEW_FILE_WAIT = int(os.environ.get("MT_NEW_FILE_WAIT", "300"))
-MT_FILE_LIST_WAIT = int(os.environ.get("MT_FILE_LIST_WAIT", "600"))
+MT_PARTIAL_WAIT = int(os.environ.get("MT_PARTIAL_WAIT", "60"))
+MT_NEW_FILE_WAIT = int(os.environ.get("MT_NEW_FILE_WAIT", "120"))
+MT_FILE_LIST_WAIT = int(os.environ.get("MT_FILE_LIST_WAIT", "240"))
 
 
 class MeitrackChatClient(BaseChatClient):
@@ -187,7 +187,10 @@ class MeitrackChatClient(BaseChatClient):
                 return_str += "Binary data"
 
             try:
-                self.file_list_parser.add_packet(gprs)
+                packet_count, packet_number = self.file_list_parser.add_packet(gprs)
+                if packet_count and packet_number:
+                    if packet_number % 8 == 7 and packet_count > packet_number+1:
+                        self.request_client_photo_list(packet_number+1)
             except FileListingError as err:
                 logger.error("Error adding packet to file list %s. Clearing list.", err)
                 self.file_list_parser.clear_list()
@@ -289,12 +292,12 @@ class MeitrackChatClient(BaseChatClient):
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send.")
 
-    def request_client_photo_list(self):
+    def request_client_photo_list(self, start=0):
         if not self.imei:
             logger.error("Unable to request photo list as client id not yet known")
         else:
             try:
-                gprs = build_message.stc_request_photo_list(self.imei)
+                gprs = build_message.stc_request_photo_list(self.imei, start)
                 self.send_data((gprs.as_bytes()))
                 self.last_file_request = datetime.datetime.now()
             except GPRSError as err:
