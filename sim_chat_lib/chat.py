@@ -34,7 +34,11 @@ class ChatClient(object):
         except AttributeError as err:
             logger.log(13, "Already encoded")
         logger.info("Sending data to {}. Data: {}".format(self.ident(), data))
-        self.sock_fd.send(data)
+        try:
+            self.sock_fd.send(data)
+        except socket.error as err:
+            logger.error("We tried to write to the socket but got error: %s", err)
+
         self.update_last_tick()
 
     def receive_data(self):
@@ -45,7 +49,7 @@ class ChatClient(object):
         try:
             data = self.sock_fd.recv(RECV_BUFFER)
         except socket.error as err:
-            logger.error("We tried to read from the socket but got errno: %s", err)
+            logger.error("We tried to read from the socket but got error: %s", err)
         logger.info("Data is {}".format(data))
         self.update_last_tick()
         if data:
