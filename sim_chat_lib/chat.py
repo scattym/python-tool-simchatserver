@@ -38,7 +38,14 @@ class ChatClient(object):
         self.update_last_tick()
 
     def receive_data(self):
-        data = self.sock_fd.recv(RECV_BUFFER)
+        # TODO: Got a timeout here. Need to work out why this
+        # is a blocking read. Should be set to non-blocking
+        # after identified as a meitrack client. May not be happening
+        # in the exception handling?
+        try:
+            data = self.sock_fd.recv(RECV_BUFFER)
+        except socket.error as err:
+            logger.error("We tried to read from the socket but got errno: %s", err)
         logger.info("Data is {}".format(data))
         self.update_last_tick()
         if data:
