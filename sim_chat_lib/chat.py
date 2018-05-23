@@ -38,6 +38,8 @@ class ChatClient(object):
             self.sock_fd.send(data)
         except socket.error as err:
             logger.error("We tried to write to the socket but got error: %s", err)
+        except socket.timeout as err:
+            logger.error("We tried to write to the socket but got timeout error: %s", err)
 
         self.update_last_tick()
 
@@ -50,6 +52,8 @@ class ChatClient(object):
             data = self.sock_fd.recv(RECV_BUFFER)
         except socket.error as err:
             logger.error("We tried to read from the socket but got error: %s", err)
+        except socket.timeout as err:
+            logger.error("We tried to read from the socket but got timeout error: %s", err)
         logger.info("Data is {}".format(data))
         self.update_last_tick()
         if data:
