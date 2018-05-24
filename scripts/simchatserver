@@ -303,10 +303,10 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                                     logger.log(13, "Result is ok, sending to masters")
                                     send_to_masters(result)
                             else:
-                                logger.log(13, "Must be data to read but not on an expected fd")
+                                logger.log(13, "Must be data to read but not on an expected fd. Could be a login.")
                                 data = sock.recv(RECV_BUFFER)
                                 if data:
-                                    logger.error("Spurious data: %s", data)
+                                    logger.error("Spurious data or login attempt: %s", data)
                                     identify_client(sock, task_queue, data)
                                 else:
                                     close_socket(sock)
