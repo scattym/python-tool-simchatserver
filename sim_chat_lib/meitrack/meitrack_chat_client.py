@@ -191,10 +191,10 @@ class MeitrackChatClient(BaseChatClient):
                 if packet_count and packet_number:
                     if packet_number % 8 == 7 and packet_count > packet_number+1:
                         self.request_client_photo_list(packet_number+1)
-                report = event_to_report(
-                    self.imei, "Photo list fragment {} of {}".format(packet_number+1, packet_count)
-                )
-                queue_result = self.queue_report(report)
+                    report = event_to_report(
+                        self.imei, "Photo list fragment {} of {}".format(packet_number+1, packet_count)
+                    )
+                    queue_result = self.queue_report(report)
                 logger.log(13, "Queue add result was %s", queue_result)
 
             except FileListingError as err:
