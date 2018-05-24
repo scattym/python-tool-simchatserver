@@ -191,6 +191,12 @@ class MeitrackChatClient(BaseChatClient):
                 if packet_count and packet_number:
                     if packet_number % 8 == 7 and packet_count > packet_number+1:
                         self.request_client_photo_list(packet_number+1)
+                report = event_to_report(
+                    self.imei, "Photo list fragment {} of {}".format(packet_number+1, packet_count)
+                )
+                queue_result = self.queue_report(report)
+                logger.log(13, "Queue add result was %s", queue_result)
+
             except FileListingError as err:
                 logger.error("Error adding packet to file list %s. Clearing list.", err)
                 self.file_list_parser.clear_list()
@@ -223,6 +229,13 @@ class MeitrackChatClient(BaseChatClient):
                         packet_number.decode(),
                         num_packets.decode()
                     )
+                    packet_number_int = int(packet_number.decode())
+                    num_packets_int = int(num_packets.decode())
+                    report = event_to_report(
+                        self.imei, "Photo fragment {} of {}".format(packet_number_int+1, num_packets)
+                    )
+                    queue_result = self.queue_report(report)
+                    logger.log(13, "Queue add result was %s", queue_result)
 
                     found = False
                     for file_download in self.file_download_list:
@@ -234,8 +247,8 @@ class MeitrackChatClient(BaseChatClient):
                         file_download.add_packet(gprs)
                         self.file_download_list.append(file_download)
 
-                    if int(packet_number.decode()) % 8 == 7 and int(num_packets.decode()) > int(packet_number.decode())+1:
-                        self.request_get_file(file_name, int(packet_number.decode())+1)
+                    if packet_number_int % 8 == 7 and num_packets_int > packet_number_int+1:
+                        self.request_get_file(file_name, packet_number_int+1)
 
                 for running_download in self.file_download_list:
                     if running_download.is_complete():
