@@ -232,7 +232,7 @@ class MeitrackChatClient(BaseChatClient):
                     packet_number_int = int(packet_number.decode())
                     num_packets_int = int(num_packets.decode())
                     report = event_to_report(
-                        self.imei, "Photo fragment {} of {}".format(packet_number_int+1, num_packets)
+                        self.imei, "Photo fragment {} of {}".format(packet_number_int+1, num_packets_int)
                     )
                     queue_result = self.queue_report(report)
                     logger.log(13, "Queue add result was %s", queue_result)
