@@ -39,6 +39,8 @@ def close_socket(sock):
     peer = [None, None]
     try:
         peer = sock.getpeername()
+    except OSError as err:
+        logger.error("OSError on getpeername when closing socket %s", err)
     except socket.error as err:
         logger.error("Socket error on getting peer %s", err)
         logger.error("Socket is of type: %s", type(sock))

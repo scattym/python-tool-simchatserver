@@ -48,6 +48,7 @@ class ChatClient(object):
         # is a blocking read. Should be set to non-blocking
         # after identified as a meitrack client. May not be happening
         # in the exception handling?
+        data = None
         try:
             data = self.sock_fd.recv(RECV_BUFFER)
         except socket.error as err:
