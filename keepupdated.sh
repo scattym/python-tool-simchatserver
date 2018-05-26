@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONTAINERS="mqrecv-cell-update mqrecv-event mqrecv-gps-update mqrecv-firmware-update"
+CONTAINERS="mqrecv-cell-update mqrecv-event mqrecv-gps-update mqrecv-firmware-update mqrecv-mt-file"
 
 while true; do
     if git pull | grep -q "Already up-to-date" ; then
@@ -13,7 +13,7 @@ while true; do
             docker build --tag=${con} . -f dockerfiles/${con}/Dockerfile
             docker stop ${con}
             docker rm ${con}
-            docker run -dt --restart=always -e MQ_HOST=10.1.1.4 -e DBHOST=10.1.1.4 -e DB_POOL_MAX=10 -e DB_POOL_MIN=1 --name=${con} ${con} -vvv
+            docker run -dt --restart=always -e GEO_API_HOST=10.1.1.4:8000 -e MQ_HOST=10.1.1.4 -e DBHOST=10.1.1.4 -e DB_POOL_MAX=10 -e DB_POOL_MIN=1 --name=${con} ${con} -vvv
         done
 
         docker build . --tag=simchatserver -f dockerfiles/simchatserver/Dockerfile

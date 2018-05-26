@@ -109,12 +109,12 @@ class MeitrackChatClient(BaseChatClient):
         if response.get("fatigue_driving_consecutive_driving_time") is not None or \
                 response.get("fatigue_driving_alert_time") is not None or \
                 response.get("fatigue_driving_acc_off_time_mins") is not None:
-            consec = response.get("fatigue_driving_consecutive_driving_time") or 480
+            consecutive = response.get("fatigue_driving_consecutive_driving_time") or 480
             alert = response.get("fatigue_driving_alert_time") or 300
             acc_off = response.get("fatigue_driving_acc_off_time_mins") or 0
             gprs = build_message.stc_set_fatigue_driving_alert_time(
                 self.imei,
-                consec,
+                consecutive,
                 alert,
                 acc_off
             )
@@ -122,13 +122,13 @@ class MeitrackChatClient(BaseChatClient):
         if response.get("idle_alert_consecutive_speed_time") is not None or \
                 response.get("idle_alert_speed_kmh") is not None or \
                 response.get("idle_alert_alert_time") is not None:
-            consec = response.get("idle_alert_consecutive_speed_time") or 480
+            consecutive = response.get("idle_alert_consecutive_speed_time") or 480
             speed = response.get("fatigue_driving_acc_off_time_mins") or 0
             alert_time = response.get("idle_alert_alert_time") or 300
 
             gprs = build_message.stc_set_idle_alert_time(
                 self.imei,
-                consec,
+                consecutive,
                 speed,
                 alert_time,
             )
@@ -173,8 +173,12 @@ class MeitrackChatClient(BaseChatClient):
 
         return_str = "%s " % self.ident()
         for gprs in gprs_list:
-            if not self.imei:
+            if self.imei:
+                if gprs.imei != self.imei:
+                    logger.error("Received data packet for %s but client is %s", gprs.imei, self.imei)
+            else:
                 self.imei = gprs.imei
+
             # print(gprs)
             report = gprs_to_report(gprs)
             queue_result = self.queue_report(report)
@@ -201,22 +205,22 @@ class MeitrackChatClient(BaseChatClient):
                 logger.error("Error adding packet to file list %s. Clearing list.", err)
                 self.file_list_parser.clear_list()
 
-            if gprs and gprs.enclosed_data and gprs.enclosed_data["event_code"] == b'39':
-                if len(self.file_download_list) == 0:
-                    logger.log(13, "No current downloads. Asking for file.")
-
-                    ask_for_file = build_message.stc_request_get_file(
-                        self.imei,
-                        gprs.enclosed_data["file_name"]
-                    )
-                    self.send_data(ask_for_file.as_bytes())
-
-                else:
-                    logger.log(13,
-                        "Download already in progress, queue file for download later %s",
-                        gprs.enclosed_data["file_name"]
-                    )
-                    # self.download_list.append(gprs.enclosed_data["file_name"])
+            # if gprs and gprs.enclosed_data and gprs.enclosed_data["event_code"] == b'39':
+            #     if len(self.file_download_list) == 0:
+            #         logger.log(13, "No current downloads. Asking for file.")
+            #
+            #         ask_for_file = build_message.stc_request_get_file(
+            #             self.imei,
+            #             gprs.enclosed_data["file_name"]
+            #         )
+            #         self.send_data(ask_for_file.as_bytes())
+            #
+            #     else:
+            #         logger.log(13,
+            #             "Download already in progress, queue file for download later %s",
+            #             gprs.enclosed_data["file_name"]
+            #         )
+            #         # self.download_list.append(gprs.enclosed_data["file_name"])
 
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
@@ -224,39 +228,16 @@ class MeitrackChatClient(BaseChatClient):
                     # Reset last file request so that we don't overload the client with requsts
                     # while it is already sending a file.
                     self.last_file_request = datetime.datetime.now()
+                    packet_number_int = int(packet_number.decode())
+                    num_packets_int = int(num_packets.decode())
+                    if packet_number_int % 8 == 7 and num_packets_int > packet_number_int+1:
+                        self.request_get_file(file_name, packet_number_int+1)
                     return_str += "File: %s, packet: %s, of: %s\n" % (
                         file_name.decode(),
                         packet_number.decode(),
                         num_packets.decode()
                     )
-                    packet_number_int = int(packet_number.decode())
-                    num_packets_int = int(num_packets.decode())
-                    report = event_to_report(
-                        self.imei, "{} {} of {}".format(file_name.decode(), packet_number_int+1, num_packets_int)
-                    )
-                    queue_result = self.queue_report(report)
-                    logger.log(13, "Queue add result was %s", queue_result)
-
-                    found = False
-                    for file_download in self.file_download_list:
-                        if file_download.file_name == file_name:
-                            found = True
-                            file_download.add_packet(gprs)
-                    if not found:
-                        file_download = FileDownload(file_name)
-                        file_download.add_packet(gprs)
-                        self.file_download_list.append(file_download)
-
-                    if packet_number_int % 8 == 7 and num_packets_int > packet_number_int+1:
-                        self.request_get_file(file_name, packet_number_int+1)
-
-                for running_download in self.file_download_list:
-                    if running_download.is_complete():
-                        logger.log(13, "File is complete. Sending to geotool. ")
-                        report = file_download_to_report(self.imei, running_download)
-                        self.queue_report(report)
-                        self.file_download_list.remove(running_download)
-                        self.file_list_parser.remove_item(running_download.file_name)
+                    self.file_list_parser.remove_item(file_name)
 
                 else:
                     # If we haven't received any file data for a while

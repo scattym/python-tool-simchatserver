@@ -12,6 +12,7 @@ import geotool_api
 from geotool_api import device_api, driver_api
 from geotool_api import meitrack_config_api
 from geotool_api.message_queue_api import open_message_queue_conxn, publish_to_mq
+from sim_chat_lib import report
 
 logger = logging.getLogger(__name__)
 MQ_HOST = os.environ.get("MQ_HOST")
@@ -66,6 +67,8 @@ class Task(object):
         self.log_time = datetime.datetime.now()
 
     def __call__(self):
+        if isinstance(self.report, report.BaseReport):
+            return self.report.execute_post(self.log_time)
 
         if self.report.imei and self.report.gps_latitude and self.report.gps_longitude:
             try:

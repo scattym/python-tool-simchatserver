@@ -7,6 +7,6 @@ pika==0.10.0
 aio_pika
 asyncpg
 psycopg2-binary
-geotooldbapi>=1.1
-geotoolapi>=1.5
-meitrackparser>=1.1
+geotooldbapi>=1.2
+geotoolapi>=1.8
+meitrackparser>=1.3
