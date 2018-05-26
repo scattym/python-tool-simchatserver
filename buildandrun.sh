@@ -14,6 +14,7 @@ if [ "X${version}" != "X" ] ; then
         docker build --tag=mqrecv-event:v${version} . -f dockerfiles/mqrecv-event/Dockerfile
         docker build --tag=mqrecv-gps-update:v${version} . -f dockerfiles/mqrecv-gps-update/Dockerfile
         docker build --tag=mqrecv-firmware-update:v${version} . -f dockerfiles/mqrecv-firmware-update/Dockerfile
+        docker build --tag=mqrecv-mt-file:v${version} . -f dockerfiles/mqrecv-mt-file/Dockerfile
 
 		if [ $? -eq 0 ] ; then
 			if [ "X${running_version}" != "X" ] ; then
@@ -22,6 +23,8 @@ if [ "X${version}" != "X" ] ; then
 				docker stop mqrecv-event-${running_version}
 				docker stop mqrecv-gps-update-${running_version}
 				docker stop mqrecv-firmware-update-${running_version}
+				docker stop mqrecv-mt-file-${running_version}
+
 			fi
 			if [ $? -eq 0 ] ; then
 				docker run -p 0.0.0.0:65533:65533 -dt --name=simchatserver-${version} --restart=always simchatserver:v${version} -v
@@ -29,6 +32,7 @@ if [ "X${version}" != "X" ] ; then
 				docker run -dt --name=mqrecv-event-${running_version} --restart=always mqrecv-event:v${version} -v
 				docker run -dt --name=mqrecv-gps-update-${running_version} --restart=always mqrecv-gps-update:v${version} -v
 				docker run -dt --name=mqrecv-firmware-update-${running_version} --restart=always mqrecv-firmware-update:v${version} -v
+				docker run -dt --name=mqrecv-mt-file-${running_version} --restart=always mqrecv-mt-file:v${version} -v
 			fi
 		fi
 		
