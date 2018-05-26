@@ -9,4 +9,4 @@ asyncpg
 psycopg2-binary
 geotooldbapi>=1.3
 geotoolapi>=1.8
-meitrackparser>=1.3
+meitrackparser>=1.4

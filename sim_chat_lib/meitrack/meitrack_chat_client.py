@@ -205,22 +205,23 @@ class MeitrackChatClient(BaseChatClient):
                 logger.error("Error adding packet to file list %s. Clearing list.", err)
                 self.file_list_parser.clear_list()
 
-            # if gprs and gprs.enclosed_data and gprs.enclosed_data["event_code"] == b'39':
-            #     if len(self.file_download_list) == 0:
-            #         logger.log(13, "No current downloads. Asking for file.")
-            #
-            #         ask_for_file = build_message.stc_request_get_file(
-            #             self.imei,
-            #             gprs.enclosed_data["file_name"]
-            #         )
-            #         self.send_data(ask_for_file.as_bytes())
-            #
-            #     else:
-            #         logger.log(13,
-            #             "Download already in progress, queue file for download later %s",
-            #             gprs.enclosed_data["file_name"]
-            #         )
-            #         # self.download_list.append(gprs.enclosed_data["file_name"])
+            if gprs and gprs.enclosed_data and gprs.enclosed_data["event_code"] == b'39':
+                self.file_list_parser.add_item(gprs.enclosed_data["file_name"])
+                # if len(self.file_download_list) == 0:
+                #     logger.log(13, "No current downloads. Asking for file.")
+                #
+                #     ask_for_file = build_message.stc_request_get_file(
+                #         self.imei,
+                #         gprs.enclosed_data["file_name"]
+                #     )
+                #     self.send_data(ask_for_file.as_bytes())
+                #
+                # else:
+                #     logger.log(13,
+                #         "Download already in progress, queue file for download later %s",
+                #         gprs.enclosed_data["file_name"]
+                #     )
+                    # self.download_list.append(gprs.enclosed_data["file_name"])
 
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
