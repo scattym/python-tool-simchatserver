@@ -13,7 +13,6 @@ class ChatClient(object):
     def __init__(self, sock_fd, report_queue):
         self.sock_fd = sock_fd
         self.report_queue = report_queue
-        self.empty_count = 0
         try:
             peer = sock_fd.getpeername()
         except OSError as err:
@@ -61,11 +60,8 @@ class ChatClient(object):
         if data:
             return self.process_data(data)
         else:
-            if self.empty_count > 3:
-                self.on_client_close()
-                raise ClientClosedError("No data on receive. Client went away.")
-            else:
-                self.empty_count = self.empty_count + 1
+            self.on_client_close()
+            raise ClientClosedError("No data on receive. Client went away.")
 
     def get_remote_ip(self):
         return "%s:%s" % (self.ip_address, self.port)
