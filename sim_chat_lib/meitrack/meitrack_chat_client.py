@@ -19,8 +19,8 @@ from sim_chat_lib.report import MeitrackConfigRequest
 logger = logging.getLogger(__name__)
 
 MT_PARTIAL_WAIT = int(os.environ.get("MT_PARTIAL_WAIT", "60"))
-MT_NEW_FILE_WAIT = int(os.environ.get("MT_NEW_FILE_WAIT", "240"))
-MT_FILE_LIST_WAIT = int(os.environ.get("MT_FILE_LIST_WAIT", "480"))
+MT_NEW_FILE_WAIT = int(os.environ.get("MT_NEW_FILE_WAIT", "480"))
+MT_FILE_LIST_WAIT = int(os.environ.get("MT_FILE_LIST_WAIT", "960"))
 
 
 class MeitrackChatClient(BaseChatClient):
@@ -31,8 +31,10 @@ class MeitrackChatClient(BaseChatClient):
         if imei:
             self.on_login()
         self.file_list_parser = FileListing()
-        self.file_download_list = []
+        # self.file_download_list = []
         self.last_file_request = datetime.datetime.now()
+        self.current_download = None
+        self.current_packet = None
 
     def check_login(self):
         return True
@@ -192,7 +194,7 @@ class MeitrackChatClient(BaseChatClient):
 
             try:
                 packet_count, packet_number = self.file_list_parser.add_packet(gprs)
-                if packet_count and packet_number:
+                if packet_count is not None and packet_number is not None:
                     if packet_number % 8 == 7 and packet_count > packet_number+1:
                         self.request_client_photo_list(packet_number+1)
                     report = event_to_report(
@@ -226,29 +228,33 @@ class MeitrackChatClient(BaseChatClient):
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
                 if file_name and file_bytes:
-                    # Reset last file request so that we don't overload the client with requsts
+                    # Reset last file request so that we don't overload the client with requests
                     # while it is already sending a file.
                     self.last_file_request = datetime.datetime.now()
                     packet_number_int = int(packet_number.decode())
                     num_packets_int = int(num_packets.decode())
+                    self.current_download = file_name
+                    self.current_packet = packet_number_int
+
                     if packet_number_int % 8 == 7 and num_packets_int > packet_number_int+1:
                         self.request_get_file(file_name, packet_number_int+1)
                     return_str += "File: %s, packet: %s, of: %s\n" % (
                         file_name.decode(),
-                        packet_number.decode(),
-                        num_packets.decode()
+                        packet_number_int+1,
+                        num_packets_int
                     )
-                    self.file_list_parser.remove_item(file_name)
+                    if num_packets_int == packet_number_int+1:
+                        self.current_download = None
+                        self.current_packet = None
+                        self.file_list_parser.remove_item(file_name)
 
                 else:
                     # If we haven't received any file data for a while
                     if datetime.datetime.now() - self.last_file_request > datetime.timedelta(seconds=MT_PARTIAL_WAIT):
                         # If we have partial downloads stored in memory then try to download more of that file
-                        if len(self.file_download_list) > 0:
-                            logger.log(13, "We have files in the file download list %s", self.file_download_list)
-                            file_name = self.file_download_list[-1].file_name
-                            next_packet = self.file_download_list[-1].next_packet()
-                            self.request_get_file(file_name, next_packet)
+                        if self.current_download is not None:
+                            logger.log(13, "We have a stuck download. Resuming %s at fragment %s", self.current_download, self.current_packet)
+                            self.request_get_file(self.current_download, self.current_packet+1)
                         # else ask for data from the sdcard
                         elif len(self.file_list_parser.file_arr) > 0 and datetime.datetime.now() - self.last_file_request > datetime.timedelta(seconds=MT_NEW_FILE_WAIT):
                             file_name = self.file_list_parser.file_arr[-1]
