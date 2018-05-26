@@ -225,7 +225,8 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                     imei_line = connection.recv(1024)
                     if not imei_line:
                         logger.error("No data on connect.")
-                        close_socket(connection)
+                        if disconnect_unidentified:
+                            close_socket(connection)
                     else:
                         imei_line = imei_line
 
