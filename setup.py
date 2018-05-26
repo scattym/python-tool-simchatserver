@@ -30,7 +30,7 @@ setup(
             "cachetools",
             "python-memcached",
             'pika',
-            'geotooldbapi>=1.2',
+            'geotooldbapi>=1.3',
             'geotoolapi>=1.8',
             'meitrackparser>=1.3',
             # 'geotool_api==1.0',
