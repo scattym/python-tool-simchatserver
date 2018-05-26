@@ -1,6 +1,7 @@
 include *.md
 include Dockerfile
 include unittest.cfg
+include CHANGELOG
 exclude .project
 exclude .pydevproject
 exclude .settings/*
