@@ -1,7 +1,7 @@
 2.31 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix reference to variable that was deleted causing Exceptions.
 
 
 2.30 (2018-05-26)
