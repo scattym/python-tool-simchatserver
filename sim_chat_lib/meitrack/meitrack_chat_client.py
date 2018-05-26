@@ -44,21 +44,19 @@ class MeitrackChatClient(BaseChatClient):
 
     def get_client_details(self):
         start = super(MeitrackChatClient, self).get_client_details()
-        return "meitrack, ident: %s, remote: %s, age: %s\n%s\nBuffer: %s\nDownload list: %s\nSDCard List: %s\n" % (
+        return "meitrack, ident: %s, remote: %s, age: %s\n%s\nBuffer: %s\nCurrent download: %s\nSDCard List: %s\n" % (
             self.ident(), start, self.age(), self.get_download_details(), self.buffer,
-            self.file_download_list, self.file_list_parser
+            self.current_download, self.file_list_parser
         )
 
     def get_download_details(self):
         return_str = ""
-        if self.file_download_list:
-            return_str = "File Downloads\n"
-            for file_download in self.file_download_list:
-                return_str += "{}, {}, {}\n".format(
-                    file_download.file_name,
-                    file_download.expecting_packets,
-                    file_download.fragment_list_as_string()
-                )
+        if self.current_download:
+            return_str = "File Download: "
+            return_str += "{}, {}\n".format(
+                self.current_download,
+                self.current_packet
+            )
         return return_str
 
     def ident(self):
