@@ -110,6 +110,7 @@ def execute_command(data):
                     logger.info("Master is connected from %s:%s" % (peer[0], peer[1]))
                     send_to_masters("Master is connected from %s:%s" % (peer[0], peer[1]))
                 except socket.error:
+                    logger.error("Socket error getting peer details or sending to masters")
                     close_socket(sock)
             logger.log(13, "%s", CHAT_CLIENT_LIST)
             for sock_fd in CHAT_CLIENT_LIST:
@@ -141,7 +142,9 @@ def identify_client(sock, task_queue, client_buffer):
     if client:
         CHAT_CLIENT_LIST[sock.fileno()] = client
         ident = client.ident()
+        logger.log(13, "Client ident is %s", ident)
         if CHAT_CLIENT_IDENT_LIST.get(ident):
+            logger.error("Error in identifying client. Closing socket")
             close_socket(CHAT_CLIENT_IDENT_LIST.get(ident))
         CHAT_CLIENT_IDENT_LIST[ident] = sock
         # SOCKET_MAP
@@ -295,6 +298,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                             if is_master_by_socket(sock):
                                 data = sock.recv(RECV_BUFFER)
                                 if not data:
+                                    logger.error("No data on master socket. Closing %s", sock)
                                     close_socket(sock)
                                 else:
                                     execute_command(data.decode().rstrip())
@@ -313,13 +317,14 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified):
                                     logger.error("Spurious data or login attempt: %s", data)
                                     identify_client(sock, task_queue, data)
                                 else:
+                                    logger.error("No data on initial connect. Closing: %s", sock)
                                     close_socket(sock)
                                     send_to_masters("Client (%s, %s) is offline\n" % addr)
                             # at this stage, no data means probably the connection has been broken
                             # broadcast(server_socket, connections[sock_fd], "Client (%s, %s) is offline\n" % addr)
                             # exception
                         except socket.error as err:
-                            logger.info("Client (%s, %s) is offline" % addr)
+                            logger.error("Client (%s, %s) is offline" % addr)
                             close_socket(sock)
                             send_to_masters("Client (%s, %s) is offline" % addr)
                             # broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
@@ -369,6 +374,7 @@ def send_to_masters(data):
             sock.send(data.encode())
             sock.send('\n'.encode())
         except socket.error:
+            logger.error("Error in sending to master. Closing: %s", sock)
             close_socket(sock)
     logger.log(13, "Done sending data to masters")
 
@@ -408,6 +414,7 @@ def send_to_device(ident, cmd):
                     else:
                         CHAT_CLIENT_LIST[sock_fd].send_command(cmd)
                 except socket.error as err:
+                    logger.error("Error in sending data to device. Closing %s", sock_fd)
                     close_socket(connections[sock_fd])
 
     elif CHAT_CLIENT_IDENT_LIST.get(ident):
@@ -420,6 +427,7 @@ def send_to_device(ident, cmd):
                 CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].send_command(cmd)
 
         except socket.error as err:
+            logger.error("Error in sending command to client. Closing %s", CHAT_CLIENT_IDENT_LIST.get(ident))
             close_socket(CHAT_CLIENT_IDENT_LIST.get(ident))
 
     else:
@@ -437,6 +445,7 @@ def broadcast(server_socket, sock, message):
                     connections[sock_fd].send(message.encode())
                 # sock_fd.send(message.encode())
             except:
+                logger.error("Error in broadcast of messages. Closing %s", sock_fd)
                 # broken socket connection
                 close_socket(connections[sock_fd])
 
