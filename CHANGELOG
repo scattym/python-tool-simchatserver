@@ -1,4 +1,4 @@
-2.32 (unreleased)
+2.32 (2018-05-26)
 -----------------
 
 - No disconnect on initial read being empty
