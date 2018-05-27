@@ -19,8 +19,11 @@ from sim_chat_lib.report import MeitrackConfigRequest
 logger = logging.getLogger(__name__)
 
 MT_PARTIAL_WAIT = int(os.environ.get("MT_PARTIAL_WAIT", "60"))
+MT_PARTIAL_WAIT_DELTA = datetime.timedelta(seconds=MT_PARTIAL_WAIT)
 MT_NEW_FILE_WAIT = int(os.environ.get("MT_NEW_FILE_WAIT", "480"))
+MT_NEW_FILE_WAIT_DELTA = datetime.timedelta(seconds=MT_NEW_FILE_WAIT)
 MT_FILE_LIST_WAIT = int(os.environ.get("MT_FILE_LIST_WAIT", "960"))
+MT_FILE_LIST_WAIT_DELTA = datetime.timedelta(seconds=MT_FILE_LIST_WAIT)
 
 
 class MeitrackChatClient(BaseChatClient):
@@ -30,6 +33,7 @@ class MeitrackChatClient(BaseChatClient):
         self.buffer = b''
         if imei:
             self.on_login()
+        self.serial_number = None
         self.file_list_parser = FileListing()
         # self.file_download_list = []
         self.last_file_request = datetime.datetime.now()
@@ -151,33 +155,38 @@ class MeitrackChatClient(BaseChatClient):
             self.send_data(gprs.as_bytes())
 
     def process_data(self, data):
+        return_str = "%s " % self.ident()
         if len(self.buffer) <= 65536:
             try:
                 self.buffer = b"".join([self.buffer, data])
             except UnicodeDecodeError as err:
-                logger.error("Unable to convert bytes to string %s", data)
+                logger.error("Unable to convert bytes to string %s with error: %s", data, err)
                 raise ChatError("Unable to convert bytes to string")
         else:
             raise ChatError("Buffer too long")
 
         try:
             gprs_list, before, after = parse_data_payload(self.buffer)
+            if before != b'':
+                logger.error("Got data before start of packet. Should not be possible.")
+            logger.log(13, "Leftover bytes count %s, with data: %s", len(after), after)
+            self.buffer = after
         except UnicodeDecodeError as err:
-            logger.error("Unicode decode error on buffer %s", self.buffer)
+            logger.error("Unicode decode error on buffer %s, error: %s", self.buffer, err)
             logger.log(13, traceback.print_exc())
             raise ProtocolError("Problem parsing meitrack buffer, unable to decode buffer")
         except GPRSParseError as err:
-            logger.error("Parsing error on buffer %s", self.buffer)
+            logger.error("Parsing error on buffer %s with error: %s", self.buffer, err)
             logger.log(13, traceback.print_exc())
             raise ProtocolError("Problem parsing meitrack buffer")
 
-        return_str = "%s " % self.ident()
         for gprs in gprs_list:
             if self.imei:
                 if gprs.imei != self.imei:
                     logger.error("Received data packet for %s but client is %s", gprs.imei, self.imei)
             else:
                 self.imei = gprs.imei
+                self.on_login()
 
             # print(gprs)
             report = gprs_to_report(gprs)
@@ -187,7 +196,7 @@ class MeitrackChatClient(BaseChatClient):
             try:
                 return_str += (gprs.as_bytes()).decode()
             except UnicodeDecodeError as err:
-                logger.error("Unable to decode response to send to masters")
+                logger.error("Unable to decode response to send to masters with error: %s", err)
                 return_str += "Binary data"
 
             try:
@@ -207,21 +216,6 @@ class MeitrackChatClient(BaseChatClient):
 
             if gprs and gprs.enclosed_data and gprs.enclosed_data["event_code"] == b'39':
                 self.file_list_parser.add_item(gprs.enclosed_data["file_name"])
-                # if len(self.file_download_list) == 0:
-                #     logger.log(13, "No current downloads. Asking for file.")
-                #
-                #     ask_for_file = build_message.stc_request_get_file(
-                #         self.imei,
-                #         gprs.enclosed_data["file_name"]
-                #     )
-                #     self.send_data(ask_for_file.as_bytes())
-                #
-                # else:
-                #     logger.log(13,
-                #         "Download already in progress, queue file for download later %s",
-                #         gprs.enclosed_data["file_name"]
-                #     )
-                    # self.download_list.append(gprs.enclosed_data["file_name"])
 
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
@@ -246,28 +240,35 @@ class MeitrackChatClient(BaseChatClient):
                         self.current_packet = None
                         self.file_list_parser.remove_item(file_name)
 
-                else:
-                    # If we haven't received any file data for a while
-                    if datetime.datetime.now() - self.last_file_request > datetime.timedelta(seconds=MT_PARTIAL_WAIT):
-                        # If we have partial downloads stored in memory then try to download more of that file
-                        if self.current_download is not None:
-                            logger.log(13, "We have a stuck download. Resuming %s at fragment %s", self.current_download, self.current_packet)
-                            self.request_get_file(self.current_download, self.current_packet+1)
-                        # else ask for data from the sdcard
-                        elif len(self.file_list_parser.file_arr) > 0 and datetime.datetime.now() - self.last_file_request > datetime.timedelta(seconds=MT_NEW_FILE_WAIT):
-                            file_name = self.file_list_parser.file_arr[-1]
-                            next_packet = 0
-                            self.request_get_file(file_name, 0)
-                        # else if we don't have either of those and it's been long enough then
-                        # ask for a full file listing from the device.
-                        elif datetime.datetime.now() - self.last_file_request > datetime.timedelta(seconds=MT_FILE_LIST_WAIT):
-                            self.request_client_photo_list()
-
-        if before != b'':
-            logger.error("Got data before start of packet. Should not be possible.")
-        logger.log(13, "Leftover bytes count %s, with data: %s", len(after), after)
-        self.buffer = after
         return return_str
+
+    def check_for_timeout(self, date_dt):
+        # Early check to keep this function running as quickly as possible as it is
+        # called in every outer loop
+        if self.current_download is not None or self.file_list_parser.num_files > 0:
+            # If we haven't received any file data for a while
+            if date_dt - self.last_file_request > MT_PARTIAL_WAIT_DELTA:
+
+                # If we have partial downloads stored in memory then try to download more of that file
+                if self.current_download is not None:
+                    logger.log(
+                        13,
+                        "We have a stuck download. Resuming %s at fragment %s",
+                        self.current_download,
+                        self.current_packet
+                    )
+                    self.request_get_file(self.current_download, self.current_packet+1)
+
+                # else ask for data from the sdcard
+                elif self.file_list_parser.num_files > 0 and date_dt - self.last_file_request > MT_NEW_FILE_WAIT_DELTA:
+
+                    file_name = self.file_list_parser.file_arr[-1]
+                    self.request_get_file(file_name, 0)
+
+        # else if we don't have either of those and it's been long enough then
+        # ask for a full file listing from the device.
+        elif date_dt - self.last_file_request > MT_FILE_LIST_WAIT_DELTA:
+            self.request_client_photo_list()
 
     def request_client_location(self):
         if not self.imei:
@@ -277,7 +278,7 @@ class MeitrackChatClient(BaseChatClient):
                 gprs = build_message.stc_request_location_message(self.imei)
                 self.send_data((gprs.as_bytes()))
             except GPRSError as err:
-                logger.error("Failed to create gprs payload to send.")
+                logger.error("Failed to create gprs payload to send. Error: %s", err)
 
     def request_client_info(self):
         if not self.imei:
@@ -289,7 +290,7 @@ class MeitrackChatClient(BaseChatClient):
                 logger.log(13, gprs.as_bytes())
                 self.send_data((gprs.as_bytes()))
             except GPRSError as err:
-                logger.error("Failed to create gprs payload to send.")
+                logger.error("Failed to create gprs payload to send. Error %s", err)
 
     def request_client_photo_list(self, start=0):
         if not self.imei:
