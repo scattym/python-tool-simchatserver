@@ -1,4 +1,4 @@
-2.34 (unreleased)
+2.34 (2018-05-27)
 -----------------
 
 - Parse all connections looking for timed messages to send.
