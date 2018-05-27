@@ -320,7 +320,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified, wait_ti
                                     else:
                                         logger.error("No data on initial connect. Closing: %s", sock)
                                         close_socket(sock)
-                                        send_to_masters("Client (%s, %s) is offline. Closing: %s\n" % (sock,))
+                                        send_to_masters("Client is offline. Closing: %s\n" % (sock,))
                                 # at this stage, no data means probably the connection has been broken
                                 # broadcast(server_socket, connections[sock_fd], "Client (%s, %s) is offline\n" % addr)
                                 # exception
