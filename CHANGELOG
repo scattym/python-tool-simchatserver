@@ -1,7 +1,7 @@
 2.35 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix bug with client closing on connect.
 
 
 2.34 (2018-05-27)
