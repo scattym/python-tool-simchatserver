@@ -1,7 +1,7 @@
 2.34 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Parse all connections looking for timed messages to send.
 
 
 2.33 (2018-05-26)

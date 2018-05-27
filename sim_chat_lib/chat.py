@@ -20,13 +20,13 @@ class ChatClient(object):
             peer = ("none", -1)
         except socket.error as err:
             logger.error("Unable to get client details from socket: %s", err)
+            peer = ("none", -1)
         self.ip_address = peer[0]
         self.port = peer[1]
         self.last_tick = datetime.datetime.now()
 
     def on_login(self):
         self.request_client_info()
-        logger.error("On login not implemented in base class")
 
     def send_data(self, data):
         try:
@@ -70,6 +70,9 @@ class ChatClient(object):
         return self.get_remote_ip()
 
     def ident(self):
+        return None
+
+    def check_for_timeout(self, date_dt):
         return None
 
     def process_data(self, data):
