@@ -1,4 +1,4 @@
-2.38 (unreleased)
+2.38 (2018-05-28)
 -----------------
 
 - Fix bug causing images to fail on upload. Log time was getting set incorrectly.
