@@ -31,7 +31,7 @@ setup(
             "python-memcached",
             'pika',
             'geotooldbapi>=1.3',
-            'geotoolapi>=1.8',
+            'geotoolapi>=1.9',
             'meitrackparser>=1.5',
             # 'geotool_api==1.0',
       ],

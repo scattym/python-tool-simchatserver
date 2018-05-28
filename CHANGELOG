@@ -1,7 +1,7 @@
 2.36 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Bring in change from geotool api to avoid the memcache connection being shared between mutiple processes
 
 
 2.35 (2018-05-27)
