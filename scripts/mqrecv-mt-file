@@ -10,6 +10,7 @@ import logging
 from geotool_db_api.device_api import get_insert_deviceupdate_coroutine
 from geotool_db_api.device_api import get_update_deviceupdatecache_coroutine, get_device_id
 from meitrack.file_download import FileDownloadAggregator
+from meitrack.command.common import meitrack_date_to_datetime
 from geotool_api.camera_api import add_camera_image
 
 logger = logging.getLogger(__name__)
@@ -57,18 +58,25 @@ async def main(loop, file_agg):
             print(file_agg)
             camera_number = data.get("camera_number", "0")
             camera_time = data.get("camera_time", str(datetime.datetime.now()))
+            log_time = data.get("log_time", str(datetime.datetime.now()))
 
             if file_bytes:
+                parts = file_name.split(b'_')
+                if len(parts) > 0:
+                    date_as_dt = meitrack_date_to_datetime(parts[0])
+                    if date_as_dt is not None:
+                        camera_time = date_as_dt
                 logger.log(
                     13,
-                    "We have a full file %s, %s, %s, %s, %s",
+                    "We have a full file %s, %s, %s, %s, %s, %s",
                     device_id,
                     camera_number,
                     camera_time,
                     file_bytes,
-                    file_name
+                    file_name,
+                    log_time
                 )
-                add_camera_image(device_id, camera_number, camera_time, file_bytes, file_name)
+                add_camera_image(device_id, camera_number, camera_time, file_bytes, file_name, log_time)
                 print("Added file {} to geotool".format(file_name))
 
 

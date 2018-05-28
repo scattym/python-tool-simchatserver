@@ -26,6 +26,7 @@ class FileFragmentReport(BaseReport):
         self.num_packets = None
         self.packet_number = None
         self.file_bytes = None
+        self.timestamp = datetime.datetime.now()
 
     def execute_post(self, log_time):
         result = geotool_api.add_event_log(
@@ -42,7 +43,8 @@ class FileFragmentReport(BaseReport):
             self.file_name,
             self.num_packets,
             self.packet_number,
-            self.file_bytes
+            self.file_bytes,
+            log_time,
         )
 
 
