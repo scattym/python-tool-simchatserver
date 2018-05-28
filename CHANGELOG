@@ -1,4 +1,4 @@
-2.37 (unreleased)
+2.37 (2018-05-28)
 -----------------
 
 - Handle camera time in image uploads. Get time from image filename.
