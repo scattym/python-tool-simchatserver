@@ -1,13 +1,13 @@
 2.37 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Handle camera time in image uploads. Get time from image filename.
 
 
 2.36 (2018-05-28)
 -----------------
 
-- Bring in change from geotool api to avoid the memcache connection being shared between mutiple processes
+- Bring in change from geotool api to avoid the memcache connection being shared between multiple processes
 
 
 2.35 (2018-05-27)
