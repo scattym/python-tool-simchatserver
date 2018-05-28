@@ -1,7 +1,7 @@
 2.38 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix bug causing images to fail on upload. Log time was getting set incorrectly.
 
 
 2.37 (2018-05-28)

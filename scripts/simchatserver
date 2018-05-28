@@ -434,6 +434,8 @@ def send_to_device(ident, cmd):
                 CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].request_client_location()
             else:
                 CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].send_command(cmd)
+        except KeyError as err:
+            logger.error("Unable to find client with identifier %s", ident)
 
         except socket.error as err:
             logger.error(
