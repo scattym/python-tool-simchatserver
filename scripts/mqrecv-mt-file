@@ -66,6 +66,7 @@ async def main(loop, file_agg):
                     date_as_dt = meitrack_date_to_datetime(parts[0])
                     if date_as_dt is not None:
                         camera_time = date_as_dt
+                print(log_time)
                 logger.log(
                     13,
                     "We have a full file %s, %s, %s, %s, %s, %s",
@@ -76,8 +77,8 @@ async def main(loop, file_agg):
                     file_name,
                     log_time
                 )
-                add_camera_image(device_id, camera_number, camera_time, file_bytes, file_name, log_time)
-                print("Added file {} to geotool".format(file_name))
+                result = add_camera_image(device_id, camera_number, camera_time, file_bytes, file_name, log_time)
+                print("Added file {} to geotool with result {}".format(file_name, result))
 
 
 if __name__ == "__main__":

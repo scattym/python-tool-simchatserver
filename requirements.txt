@@ -8,5 +8,5 @@ aio_pika
 asyncpg
 psycopg2-binary
 geotooldbapi>=1.3
-geotoolapi>=1.10
+geotoolapi>=1.11
 meitrackparser>=1.5
