@@ -1,7 +1,5 @@
 CONTAINERS="mqrecv-cell-update mqrecv-event mqrecv-gps-update mqrecv-firmware-update mqrecv-mt-file"
-export PATH=${PATH}:/home/jenkins/google-cloud-sdk/bin
-. /home/jenkins/.bashrc
-set
+
 for con in ${CONTAINERS} ; do
     docker pull gcr.io/geotool-test/${con}:v${GIT_VER}
 done
