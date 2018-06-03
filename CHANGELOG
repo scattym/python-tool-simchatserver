@@ -1,7 +1,7 @@
 2.44 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix up reporting of fragment number in event description when asking device for next fragment. Was off by 1 due to starting at fragment 0.
 
 
 2.43 (2018-06-03)
