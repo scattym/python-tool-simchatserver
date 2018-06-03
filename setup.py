@@ -33,6 +33,8 @@ setup(
             'geotooldbapi>=1.3',
             'geotoolapi>=1.11',
             'meitrackparser>=1.5',
+            'celery',
+            'kombu',
             # 'geotool_api==1.0',
       ],
       # dependency_links=[
