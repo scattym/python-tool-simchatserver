@@ -216,6 +216,9 @@ class MeitrackChatClient(BaseChatClient):
 
             if gprs and gprs.enclosed_data and gprs.enclosed_data["event_code"] == b'39':
                 self.file_list_parser.add_item(gprs.enclosed_data["file_name"])
+                report = event_to_report(self.imei, "New photo on device {}".format(gprs.enclosed_data["file_name"]))
+                queue_result = self.queue_report(report)
+                logger.log(13, "Queue add result was %s", queue_result)
 
             if gprs and gprs.enclosed_data:
                 file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
