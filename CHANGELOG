@@ -1,4 +1,4 @@
-2.42 (unreleased)
+2.42 (2018-06-03)
 -----------------
 
 - Add event logging for outbound take_photo, get_file and get_file_list commands
