@@ -337,7 +337,7 @@ class MeitrackChatClient(BaseChatClient):
                 self.last_file_request = datetime.datetime.now()
                 report = event_to_report(
                     self.imei,
-                    "Request file {} from fragment {}".format(file_name, payload_start_index)
+                    "Request file {} from fragment {}".format(file_name, payload_start_index+1)
                 )
                 queue_result = self.queue_report(report)
                 logger.log(13, "Queue add result was %s", queue_result)
