@@ -1,4 +1,4 @@
-CONTAINERS="mqrecv-cell-update mqrecv-event mqrecv-gps-update mqrecv-firmware-update mqrecv-mt-file simchatcelery"
+CONTAINERS="mqrecv-cell-update mqrecv-event mqrecv-gps-update mqrecv-firmware-update mqrecv-mt-file"
 
 for con in ${CONTAINERS} ; do
     docker pull gcr.io/geotool-test/${con}:v${GIT_VER}
@@ -15,6 +15,10 @@ for con in ${CONTAINERS} ; do
     docker run -dt --link=simchatserver --restart=always -e SCS_HOST=simchatserver -e CELERY_BROKER_URL="amqp://10.1.1.4" -e GEO_API_HOST=10.1.1.4:8000 \
     -e MQ_HOST=10.1.1.4 -e DBHOST=10.1.1.4 -e DB_POOL_MAX=10 -e DB_POOL_MIN=1 --name=${con} gcr.io/geotool-test/${con}:v${GIT_VER} -vvv
 done
+docker stop simchatcelery || true
+docker rm simchatcelery || true
+docker run -dt --link=simchatserver --restart=always -e SCS_HOST=simchatserver -e CELERY_BROKER_URL="amqp://10.1.1.4" -e GEO_API_HOST=10.1.1.4:8000 \
+    -e MQ_HOST=10.1.1.4 -e DBHOST=10.1.1.4 -e DB_POOL_MAX=10 -e DB_POOL_MIN=1 --name=simchatcelery gcr.io/geotool-test/simchatcelery:v${GIT_VER}
 
 (docker ps -a | grep "xited" | awk '{print $1}' | xargs docker rm) || true
 (docker images | grep none | awk '{print $3}' | xargs docker rmi) || true
