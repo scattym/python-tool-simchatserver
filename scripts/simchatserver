@@ -428,33 +428,35 @@ def send_to_device(ident, cmd):
 
     elif CHAT_CLIENT_IDENT_LIST.get(ident):
         try:
-            if cmd == "info":
-                CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].request_client_info()
-            elif cmd == "location":
-                CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].request_client_location()
-            elif cmd == "photo_list":
-                CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].request_client_photo_list()
-            elif "take_photo" in cmd:
-                camera_number = "1"
-                file_name = None
-                cmd_arr = cmd.split(",")
-                if len(cmd_arr) >= 2:
-                    camera_number = cmd_arr[1]
-                if len(cmd_arr) >= 3:
-                    file_name = cmd_arr[2]
-                CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].request_client_take_photo(camera_number, file_name)
-            elif "get_file" in cmd:
-                file_name = None
-                payload_start_index = 0
-                cmd_arr = cmd.split(",")
-                if len(cmd_arr) >= 2:
-                    file_name = cmd_arr[1]
-                if len(cmd_arr) >= 3:
-                    payload_start_index = cmd_arr[2]
-                if file_name:
-                    CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].request_get_file(file_name, payload_start_index)
-            else:
-                CHAT_CLIENT_LIST[CHAT_CLIENT_IDENT_LIST.get(ident)].send_command(cmd)
+            client = get_client(ident)
+            if client:
+                if cmd == "info":
+                    client.request_client_info()
+                elif cmd == "location":
+                    client.request_client_location()
+                elif cmd == "photo_list":
+                    client.request_client_photo_list()
+                elif "take_photo" in cmd:
+                    camera_number = "1"
+                    file_name = None
+                    cmd_arr = cmd.split(",")
+                    if len(cmd_arr) >= 2:
+                        camera_number = cmd_arr[1]
+                    if len(cmd_arr) >= 3:
+                        file_name = cmd_arr[2]
+                    client.request_client_take_photo(camera_number, file_name)
+                elif "get_file" in cmd:
+                    file_name = None
+                    payload_start_index = 0
+                    cmd_arr = cmd.split(",")
+                    if len(cmd_arr) >= 2:
+                        file_name = cmd_arr[1]
+                    if len(cmd_arr) >= 3:
+                        payload_start_index = cmd_arr[2]
+                    if file_name:
+                        client.request_get_file(file_name, payload_start_index)
+                else:
+                    client.send_command(cmd)
         except KeyError as err:
             logger.error("Unable to find client with identifier %s", ident)
 

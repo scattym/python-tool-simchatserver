@@ -84,7 +84,10 @@ gprs_license_list, _, _ = parse_data_payload(license_payload)
 gprs_license = gprs_license_list[0]
 
 
-def chat_client(host, port, imei, version, file_test_on_start=False, send_data=False, send_data_interval=5, count=1):
+def chat_client(
+        host, port, imei, version, file_test_on_start=False, send_data=False, send_data_interval=5, count=1,
+        ignore_file_listing=False
+):
     imei = imei.encode()
 
     gprs_list, before, after = parse_data_payload(
@@ -150,18 +153,21 @@ def chat_client(host, port, imei, version, file_test_on_start=False, send_data=F
                     sys.stdout.write("\n")
                     print(data)
                     sys.stdout.write(data.decode())
-                    gprs_list, before, after = parse_data_payload(data)
-                    for gprs in gprs_list:
-                        command = gprs.enclosed_data.as_bytes()
-                        # We don't want to respond to the file transfer test running from "file_test()"
-                        if b"180525064204_C1E1_N1U1D1.jpg" not in command:
-                            response_list = stub_processor.request_to_response(command, imei)
-                            if response_list:
-                                for response in response_list:
-                                    print("Sending response %s" % (response.as_bytes(),))
-                                    s.send(response.as_bytes())
-                        else:
-                            print("No response to send for incoming command {}".format(command))
+                    if ignore_file_listing and b'D01,0' in data:
+                        print("We are ignoring the file listing command")
+                    else:
+                        gprs_list, before, after = parse_data_payload(data)
+                        for gprs in gprs_list:
+                            command = gprs.enclosed_data.as_bytes()
+                            # We don't want to respond to the file transfer test running from "file_test()"
+                            if b"180525064204_C1E1_N1U1D1.jpg" not in command:
+                                response_list = stub_processor.request_to_response(command, imei)
+                                if response_list:
+                                    for response in response_list:
+                                        print("Sending response %s" % (response.as_bytes(),))
+                                        s.send(response.as_bytes())
+                            else:
+                                print("No response to send for incoming command {}".format(command))
                     sys.stdout.write('[Me] ')
                     sys.stdout.flush()
             else:
@@ -248,7 +254,12 @@ if __name__ == "__main__":
         action="count",
         default=0
     )
-
+    parser.add_argument(
+        '--ignore-file-listing',
+        help="Ignore the file listing command",
+        default=False,
+        action="store_true",
+    )
     args = parser.parse_args()
 
     log_level = 11 - args.debug
@@ -270,6 +281,6 @@ if __name__ == "__main__":
     sys.exit(
         chat_client(
             args.host, args.port, args.imei, args.version, args.file_test, args.send_data, args.wait_time,
-            args.packet_count
+            args.packet_count, args.ignore_file_listing
         )
     )
