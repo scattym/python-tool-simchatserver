@@ -300,6 +300,10 @@ class MeitrackChatClient(BaseChatClient):
                 gprs = build_message.stc_request_photo_list(self.imei, start)
                 self.send_data((gprs.as_bytes()))
                 self.last_file_request = datetime.datetime.now()
+                report = event_to_report(self.imei, "Request photo list")
+                queue_result = self.queue_report(report)
+                logger.log(13, "Queue add result was %s", queue_result)
+
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send.")
 
@@ -310,6 +314,9 @@ class MeitrackChatClient(BaseChatClient):
             try:
                 gprs = build_message.stc_request_take_photo(self.imei, camera_number, file_name)
                 self.send_data((gprs.as_bytes()))
+                report = event_to_report(self.imei, "Request take photo camera {}".format(camera_number))
+                queue_result = self.queue_report(report)
+                logger.log(13, "Queue add result was %s", queue_result)
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send.")
 
@@ -325,5 +332,12 @@ class MeitrackChatClient(BaseChatClient):
                 gprs = build_message.stc_request_get_file(self.imei, file_name, payload_start_index)
                 self.send_data((gprs.as_bytes()))
                 self.last_file_request = datetime.datetime.now()
+                report = event_to_report(
+                    self.imei,
+                    "Request file {} from fragment {}".format(file_name, payload_start_index)
+                )
+                queue_result = self.queue_report(report)
+                logger.log(13, "Queue add result was %s", queue_result)
+
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send.")
