@@ -1,7 +1,7 @@
 2.41 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix in container builder for simchatcelery. Service was failing to start.
 
 
 2.40 (2018-06-03)
