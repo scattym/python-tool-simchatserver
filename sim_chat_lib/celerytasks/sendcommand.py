@@ -45,7 +45,11 @@ def get_file_list(identifier):
 default_exchange = Exchange('sim_chat_lib.celerytasks.sendcommand.default', type='direct')
 sim_chat_server_celery_app.conf.task_queues = (
     Broadcast('sim_chat_lib.celerytasks.sendcommand.broadcast_tasks'),
-    Queue('sim_chat_lib.celerytasks.sendcommand.default', default_exchange, routing_key='default')
+    Queue(
+        'sim_chat_lib.celerytasks.sendcommand.default',
+        default_exchange,
+        routing_key='sim_chat_lib.celerytasks.sendcommand.default'
+    )
 )
 sim_chat_server_celery_app.conf.task_routes = (route_for_simchatcelery,)
 
