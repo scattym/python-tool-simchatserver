@@ -1,7 +1,7 @@
 2.40 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Implement celery tasks to send commands from ui to devices.
 
 
 2.39 (2018-05-28)
