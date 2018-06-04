@@ -29,6 +29,7 @@ MT_FILE_LIST_WAIT_DELTA = datetime.timedelta(seconds=MT_FILE_LIST_WAIT)
 class MeitrackChatClient(BaseChatClient):
     def __init__(self, sock_fd, report_queue, imei):
         super(MeitrackChatClient, self).__init__(sock_fd, report_queue)
+        self.message_counter = 0
         self.imei = imei
         self.buffer = b''
         if imei:
@@ -39,7 +40,6 @@ class MeitrackChatClient(BaseChatClient):
         self.last_file_request = datetime.datetime.now()
         self.current_download = None
         self.current_packet = None
-        self.message_counter = 0
 
     def check_login(self):
         return True
