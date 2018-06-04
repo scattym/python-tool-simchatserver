@@ -1,7 +1,8 @@
 2.45 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Implementing the incrementing counter in messages sent to each device.
+- Log all outbound gprs messages at INFO level.
 
 
 2.44 (2018-06-04)
