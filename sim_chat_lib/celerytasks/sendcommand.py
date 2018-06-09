@@ -3,7 +3,7 @@ import os
 from celery import Celery
 from kombu import Exchange, Queue
 from kombu.common import Broadcast
-from sim_chat_lib.master import send_take_photo_by_imei, send_photo_list_by_imei
+from sim_chat_lib.master import send_take_photo_by_imei, send_photo_list_by_imei, send_firmware_update
 
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'amqp://guest@localhost')
 sim_chat_server_celery_app = Celery('sim_chat_server_tasks', broker=CELERY_BROKER_URL)
@@ -42,6 +42,18 @@ def get_file_list(identifier):
     return 'Issued photo list command for device {} with result {}'.format(identifier, result)
 
 
+@sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.firmware_update_stage2')
+def firmware_update_stage2(imei, device_id, file_name):
+    result = send_firmware_update(imei, device_id, file_name)
+    return 'Issued stage2 firmware update command for device {} with result {}'.format(imei, result)
+
+
+@sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.cancel_firmware_update_stage2')
+def cancel_firmware_update_stage2(imei):
+    result = cancel_firmware_update_stage2(imei)
+    return 'Issued cancel stage2 firmware update command for device {} with result {}'.format(imei, result)
+
+
 default_exchange = Exchange('sim_chat_lib.celerytasks.sendcommand.default', type='direct')
 sim_chat_server_celery_app.conf.task_queues = (
     Broadcast('sim_chat_lib.celerytasks.sendcommand.broadcast_tasks'),
@@ -52,4 +64,3 @@ sim_chat_server_celery_app.conf.task_queues = (
     )
 )
 sim_chat_server_celery_app.conf.task_routes = (route_for_simchatcelery,)
-

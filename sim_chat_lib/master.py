@@ -27,6 +27,16 @@ def send_photo_list_by_imei(imei):
     return send_message(message)
 
 
+def send_firmware_update(imei, device_id, file_name):
+    message = "imei-{},firmware_update,{},{}".format(imei, device_id, file_name)
+    return send_message(message)
+
+
+def send_cancel_firmware_update_stage2(imei):
+    message = "imei-{},cancel_firmware_update_stage2".format(imei)
+    return send_message(message)
+
+
 def send_message(message):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
