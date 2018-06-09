@@ -1,7 +1,32 @@
-2.42 (unreleased)
+2.46 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix issue with message counter not instantiated before use in the new send_gprs function.
+
+
+2.45 (2018-06-04)
+-----------------
+
+- Implementing the incrementing counter in messages sent to each device.
+- Log all outbound gprs messages at INFO level.
+
+
+2.44 (2018-06-04)
+-----------------
+
+- Fix up reporting of fragment number in event description when asking device for next fragment. Was off by 1 due to starting at fragment 0.
+
+
+2.43 (2018-06-03)
+-----------------
+
+- Add more descriptive event when a photo is reported by the device
+
+
+2.42 (2018-06-03)
+-----------------
+
+- Add event logging for outbound take_photo, get_file and get_file_list commands
 
 
 2.41 (2018-06-03)
