@@ -9,6 +9,8 @@ import select
 import argparse
 import logging
 import datetime
+
+from meitrack.common import DIRECTION_CLIENT_TO_SERVER
 from meitrack.error import GPRSParseError
 from meitrack import gprs_protocol
 from meitrack.build_message import stc_request_location_message
@@ -185,7 +187,7 @@ def chat_server(port):
                         if len(data) > 500:
                             raise GPRSParseError("Too much data")
 
-                        gprs_list, before, after = gprs_protocol.parse_data_payload(data)
+                        gprs_list, before, after = gprs_protocol.parse_data_payload(data, DIRECTION_CLIENT_TO_SERVER)
                         if before or after:
                             raise GPRSParseError("Got extra data")
                         for gprs in gprs_list:

@@ -9,6 +9,7 @@ import logging
 import time
 
 from meitrack import stub_processor
+from meitrack.common import DIRECTION_CLIENT_TO_SERVER, DIRECTION_SERVER_TO_CLIENT
 from meitrack.gprs_protocol import parse_data_payload
 
 parts = [
@@ -50,13 +51,14 @@ parts = [
 def file_test(imei, sock, interleave_data_and_messages=False):
     if interleave_data_and_messages:
         gprs_list, before, after = parse_data_payload(
-            b'$$N196,864507032323403,AAA,136,-33.815828,151.200083,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*07\r\n'
+            b'$$N196,864507032323403,AAA,136,-33.815828,151.200083,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*07\r\n',
+            DIRECTION_CLIENT_TO_SERVER
         )
         login_gprs = gprs_list[0]
         login_gprs.imei = imei
 
     for part in parts:
-        gprs_list, before, after = parse_data_payload(part)
+        gprs_list, before, after = parse_data_payload(part, DIRECTION_CLIENT_TO_SERVER)
         for gprs in gprs_list:
             gprs.imei = imei
             num_sent = sock.send(gprs.as_bytes())
@@ -68,6 +70,7 @@ def file_test(imei, sock, interleave_data_and_messages=False):
 def sos_event(imei, sock):
     gprs_list, before, after = parse_data_payload(
         b'$$T189,864507032323403,AAA,1,-33.815855,151.200088,180518235837,A,8,11,0,12,0.9,77,19354,2110546,505|3|00FA|04E381F2,0500,0000|0000|0000|018D|0509,,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*E6\r\n',
+        DIRECTION_CLIENT_TO_SERVER
     )
     sos_gprs = gprs_list[0]
     sos_gprs.imei = imei
@@ -76,11 +79,11 @@ def sos_event(imei, sock):
 
 trip_start = b'$$\194,864507032323403,AAA,35,-33.815810,151.200106,180428195806,A,9,12,0,200,0.8,72,5819,359456,505|3|00FA|04E381F5,8500,0000|0000|0000|018C|050C,00000001,108,0000,3,0,0|0000|0000|0000|0000|0000*FA\r\n'
 event_136 = b'$$N196,864507032323403,AAA,136,-33.815828,151.200083,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*07\r\n'
-gprs_event_136_list, _, _ = parse_data_payload(event_136)
+gprs_event_136_list, _, _ = parse_data_payload(event_136, DIRECTION_CLIENT_TO_SERVER)
 gprs_event_136 = gprs_event_136_list[0]
 
 license_payload = b'$$N196,864507032323403,AAA,136,-33.815828,151.200083,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*07\r\n'
-gprs_license_list, _, _ = parse_data_payload(license_payload)
+gprs_license_list, _, _ = parse_data_payload(license_payload, DIRECTION_CLIENT_TO_SERVER)
 gprs_license = gprs_license_list[0]
 
 
@@ -91,7 +94,8 @@ def chat_client(
     imei = imei.encode()
 
     gprs_list, before, after = parse_data_payload(
-        b'$$N196,864507032323403,AAA,136,-33.815828,151.200083,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*07\r\n'
+        b'$$N196,864507032323403,AAA,136,-33.815828,151.200083,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*07\r\n',
+        DIRECTION_CLIENT_TO_SERVER
     )
     if len(gprs_list) != 1:
         sys.exit(1)
@@ -152,11 +156,11 @@ def chat_client(
                 else:
                     sys.stdout.write("\n")
                     print(data)
-                    sys.stdout.write(data.decode())
+                    # sys.stdout.write("%s".format(data))
                     if ignore_file_listing and b'D01,0' in data:
                         print("We are ignoring the file listing command")
                     else:
-                        gprs_list, before, after = parse_data_payload(data)
+                        gprs_list, before, after = parse_data_payload(data, DIRECTION_SERVER_TO_CLIENT)
                         for gprs in gprs_list:
                             command = gprs.enclosed_data.as_bytes()
                             # We don't want to respond to the file transfer test running from "file_test()"
