@@ -5,6 +5,7 @@ import traceback
 
 from meitrack.file_download import FileDownload
 from meitrack.file_list import FileListing, FileListingError
+from meitrack.firmware_update import FirmwareUpdate
 from sim_chat_lib.chat import ChatClient as BaseChatClient
 from sim_chat_lib.exception import Error as ChatError
 from sim_chat_lib.exception import ProtocolError
@@ -39,6 +40,7 @@ class MeitrackChatClient(BaseChatClient):
         self.last_file_request = datetime.datetime.now()
         self.current_download = None
         self.current_packet = None
+        self.firmware_update = None
 
     def check_login(self):
         return True
@@ -76,6 +78,7 @@ class MeitrackChatClient(BaseChatClient):
         report = event_to_report(self.imei, "Client login")
         queue_result = self.queue_report(report)
         logger.log(13, "Queue add result was %s", queue_result)
+        self.firmware_update = FirmwareUpdate(self.imei, b'localhost', b'6100', b'testfile.ota', b'file_conents')
 
     def on_client_close(self):
         report = event_to_report(self.imei, "Client disconnected")
@@ -188,61 +191,69 @@ class MeitrackChatClient(BaseChatClient):
                 self.imei = gprs.imei
                 self.on_login()
 
-            # print(gprs)
-            report = gprs_to_report(gprs)
-            queue_result = self.queue_report(report)
-            if not queue_result:
-                logger.error("Unable to add record to queue: %s", (gprs.as_bytes()))
-            try:
-                return_str += (gprs.as_bytes()).decode()
-            except UnicodeDecodeError as err:
-                logger.error("Unable to decode response to send to masters with error: %s", err)
-                return_str += "Binary data"
+            if self.firmware_update is not None:
+                self.firmware_update.parse_response(gprs)
+                next_message = self.firmware_update.return_next_payload()
+                if next_message is not None:
+                    self.send_data(next_message.as_bytes())
+            else:
+                # print(gprs)
+                report = gprs_to_report(gprs)
+                queue_result = self.queue_report(report)
+                if not queue_result:
+                    logger.error("Unable to add record to queue: %s", (gprs.as_bytes()))
+                try:
+                    return_str += (gprs.as_bytes()).decode()
+                except UnicodeDecodeError as err:
+                    logger.error("Unable to decode response to send to masters with error: %s", err)
+                    return_str += "Binary data"
 
-            try:
-                packet_count, packet_number = self.file_list_parser.add_packet(gprs)
-                if packet_count is not None and packet_number is not None:
-                    if packet_number % 8 == 7 and packet_count > packet_number+1:
-                        self.request_client_photo_list(packet_number+1)
-                    report = event_to_report(
-                        self.imei, "Photo list fragment {} of {}".format(packet_number+1, packet_count)
-                    )
-                    queue_result = self.queue_report(report)
-                logger.log(13, "Queue add result was %s", queue_result)
+                try:
+                    packet_count, packet_number = self.file_list_parser.add_packet(gprs)
+                    if packet_count is not None and packet_number is not None:
+                        if packet_number % 8 == 7 and packet_count > packet_number+1:
+                            self.request_client_photo_list(packet_number+1)
+                        report = event_to_report(
+                            self.imei, "Photo list fragment {} of {}".format(packet_number+1, packet_count)
+                        )
+                        queue_result = self.queue_report(report)
+                    logger.log(13, "Queue add result was %s", queue_result)
 
-            except FileListingError as err:
-                logger.error("Error adding packet to file list %s. Clearing list.", err)
-                self.file_list_parser.clear_list()
+                except FileListingError as err:
+                    logger.error("Error adding packet to file list %s. Clearing list.", err)
+                    self.file_list_parser.clear_list()
 
-            if gprs and gprs.enclosed_data and gprs.enclosed_data["event_code"] == b'39':
-                self.file_list_parser.add_item(gprs.enclosed_data["file_name"])
+                if gprs and gprs.enclosed_data and gprs.enclosed_data["event_code"] == b'39':
+                    self.file_list_parser.add_item(gprs.enclosed_data["file_name"])
 
-            if gprs and gprs.enclosed_data:
-                file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
-                if file_name and file_bytes:
-                    # Reset last file request so that we don't overload the client with requests
-                    # while it is already sending a file.
-                    self.last_file_request = datetime.datetime.now()
-                    packet_number_int = int(packet_number.decode())
-                    num_packets_int = int(num_packets.decode())
-                    self.current_download = file_name
-                    self.current_packet = packet_number_int
+                if gprs and gprs.enclosed_data:
+                    file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
+                    if file_name and file_bytes:
+                        # Reset last file request so that we don't overload the client with requests
+                        # while it is already sending a file.
+                        self.last_file_request = datetime.datetime.now()
+                        packet_number_int = int(packet_number.decode())
+                        num_packets_int = int(num_packets.decode())
+                        self.current_download = file_name
+                        self.current_packet = packet_number_int
 
-                    if packet_number_int % 8 == 7 and num_packets_int > packet_number_int+1:
-                        self.request_get_file(file_name, packet_number_int+1)
-                    return_str += "File: %s, packet: %s, of: %s\n" % (
-                        file_name.decode(),
-                        packet_number_int+1,
-                        num_packets_int
-                    )
-                    if num_packets_int == packet_number_int+1:
-                        self.current_download = None
-                        self.current_packet = None
-                        self.file_list_parser.remove_item(file_name)
+                        if packet_number_int % 8 == 7 and num_packets_int > packet_number_int+1:
+                            self.request_get_file(file_name, packet_number_int+1)
+                        return_str += "File: %s, packet: %s, of: %s\n" % (
+                            file_name.decode(),
+                            packet_number_int+1,
+                            num_packets_int
+                        )
+                        if num_packets_int == packet_number_int+1:
+                            self.current_download = None
+                            self.current_packet = None
+                            self.file_list_parser.remove_item(file_name)
 
         return return_str
 
     def check_for_timeout(self, date_dt):
+        if self.firmware_update is not None:
+            return None
         # Early check to keep this function running as quickly as possible as it is
         # called in every outer loop
         if self.current_download is not None or self.file_list_parser.num_files > 0:
