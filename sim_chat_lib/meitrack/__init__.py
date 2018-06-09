@@ -1,5 +1,7 @@
 import logging
 import datetime
+
+from meitrack.common import DIRECTION_CLIENT_TO_SERVER
 from meitrack.gprs_protocol import GPRS, parse_data_payload
 from meitrack.error import GPRSParseError
 from sim_chat_lib.meitrack.meitrack_chat_client import MeitrackChatClient
@@ -16,7 +18,7 @@ def parse_client_connect(sock_fd, report_queue, connect_line):
 
     client_details = {}
     try:
-        gprs_list, before, after = parse_data_payload(connect_line)
+        gprs_list, before, after = parse_data_payload(connect_line, DIRECTION_CLIENT_TO_SERVER)
         for gprs in gprs_list:
             if gprs.imei:
                 client_details["imei"] = gprs.imei
@@ -25,7 +27,7 @@ def parse_client_connect(sock_fd, report_queue, connect_line):
                 if chat_client:
                     # Re-encode connect line as we decoded it on the
                     # way into this function
-                    chat_client.process_data(connect_line)
+                    chat_client.process_connect_string(connect_line)
                 return chat_client
     except GPRSParseError:
         logger.error("Unable to parse connect string for meitrack device.")

@@ -131,3 +131,6 @@ class ChatClient(object):
 
     def set_heartbeat_interval(self, seconds):
         logger.log(13, "Setting heartbeat not implemented for this device.")
+
+    def request_firmware_update(self, device_id, file_name):
+        logger.log(13, "Updating firmware not implemented for this device.")
