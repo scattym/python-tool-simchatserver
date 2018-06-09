@@ -48,6 +48,17 @@ class FileFragmentReport(BaseReport):
         )
 
 
+class FirmwareRequestReport(BaseReport):
+    def __init__(self):
+        super().__init__()
+
+    def execute_post(self, log_time):
+        result = geotool_api.firmware_api.get_firmware_by_imei(self.imei)
+        if not result:
+            logger.error("Unable to log the event")
+        return result
+
+
 class Report(object):
     def __init__(self):
         self.imei = None

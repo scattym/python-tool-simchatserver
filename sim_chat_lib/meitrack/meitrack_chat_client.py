@@ -1,3 +1,5 @@
+import base64
+
 import datetime
 import logging
 import os
@@ -6,7 +8,7 @@ import traceback
 from meitrack.common import DIRECTION_CLIENT_TO_SERVER
 from meitrack.file_download import FileDownload
 from meitrack.file_list import FileListing, FileListingError
-from meitrack.firmware_update import FirmwareUpdate
+from meitrack.firmware_update import FirmwareUpdate, STAGE_FIRST, STAGE_SECOND
 from sim_chat_lib.chat import ChatClient as BaseChatClient
 from sim_chat_lib.exception import Error as ChatError
 from sim_chat_lib.exception import ProtocolError
@@ -14,7 +16,8 @@ from meitrack.error import GPRSParseError
 from meitrack.error import GPRSError
 from meitrack.gprs_protocol import parse_data_payload
 from meitrack import build_message
-from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, file_download_to_report, event_to_report
+from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, file_download_to_report, event_to_report, \
+    get_firmware_report
 from sim_chat_lib.report import MeitrackConfigRequest
 
 
@@ -115,6 +118,14 @@ class MeitrackChatClient(BaseChatClient):
         queue_result = self.queue_report(report)
         logger.log(13, "Queue add result was %s", queue_result)
 
+    def parse_firmware_report(self, response):
+        if response.get("version") and response.get("file_name"):
+            self.firmware_update = FirmwareUpdate(
+                self.imei, response.get("device_filter").encode(), b'home.scattym.com', b'65533',
+                response.get("file_name").encode(), base64.b64decode(response.get("firmware")),
+                STAGE_SECOND
+            )
+
     def parse_config(self, response):
         logger.info("Parsing config response %s", response)
         if not response:
@@ -191,10 +202,9 @@ class MeitrackChatClient(BaseChatClient):
                     logger.error("Received data packet for %s but client is %s", gprs.imei, self.imei)
             else:
                 self.imei = gprs.imei
-                # if gprs.enclosed_data.command in [b'FC0', b'FC1', b'FC2', b'FC3', b'FC4', b'FC5', b'FC6', b'FC7']:
-                #     self.firmware_update = FirmwareUpdate(
-                #         gprs.imei, b'0101', b'home.scattym.com', b'65533', b'testfile.ota', b'abc'
-                #     )
+                if gprs.enclosed_data.command in [b'FC0', b'FC7'] and self.firmware_update is None:
+                    get_firmware_event = get_firmware_report(self.imei)
+                    self.queue_report(get_firmware_event)
                 self.on_login()
         self.process_gprs_list(gprs_list)
 
@@ -419,12 +429,10 @@ class MeitrackChatClient(BaseChatClient):
             traceback.print_exc()
             raise ProtocolError("Filename not calculated.")
         else:
-            firmware_file = '/tmp/{}'.format(file_name)
-            try:
-                file_bytes = get_bytes_from_file(firmware_file)
-                self.firmware_update = FirmwareUpdate(
-                    self.imei, device_id.encode(), b'home.scattym.com', b'65533',
-                    b'T333_Y36V046_20180608.OTA', file_bytes
-                )
-            except FileNotFoundError as err:
-                logger.error("Unable to open firmware file: %s", firmware_file)
+            self.firmware_update = FirmwareUpdate(
+                self.imei, device_id.encode(), b'home.scattym.com', b'65533',
+                file_name.encode(), None, STAGE_FIRST
+            )
+            next_message = self.firmware_update.return_next_payload()
+            if next_message is not None:
+                self.send_firmware_gprs(next_message)
