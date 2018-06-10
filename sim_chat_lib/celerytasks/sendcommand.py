@@ -43,8 +43,8 @@ def get_file_list(identifier):
 
 
 @sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.firmware_update_stage2')
-def firmware_update_stage2(imei, device_id, file_name):
-    result = send_firmware_update(imei, device_id, file_name)
+def firmware_update_stage2(imei):
+    result = send_firmware_update(imei)
     return 'Issued stage2 firmware update command for device {} with result {}'.format(imei, result)
 
 

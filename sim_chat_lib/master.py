@@ -51,7 +51,7 @@ def send_message(message):
             return False
 
         print('Connected to remote host. You can start sending messages')
-        time.sleep(1)
+        # time.sleep(1)
         sock.send(message.encode())
         sock.send(b'\n')
         return True
