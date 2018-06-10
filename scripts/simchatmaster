@@ -51,6 +51,8 @@ def chat_client():
             else:
                 # user entered a message
                 msg = sys.stdin.readline()
+                if not msg:
+                    sys.exit(0)
                 s.send(msg.encode())
                 sys.stdout.write('[Me] ');
                 sys.stdout.flush()

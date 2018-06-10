@@ -1,6 +1,6 @@
 import datetime
 import logging
-from sim_chat_lib.report import Report, FileFragmentReport, FirmwareRequestReport
+from sim_chat_lib.report import Report, FileFragmentReport, FirmwareBinaryRequestReport, FirmwareVersionRequestReport
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,13 @@ def event_to_report(imei, event_text):
     return report
 
 
-def get_firmware_report(imei):
-    report = FirmwareRequestReport()
+def get_firmware_binary_report(imei):
+    report = FirmwareBinaryRequestReport()
+    report.imei = imei.decode()
+    return report
+
+
+def get_firmware_version_report(imei):
+    report = FirmwareVersionRequestReport()
     report.imei = imei.decode()
     return report

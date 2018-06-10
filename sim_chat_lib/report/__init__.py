@@ -18,6 +18,13 @@ class BaseReport(object):
         logger.error("Calling execute post from base class")
         pass
 
+    def response_to_chat_dict(self, response_type, response):
+        return {
+            "type": response_type,
+            "imei": self.imei,
+            "response": response
+        }
+
 
 class FileFragmentReport(BaseReport):
     def __init__(self):
@@ -48,15 +55,28 @@ class FileFragmentReport(BaseReport):
         )
 
 
-class FirmwareRequestReport(BaseReport):
+class FirmwareBinaryRequestReport(BaseReport):
     def __init__(self):
         super().__init__()
 
     def execute_post(self, log_time):
         result = geotool_api.firmware_api.get_firmware_by_imei(self.imei)
+
         if not result:
-            logger.error("Unable to log the event")
-        return result
+            logger.error("Unable to get the firmware binary")
+        return self.response_to_chat_dict("firmware_binary", result)
+
+
+class FirmwareVersionRequestReport(BaseReport):
+    def __init__(self):
+        super().__init__()
+
+    def execute_post(self, log_time):
+        result = geotool_api.firmware_api.get_firmware_version_by_imei(self.imei)
+        print(result)
+        if not result:
+            logger.error("To get firmware version")
+        return self.response_to_chat_dict("firmware_version", result)
 
 
 class Report(object):
