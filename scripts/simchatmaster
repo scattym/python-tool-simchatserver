@@ -4,12 +4,17 @@
 import sys
 import socket
 import select
+import time
 
 
 def chat_client():
     if (len(sys.argv) < 3):
         print('Usage : python chat_client.py hostname port')
         sys.exit()
+
+    cmd = None
+    if len(sys.argv) == 4:
+        cmd = sys.argv[3]
 
     host = sys.argv[1]
     port = int(sys.argv[2])
@@ -24,6 +29,15 @@ def chat_client():
     except:
         print('Unable to connect')
         sys.exit()
+
+    if cmd:
+        time.sleep(1)
+        print(cmd)
+        s.send(cmd.encode() + b'\n')
+        s.send(b'\n')
+        data = s.recv(4096)
+        print(data)
+        sys.exit(0)
 
     print('Connected to remote host. You can start sending messages')
     sys.stdout.write('[Me] ');
