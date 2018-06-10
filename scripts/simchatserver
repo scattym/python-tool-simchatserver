@@ -243,6 +243,9 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified, wait_ti
                                 logger.info("New master connection from %s:%s", addr[0], addr[1])
                                 send_to_masters("New master connection from %s:%s" % (addr[0], addr[1]))
                                 MASTER_LIST.append(connection)
+                                if len(imei_line) > 7:
+                                    execute_command(imei_line[7:].decode().rstrip())
+
                             else:
                                 logger.log(13, imei_line)
                                 identify_client(connection, task_queue, imei_line)
