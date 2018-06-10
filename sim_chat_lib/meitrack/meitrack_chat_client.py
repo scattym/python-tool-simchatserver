@@ -6,9 +6,8 @@ import os
 import traceback
 
 from meitrack.common import DIRECTION_CLIENT_TO_SERVER
-from meitrack.file_download import FileDownload
 from meitrack.file_list import FileListing, FileListingError
-from meitrack.firmware_update import FirmwareUpdate, STAGE_FIRST, STAGE_SECOND
+from meitrack.firmware_update import FirmwareUpdate, STAGE_FIRST, STAGE_SECOND, stc_cancel_ota_update
 from sim_chat_lib.chat import ChatClient as BaseChatClient
 from sim_chat_lib.exception import Error as ChatError
 from sim_chat_lib.exception import ProtocolError
@@ -16,8 +15,8 @@ from meitrack.error import GPRSParseError
 from meitrack.error import GPRSError
 from meitrack.gprs_protocol import parse_data_payload
 from meitrack import build_message
-from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, file_download_to_report, event_to_report, \
-    get_firmware_report
+from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, event_to_report, get_firmware_binary_report, \
+    get_firmware_version_report
 from sim_chat_lib.report import MeitrackConfigRequest
 
 
@@ -29,6 +28,7 @@ MT_NEW_FILE_WAIT = int(os.environ.get("MT_NEW_FILE_WAIT", "480"))
 MT_NEW_FILE_WAIT_DELTA = datetime.timedelta(seconds=MT_NEW_FILE_WAIT)
 MT_FILE_LIST_WAIT = int(os.environ.get("MT_FILE_LIST_WAIT", "960"))
 MT_FILE_LIST_WAIT_DELTA = datetime.timedelta(seconds=MT_FILE_LIST_WAIT)
+EPOCH = datetime.datetime(1970, 1, 1, 0, 0, 0, 0)
 
 
 def get_bytes_from_file(filename):
@@ -44,10 +44,13 @@ class MeitrackChatClient(BaseChatClient):
         self.current_download = None
         self.current_packet = None
         self.firmware_update = None
+        self.firmware_update_fc0 = None
         self.serial_number = None
         self.file_list_parser = FileListing()
         # self.file_download_list = []
         self.last_file_request = datetime.datetime.now()
+        self.gprs_queue = []
+        self.current_message = None
 
         if imei:
             self.on_login()
@@ -58,28 +61,67 @@ class MeitrackChatClient(BaseChatClient):
     def send_command(self, command):
         pass
 
-    def send_gprs(self, gprs):
-        if self.firmware_update is not None:
+    def timeout_old(self):
+        if self.current_message is not None and len(self.gprs_queue) >= 1:
+            now = (datetime.datetime.now()-EPOCH).total_seconds()
+            if self.gprs_queue[0]["sent"] != 0 and (now - self.gprs_queue[0]["sent"]) >= 10:
+                logger.error("Timing out %s", self.current_message)
+                self.current_message = None
+                del self.gprs_queue[0]
+        self.send_gprs_from_queue()
+
+    def send_gprs_from_queue(self):
+        if self.current_message is None and self.firmware_update is None:
+            if len(self.gprs_queue) >= 1:
+                self.current_message = self.gprs_queue[0]
+                self.current_message["sent"] = (datetime.datetime.now()-EPOCH).total_seconds()
+                self.send_data(self.current_message["request_bytes"])
+                logger.info(self.current_message["request_bytes"])
+
+    def match_response_to_message(self, gprs):
+        if self.current_message is not None and len(self.gprs_queue) >= 1:
+            if gprs.data_identifier == self.gprs_queue[0]["id"]:
+                del self.gprs_queue[0]
+                self.current_message = None
+            else:
+                logger.error(
+                    "Identifier %s does not match item in queue: %s",
+                    gprs.data_identifier,
+                    self.gprs_queue[0]["id"]
+                )
+        self.send_gprs_from_queue()
+
+    def queue_gprs(self, gprs, override_firmware=False):
+        self.timeout_old()
+        if self.firmware_update is not None and override_firmware is False:
             logger.info("Not sending message as in a firmware download sequence")
+        elif gprs is None:
+            logger.error("Trying to add null gprs item")
         else:
             message = gprs.as_bytes(self.message_counter)
-            logger.info(message)
-            self.send_data(message)
             self.message_counter += 1
 
-    def send_firmware_gprs(self, gprs):
-        message = gprs.as_bytes(self.message_counter)
-        logger.info(message)
-        self.send_data(message)
-        self.message_counter += 1
+            if override_firmware:
+                self.send_data(message)
+            else:
+                payload = {
+                        "request_bytes": message,
+                        "id": gprs.data_identifier,
+                        "response_bytes": None,
+                        "sent": 0,
+                        "attempts": 0,
+                    }
+                self.gprs_queue.append(payload)
+        self.send_gprs_from_queue()
 
     def get_client_details(self):
         start = super(MeitrackChatClient, self).get_client_details()
         return (
                 "meitrack, ident: %s, remote: %s, age: %s\n%s\nBuffer: %s\nCurrent download: %s"
-                "\nSDCard List: %s\nFirmware update: %s\n" % (
+                "\nSDCard List: %s\nFirmware update: %s\nGPRS Queue Length: %s\n" % (
                     self.ident(), start, self.age(), self.get_download_details(), self.buffer,
-                    self.current_download, self.file_list_parser, self.firmware_update
+                    self.current_download, self.file_list_parser, self.firmware_update,
+                    len(self.gprs_queue)
                 )
         )
 
@@ -118,38 +160,56 @@ class MeitrackChatClient(BaseChatClient):
         queue_result = self.queue_report(report)
         logger.log(13, "Queue add result was %s", queue_result)
 
-    def parse_firmware_report(self, response):
-        if response.get("version") and response.get("file_name"):
+    def reset_firmware_download_state(self):
+        self.firmware_update = None
+        self.firmware_update_fc0 = None
+
+    def parse_firmware_binary(self, response):
+        if response and response.get("version") and response.get("file_name"):
             self.firmware_update = FirmwareUpdate(
                 self.imei, response.get("device_filter").encode(), b'home.scattym.com', b'65533',
                 response.get("file_name").encode(), base64.b64decode(response.get("firmware")),
                 STAGE_SECOND
             )
+            if self.firmware_update_fc0:
+                self.firmware_update.parse_response(self.firmware_update_fc0)
+            gprs = self.firmware_update.return_next_payload()
+            self.queue_gprs(gprs, True)
+
+    def parse_firmware_version(self, response):
+        if response and response.get("version") and response.get("file_name"):
+            self.firmware_update = FirmwareUpdate(
+                self.imei, response.get("device_filter").encode(), b'home.scattym.com', b'65533',
+                response.get("file_name").encode(), b"",
+                STAGE_FIRST
+            )
+            gprs = self.firmware_update.return_next_payload()
+            self.queue_gprs(gprs, True)
 
     def parse_config(self, response):
         logger.info("Parsing config response %s", response)
         if not response:
             logger.error("No response to parse.")
             return
-        if self.firmware_update is not None:
+        if self.firmware_update is None:
             if response.get("heartbeat_interval") is not None:
                 gprs = build_message.stc_set_heartbeat_interval(self.imei, response.get("heartbeat_interval"))
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
             if response.get("time_interval") is not None:
                 gprs = build_message.stc_set_tracking_by_time_interval(self.imei, response.get("time_interval"))
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
             if response.get("cornering_angle") is not None:
                 gprs = build_message.stc_set_cornering_angle(self.imei, response.get("cornering_angle"))
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
             if response.get("tracking_by_distance") is not None:
                 gprs = build_message.stc_set_tracking_by_distance(self.imei, response.get("tracking_by_distance"))
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
             if response.get("time_zone_offset_minutes") is not None:
                 gprs = build_message.stc_set_time_zone(self.imei, response.get("time_zone_offset_minutes"))
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
             if response.get("driving_license_type") is not None:
                 gprs = build_message.stc_set_driver_license_type(self.imei, response.get("driving_license_type"))
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
             if response.get("fatigue_driving_consecutive_driving_time") is not None or \
                     response.get("fatigue_driving_alert_time") is not None or \
                     response.get("fatigue_driving_acc_off_time_mins") is not None:
@@ -162,7 +222,7 @@ class MeitrackChatClient(BaseChatClient):
                     alert,
                     acc_off
                 )
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
             if response.get("idle_alert_consecutive_speed_time") is not None or \
                     response.get("idle_alert_speed_kmh") is not None or \
                     response.get("idle_alert_alert_time") is not None:
@@ -176,7 +236,7 @@ class MeitrackChatClient(BaseChatClient):
                     speed,
                     alert_time,
                 )
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
             if response.get("speeding_alert_speed") is not None or \
                     response.get("speeding_alert_disabled") is not None:
                 speed = response.get("speeding_alert_speed") or 480
@@ -186,13 +246,13 @@ class MeitrackChatClient(BaseChatClient):
                     speed,
                     disabled,
                 )
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
             if response.get("driving_license_validity_time") is not None:
                 gprs = build_message.stc_set_driver_license_validity_time(
                     self.imei,
                     response.get("driving_license_validity_time")
                 )
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
 
     def process_connect_string(self, data):
         gprs_list = self.data_to_gprs_list(data)
@@ -202,13 +262,12 @@ class MeitrackChatClient(BaseChatClient):
                     logger.error("Received data packet for %s but client is %s", gprs.imei, self.imei)
             else:
                 self.imei = gprs.imei
-                if gprs.enclosed_data.command in [b'FC0', b'FC7'] and self.firmware_update is None:
-                    get_firmware_event = get_firmware_report(self.imei)
-                    self.queue_report(get_firmware_event)
                 self.on_login()
         self.process_gprs_list(gprs_list)
 
     def process_data(self, data):
+        self.timeout_old()
+        self.send_gprs_from_queue()
         gprs_list = self.data_to_gprs_list(data)
         return self.process_gprs_list(gprs_list)
 
@@ -249,14 +308,23 @@ class MeitrackChatClient(BaseChatClient):
                 self.imei = gprs.imei
                 self.on_login()
 
+            self.match_response_to_message(gprs)
+
+            if gprs.enclosed_data.command in [b'FC0',] and self.firmware_update is None:
+                if gprs.enclosed_data.command == b'FC0':
+                    self.firmware_update_fc0 = gprs
+                logger.info("Device %s is in firmware download mode", self.imei)
+                get_firmware_event = get_firmware_binary_report(self.imei)
+                self.queue_report(get_firmware_event)
+
             if self.firmware_update is not None:
                 logger.log(15, "Firmware update in progress.")
                 self.firmware_update.parse_response(gprs)
                 next_message = self.firmware_update.return_next_payload()
                 if next_message is not None:
-                    self.send_firmware_gprs(next_message)
+                    self.queue_gprs(next_message, True)
                 if self.firmware_update.is_finished:
-                    self.firmware_update = None
+                    self.reset_firmware_download_state()
             else:
                 # print(gprs)
                 report = gprs_to_report(gprs)
@@ -318,12 +386,20 @@ class MeitrackChatClient(BaseChatClient):
         return return_str
 
     def check_for_timeout(self, date_dt):
+        self.timeout_old()
+        self.send_gprs_from_queue()
+
         logger.debug("Checking for timeout for client %s", self.imei)
         if self.firmware_update is not None:
             logger.log(13, "Firmware update in progress. Don't send timed commands.")
             if self.firmware_update.is_finished:
-                self.firmware_update = None
+                self.reset_firmware_download_state()
+            else:
+                next_message = self.firmware_update.return_next_payload()
+                if next_message is not None:
+                    self.queue_gprs(next_message, True)
             return None
+
         # Early check to keep this function running as quickly as possible as it is
         # called in every outer loop
         if self.current_download is not None or self.file_list_parser.num_files > 0:
@@ -357,7 +433,7 @@ class MeitrackChatClient(BaseChatClient):
         else:
             try:
                 gprs = build_message.stc_request_location_message(self.imei)
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send. Error: %s", err)
 
@@ -367,7 +443,7 @@ class MeitrackChatClient(BaseChatClient):
         else:
             try:
                 gprs = build_message.stc_request_device_info(self.imei)
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send. Error %s", err)
 
@@ -377,14 +453,14 @@ class MeitrackChatClient(BaseChatClient):
         else:
             try:
                 gprs = build_message.stc_request_photo_list(self.imei, start)
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
                 self.last_file_request = datetime.datetime.now()
                 report = event_to_report(self.imei, "Request photo list")
                 queue_result = self.queue_report(report)
                 logger.log(13, "Queue add result was %s", queue_result)
 
             except GPRSError as err:
-                logger.error("Failed to create gprs payload to send.")
+                logger.error("Failed to create gprs payload to send. Error: %s", err)
 
     def request_client_take_photo(self, camera_number, file_name=None):
         if not self.imei:
@@ -392,12 +468,12 @@ class MeitrackChatClient(BaseChatClient):
         else:
             try:
                 gprs = build_message.stc_request_take_photo(self.imei, camera_number, file_name)
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
                 report = event_to_report(self.imei, "Request take photo camera {}".format(camera_number))
                 queue_result = self.queue_report(report)
                 logger.log(13, "Queue add result was %s", queue_result)
             except GPRSError as err:
-                logger.error("Failed to create gprs payload to send.")
+                logger.error("Failed to create gprs payload to send. Error: %s", err)
 
     def request_get_file(self, file_name, payload_start_index=0):
         if not self.imei:
@@ -409,7 +485,7 @@ class MeitrackChatClient(BaseChatClient):
         else:
             try:
                 gprs = build_message.stc_request_get_file(self.imei, file_name, payload_start_index)
-                self.send_gprs(gprs)
+                self.queue_gprs(gprs)
                 self.last_file_request = datetime.datetime.now()
                 report = event_to_report(
                     self.imei,
@@ -419,20 +495,19 @@ class MeitrackChatClient(BaseChatClient):
                 logger.log(13, "Queue add result was %s", queue_result)
 
             except GPRSError as err:
-                logger.error("Failed to create gprs payload to send.")
+                logger.error("Failed to create gprs payload to send. Error: %s", err)
 
-    def request_firmware_update(self, device_id, file_name):
+    def request_firmware_update(self):
         if not self.imei:
             logger.error("Unable to request client to update firmware as client id not yet known")
-        elif not device_id or not file_name:
-            logger.error("File name or device id is not known. %s %s", file_name, device_id)
-            traceback.print_exc()
-            raise ProtocolError("Filename not calculated.")
         else:
-            self.firmware_update = FirmwareUpdate(
-                self.imei, device_id.encode(), b'home.scattym.com', b'65533',
-                file_name.encode(), None, STAGE_FIRST
-            )
-            next_message = self.firmware_update.return_next_payload()
-            if next_message is not None:
-                self.send_firmware_gprs(next_message)
+            get_firmware_event = get_firmware_version_report(self.imei)
+            self.queue_report(get_firmware_event)
+
+    def request_cancel_firmware_update(self):
+        if not self.imei:
+            logger.error("Unable to request client to update firmware as client id not yet known")
+        else:
+            gprs = stc_cancel_ota_update(self.imei)
+            self.queue_gprs(gprs, True)
+            self.reset_firmware_download_state()

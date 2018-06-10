@@ -203,9 +203,16 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified, wait_ti
                     response = get_result(result_queue)
                     if response and response.get("imei"):
                         if is_available("imei-%s" % (response["imei"],)):
-                            if response.get("type") == "config":
-                                client = get_client("imei-%s" % (response["imei"],))
-                                client.parse_config(response["response"])
+                            client = get_client("imei-%s" % (response["imei"],))
+                            if not client:
+                                logger.error("Unable to get client for imei: %s", response["imei"])
+                            else:
+                                if response.get("type") == "config":
+                                    client.parse_config(response["response"])
+                                elif response.get("type") == "firmware_version":
+                                    client.parse_firmware_version(response["response"])
+                                elif response.get("type") == "firmware_binary":
+                                    client.parse_firmware_binary(response["response"])
                             # response.parser(response.result)
                         else:
                             logger.error("Device %s is no longer available for response", response.get("imei"))
@@ -455,14 +462,10 @@ def send_to_device(ident, cmd):
                         payload_start_index = cmd_arr[2]
                     if file_name:
                         client.request_get_file(file_name, payload_start_index)
-                elif "firmware_update" in cmd:
-                    file_name = None
-                    cmd_arr = cmd.split(",")
-                    if len(cmd_arr) >= 3:
-                        device_id = cmd_arr[1]
-                        file_name = cmd_arr[2]
-                    if device_id and file_name:
-                        client.request_firmware_update(device_id, file_name)
+                elif "firmware_update" == cmd:
+                    client.request_firmware_update()
+                elif "cancel_firmware_update" == cmd:
+                    client.request_cancel_firmware_update()
                 else:
                     client.send_command(cmd)
         except KeyError as err:
