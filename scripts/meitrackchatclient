@@ -76,6 +76,15 @@ def sos_event(imei, sock):
     sos_gprs.imei = imei
     sock.send(sos_gprs.as_bytes())
 
+firmware_hb = b"""$$A40,864507032323403,FC7,OTA,\x00',,\x00\x00\x00\x00\x05\x80*71\r\n"""
+def firmware_hb_message(imei, sock):
+    gprs_list, before, after = parse_data_payload(
+        firmware_hb,
+        DIRECTION_CLIENT_TO_SERVER
+    )
+    sos_gprs = gprs_list[0]
+    sos_gprs.imei = imei
+    sock.send(sos_gprs.as_bytes())
 
 trip_start = b'$$\194,864507032323403,AAA,35,-33.815810,151.200106,180428195806,A,9,12,0,200,0.8,72,5819,359456,505|3|00FA|04E381F5,8500,0000|0000|0000|018C|050C,00000001,108,0000,3,0,0|0000|0000|0000|0000|0000*FA\r\n'
 event_136 = b'$$N196,864507032323403,AAA,136,-33.815828,151.200083,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*07\r\n'
@@ -185,6 +194,8 @@ def chat_client(
                     sos_event(imei, s)
                 if msg.rstrip() == "license":
                     s.send(gprs_license.as_bytes())
+                if msg.rstrip() == "firmware_hb":
+                    firmware_hb_message(imei, s)
                 else:
                     s.send(("%s%s" % (msg, "\r\n")).encode())
                 sys.stdout.write('[Me] ')
