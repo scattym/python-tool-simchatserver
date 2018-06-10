@@ -27,13 +27,13 @@ def send_photo_list_by_imei(imei):
     return send_message(message)
 
 
-def send_firmware_update(imei, device_id, file_name):
-    message = "imei-{},firmware_update,{},{}".format(imei, device_id, file_name)
+def send_firmware_update(imei):
+    message = "imei-{},firmware_update".format(imei)
     return send_message(message)
 
 
-def send_cancel_firmware_update_stage2(imei):
-    message = "imei-{},cancel_firmware_update_stage2".format(imei)
+def send_cancel_firmware_update(imei):
+    message = "imei-{},cancel_firmware_update".format(imei)
     return send_message(message)
 
 
