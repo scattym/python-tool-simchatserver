@@ -42,16 +42,16 @@ def get_file_list(identifier):
     return 'Issued photo list command for device {} with result {}'.format(identifier, result)
 
 
-@sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.firmware_update_stage2')
-def firmware_update_stage2(imei):
+@sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.firmware_update')
+def firmware_update(imei):
     result = send_firmware_update(imei)
-    return 'Issued stage2 firmware update command for device {} with result {}'.format(imei, result)
+    return 'Issued firmware update command for device {} with result {}'.format(imei, result)
 
 
-@sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.cancel_firmware_update_stage2')
-def cancel_firmware_update_stage2(imei):
-    result = cancel_firmware_update_stage2(imei)
-    return 'Issued cancel stage2 firmware update command for device {} with result {}'.format(imei, result)
+@sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.cancel_firmware_update')
+def cancel_firmware_update(imei):
+    result = cancel_firmware_update(imei)
+    return 'Issued cancel firmware update command for device {} with result {}'.format(imei, result)
 
 
 default_exchange = Exchange('sim_chat_lib.celerytasks.sendcommand.default', type='direct')
