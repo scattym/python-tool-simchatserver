@@ -1,7 +1,8 @@
 2.47 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix celery task for firmware update.
+- Set all celery tasks to broadcast.
 
 
 2.46 (2018-06-10)
