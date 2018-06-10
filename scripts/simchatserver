@@ -227,7 +227,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified, wait_ti
                     logger.info("Client (%s, %s) connected", addr[0], addr[1])
                     logger.info("New client has fd %s", connection.fileno())
                     try:
-                        connection.settimeout(0.5)
+                        connection.settimeout(0.150)
                         imei_line = connection.recv(1024)
                         if not imei_line:
                             logger.error("No data on connect.")
