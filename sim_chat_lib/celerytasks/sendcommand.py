@@ -19,16 +19,17 @@ sim_chat_server_celery_app = Celery('sim_chat_server_tasks', broker=CELERY_BROKE
 
 
 def route_for_simchatcelery(name, args, kwargs, options, task=None, **kw):
-    if name == 'sim_chat_lib.celerytasks.sendcommand.take_photo':
-        return {
-            'exchange': 'sim_chat_lib.celerytasks.sendcommand.broadcast_tasks',
-            'queue': 'sim_chat_lib.celerytasks.sendcommand.broadcast_tasks',
-        }
-    else:
+    if name == 'NOSUCHCOMMANDNAMEsim_chat_lib.celerytasks.sendcommand.take_photo':
         return {
             'exchange': 'sim_chat_lib.celerytasks.sendcommand.default',
             'queue': 'sim_chat_lib.celerytasks.sendcommand.default',
         }
+    else:
+        return {
+            'exchange': 'sim_chat_lib.celerytasks.sendcommand.broadcast_tasks',
+            'queue': 'sim_chat_lib.celerytasks.sendcommand.broadcast_tasks',
+        }
+
 
 
 @sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.take_photo')
