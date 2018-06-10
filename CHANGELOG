@@ -2,6 +2,9 @@
 -----------------
 
 - Fix issue with message counter not instantiated before use in the new send_gprs function.
+- Implement firmware update
+- Implement cancel firmware update
+- Add celery tasks for the two new comands
 
 
 2.45 (2018-06-04)
