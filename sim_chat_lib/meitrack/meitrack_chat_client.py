@@ -14,7 +14,7 @@ from sim_chat_lib.exception import ProtocolError
 from meitrack.error import GPRSParseError
 from meitrack.error import GPRSError
 from meitrack.gprs_protocol import parse_data_payload
-from meitrack import build_message
+from meitrack import build_message, firmware_update
 from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, event_to_report, get_firmware_binary_report, \
     get_firmware_version_report
 from sim_chat_lib.report import MeitrackConfigRequest
@@ -310,6 +310,9 @@ class MeitrackChatClient(BaseChatClient):
 
             self.match_response_to_message(gprs)
 
+            if gprs.enclosed_data.command == b'FC7' and self.firmware_update is None:
+                gprs = firmware_update.stc_cancel_ota_update(self.imei)
+                self.queue_gprs(gprs)
             if gprs.enclosed_data.command in [b'FC0',] and self.firmware_update is None:
                 if gprs.enclosed_data.command == b'FC0':
                     self.firmware_update_fc0 = gprs
