@@ -64,7 +64,7 @@ class MeitrackChatClient(BaseChatClient):
     def timeout_old(self):
         if self.current_message is not None and len(self.gprs_queue) >= 1:
             now = (datetime.datetime.now()-EPOCH).total_seconds()
-            if self.gprs_queue[0]["sent"] != 0 and (now - self.gprs_queue[0]["sent"]) >= 10:
+            if self.gprs_queue[0]["sent"] != 0 and (now - self.gprs_queue[0]["sent"]) >= 60:
                 logger.error("Timing out %s", self.current_message)
                 self.current_message = None
                 del self.gprs_queue[0]
