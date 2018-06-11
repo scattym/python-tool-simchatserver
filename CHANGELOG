@@ -3,6 +3,7 @@
 
 - Fix celery task for firmware update.
 - Set all celery tasks to broadcast.
+- Add dockerfiles for master build using pip --pre
 
 
 2.46 (2018-06-10)
