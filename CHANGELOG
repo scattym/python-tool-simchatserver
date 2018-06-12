@@ -1,4 +1,4 @@
-2.48 (unreleased)
+2.48 (2018-06-12)
 -----------------
 
 - If we receive an FC7 command when not updating then send cancel FC4
