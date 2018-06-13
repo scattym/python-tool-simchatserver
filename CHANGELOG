@@ -1,7 +1,7 @@
 2.51 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add ability to specify update host and port for meitrack device firmware upgrades.
 
 
 2.50 (2018-06-13)
