@@ -1,8 +1,24 @@
-2.47 (unreleased)
+2.49 (unreleased)
+-----------------
+
+- Nothing changed yet.
+
+
+2.48 (2018-06-12)
+-----------------
+
+- If we receive an FC7 command when not updating then send cancel FC4
+- Standardise the logging of data payloads in and out of scs
+- Increase log timeout for the gprs queue. Was 10s which is a little too small.
+- Bump version of meitrack parser to bring in firmware update patches. At this point an update should be possible from the ui.
+
+
+2.47 (2018-06-11)
 -----------------
 
 - Fix celery task for firmware update.
 - Set all celery tasks to broadcast.
+- Add dockerfiles for master build using pip --pre
 
 
 2.46 (2018-06-10)
