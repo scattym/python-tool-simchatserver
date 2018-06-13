@@ -44,7 +44,8 @@ class FileFragmentReport(BaseReport):
             log_time,
         )
         if not result:
-            logger.error("Unable to log the event")
+            logger.error("Unable to log the event. Result: %s", result)
+            logger.debug(result)
         return meitrack_file_add_packet(
             self.imei,
             self.file_name,
