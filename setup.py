@@ -21,6 +21,7 @@ setup(
             'scripts/simchatmaster',
             'scripts/simchatclient',
             'scripts/mqtt-receiver',
+            'scripts/firmware-upload',
       ],
       packages=find_packages(),
       install_requires=[
