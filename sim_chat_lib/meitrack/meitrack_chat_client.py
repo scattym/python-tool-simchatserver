@@ -340,8 +340,8 @@ class MeitrackChatClient(BaseChatClient):
                 try:
                     packet_count, packet_number = self.file_list_parser.add_packet(gprs)
                     if packet_count is not None and packet_number is not None:
-                        if packet_number % 8 == 7 and packet_count > packet_number+1:
-                            self.request_client_photo_list(packet_number+1)
+                        # if packet_number % 8 == 7 and packet_count > packet_number+1:
+                        #     self.request_client_photo_list(packet_number+1)
                         report = event_to_report(
                             self.imei, "Photo list fragment {} of {}".format(packet_number+1, packet_count)
                         )
