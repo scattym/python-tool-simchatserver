@@ -29,7 +29,8 @@ MT_NEW_FILE_WAIT_DELTA = datetime.timedelta(seconds=MT_NEW_FILE_WAIT)
 MT_FILE_LIST_WAIT = int(os.environ.get("MT_FILE_LIST_WAIT", "960"))
 MT_FILE_LIST_WAIT_DELTA = datetime.timedelta(seconds=MT_FILE_LIST_WAIT)
 EPOCH = datetime.datetime(1970, 1, 1, 0, 0, 0, 0)
-
+MT_UPDATE_HOST = os.environ.get("MT_UPDATE_HOST", "scs.pts.scattym.com")
+MT_UPDATE_PORT = os.environ.get("MT_UPDATE_PORT", "65533")
 
 def get_bytes_from_file(filename):
     return open(filename, "rb").read()
@@ -167,8 +168,12 @@ class MeitrackChatClient(BaseChatClient):
     def parse_firmware_binary(self, response):
         if response and response.get("version") and response.get("file_name"):
             self.firmware_update = FirmwareUpdate(
-                self.imei, response.get("device_filter").encode(), b'home.scattym.com', b'65533',
-                response.get("file_name").encode(), base64.b64decode(response.get("firmware")),
+                self.imei,
+                response.get("device_filter").encode(),
+                MT_UPDATE_HOST.encode(),
+                MT_UPDATE_PORT.encode(),
+                response.get("file_name").encode(),
+                base64.b64decode(response.get("firmware")),
                 STAGE_SECOND
             )
             if self.firmware_update_fc0:
@@ -179,8 +184,12 @@ class MeitrackChatClient(BaseChatClient):
     def parse_firmware_version(self, response):
         if response and response.get("version") and response.get("file_name"):
             self.firmware_update = FirmwareUpdate(
-                self.imei, response.get("device_filter").encode(), b'home.scattym.com', b'65533',
-                response.get("file_name").encode(), b"",
+                self.imei,
+                response.get("device_filter").encode(),
+                MT_UPDATE_HOST.encode(),
+                MT_UPDATE_PORT.encode(),
+                response.get("file_name").encode(),
+                b"",
                 STAGE_FIRST
             )
             gprs = self.firmware_update.return_next_payload()
