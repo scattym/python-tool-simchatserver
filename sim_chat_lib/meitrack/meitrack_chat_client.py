@@ -374,8 +374,8 @@ class MeitrackChatClient(BaseChatClient):
                         self.current_download = file_name
                         self.current_packet = packet_number_int
 
-                        if packet_number_int % 8 == 7 and num_packets_int > packet_number_int+1:
-                            self.request_get_file(file_name, packet_number_int+1)
+                        # if packet_number_int % 8 == 7 and num_packets_int > packet_number_int+1:
+                        #     self.request_get_file(file_name, packet_number_int+1)
                         return_str += "File: %s, packet: %s, of: %s\n" % (
                             file_name.decode(),
                             packet_number_int+1,
