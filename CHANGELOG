@@ -1,4 +1,4 @@
-2.49 (unreleased)
+2.49 (2018-06-13)
 -----------------
 
 - Remove the logic to continue image transfers as the whole image should be getting sent by default now
