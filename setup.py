@@ -33,7 +33,7 @@ setup(
             'pika',
             'geotooldbapi>=1.3',
             'geotoolapi>=1.12',
-            'meitrackparser>=1.8',
+            'meitrackparser>=1.9',
             'celery',
             'kombu',
             # 'geotool_api==1.0',

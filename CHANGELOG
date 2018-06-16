@@ -1,7 +1,7 @@
 2.52 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Bump version of meitrack parser to bring in taxi meter message changes.
 
 
 2.51 (2018-06-13)
