@@ -7,7 +7,7 @@ docker pull gcr.io/geotool-test/simchatserver:v${GIT_VER}
 
 docker stop simchatserver || true
 docker rm simchatserver || true
-docker run -dt --restart=always --name=simchatserver -e MQ_HOST=10.1.1.4 -p 65533:65533 gcr.io/geotool-test/simchatserver:v${GIT_VER} -vv -s 10.1.1.4:8000
+docker run -dt --restart=always --name=simchatserver -e MT_UPDATE_HOST=home.scattym.com -e MT_UPDATE_PORT=65533 -e MQ_HOST=10.1.1.4 -p 65533:65533 gcr.io/geotool-test/simchatserver:v${GIT_VER} -vv -s 10.1.1.4:8000
 
 for con in ${CONTAINERS} ; do
     docker stop ${con} || true
