@@ -1,4 +1,4 @@
-2.53 (unreleased)
+2.53 (2018-06-17)
 -----------------
 
 - Bump version of geotool api to bring in imei filtering fix on getting device firmware version.
