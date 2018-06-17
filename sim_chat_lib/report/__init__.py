@@ -76,7 +76,7 @@ class FirmwareVersionRequestReport(BaseReport):
         result = geotool_api.firmware_api.get_firmware_version_by_imei(self.imei)
         print(result)
         if not result:
-            logger.error("To get firmware version")
+            logger.error("Unable to get firmware version: %s", result)
         return self.response_to_chat_dict("firmware_version", result)
 
 
