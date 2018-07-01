@@ -1,6 +1,7 @@
 import datetime
 import logging
 from sim_chat_lib.report import Report, FileFragmentReport, FirmwareBinaryRequestReport, FirmwareVersionRequestReport
+from sim_chat_lib.report import LicenseReadReport
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +30,9 @@ def gprs_to_report(gprs):
             file_frag_report.packet_number = int(packet_number.decode())
             file_frag_report.file_bytes = file_bytes
             file_frag_report.timestamp = safe_field_get(gprs, "date_time")
-            return file_frag_report
+            return [file_frag_report]
         else:
+            report_list = []
             report = Report()
             report.imei = gprs.imei.decode()
             report.gps_longitude = safe_field_get(gprs, "longitude")
@@ -65,8 +67,10 @@ def gprs_to_report(gprs):
             report.event_id = gprs.enclosed_data.get_event_id()
             report.event_description = gprs.enclosed_data.get_event_name()
             if report.event_description == "RFID":
-                report.license_data = safe_field_get(gprs, "assisted_event_info")
-            return report
+                report.license_data = safe_field_get(gprs, "rfid")
+            report_list.append(report)
+
+            return report_list
     return None
 
 

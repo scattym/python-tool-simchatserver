@@ -32,6 +32,7 @@ EPOCH = datetime.datetime(1970, 1, 1, 0, 0, 0, 0)
 MT_UPDATE_HOST = os.environ.get("MT_UPDATE_HOST", "scs.pts.scattym.com")
 MT_UPDATE_PORT = os.environ.get("MT_UPDATE_PORT", "65533")
 
+
 def get_bytes_from_file(filename):
     return open(filename, "rb").read()
 
@@ -339,10 +340,11 @@ class MeitrackChatClient(BaseChatClient):
                     self.reset_firmware_download_state()
             else:
                 # print(gprs)
-                report = gprs_to_report(gprs)
-                queue_result = self.queue_report(report)
-                if not queue_result:
-                    logger.error("Unable to add record to queue: %s", (gprs.as_bytes()))
+                report_list = gprs_to_report(gprs)
+                for report in report_list:
+                    queue_result = self.queue_report(report)
+                    if not queue_result:
+                        logger.error("Unable to add record to queue: %s", (gprs.as_bytes()))
                 try:
                     return_str += (gprs.as_bytes()).decode()
                 except UnicodeDecodeError as err:
