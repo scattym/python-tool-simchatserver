@@ -4,6 +4,8 @@ import logging
 
 import geotool_api
 from geotool_api import meitrack_file_add_packet
+from geotool_api.driver_api import add_driver_log_by_license
+from license.cardreader import License
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,47 @@ class BaseReport(object):
             "imei": self.imei,
             "response": response
         }
+
+
+class AAAReport(BaseReport):
+    def __init__(self):
+        super().__init__()
+        self.gps_latitude = None
+        self.gps_longitude = None
+        self.num_sats = None
+        self.battery_voltage = None
+        self.battery_level = None
+        self.mcc = None
+        self.mnc = None
+        self.lac = None
+        self.ci = None
+        self.rx_level = None
+        self.event_description = None
+        self.event_id = None
+        self.file_name = None
+        self.file_data = None
+        self.firmware_version = None
+        self.serial_number = None
+        self.license_data = None
+
+    def execute_post(self, log_time):
+        pass
+
+
+# NOTE: Not currently used
+class LicenseReadReport(AAAReport):
+    def __init__(self):
+        super().__init__()
+        self.license = None
+        self.timestamp = datetime.datetime.now()
+
+    def execute_post(self, log_time):
+        super().execute_post(log_time)
+        result = add_driver_log_by_license(self.imei, self.license)
+        if not result:
+            logger.error("Unable to log the event. Result: %s", result)
+            logger.debug(result)
+        return result
 
 
 class FileFragmentReport(BaseReport):
