@@ -469,6 +469,8 @@ def send_to_device(ident, cmd):
                     client.request_firmware_update()
                 elif "cancel_firmware_update" == cmd:
                     client.request_cancel_firmware_update()
+                elif "update_configuration" == cmd:
+                    client.update_configuration()
                 else:
                     client.send_command(cmd)
         except KeyError as err:

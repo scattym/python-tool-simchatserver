@@ -37,6 +37,11 @@ def send_cancel_firmware_update(imei):
     return send_message(message)
 
 
+def send_update_configuration(imei):
+    message = "imei-{},update_configuration".format(imei)
+    return send_message(message)
+
+
 def send_message(message):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -4,7 +4,7 @@ from celery import Celery
 from kombu import Exchange, Queue
 from kombu.common import Broadcast
 from sim_chat_lib.master import send_take_photo_by_imei, send_photo_list_by_imei, send_firmware_update
-from sim_chat_lib.master import send_cancel_firmware_update
+from sim_chat_lib.master import send_cancel_firmware_update, send_update_configuration
 
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'amqp://guest@localhost')
 sim_chat_server_celery_app = Celery('sim_chat_server_tasks', broker=CELERY_BROKER_URL)
@@ -31,7 +31,6 @@ def route_for_simchatcelery(name, args, kwargs, options, task=None, **kw):
         }
 
 
-
 @sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.take_photo')
 def take_photo(identifier, *args, **kwrgs):
     result = send_take_photo_by_imei(identifier)
@@ -54,6 +53,12 @@ def firmware_update(imei):
 def cancel_firmware_update(imei):
     result = send_cancel_firmware_update(imei)
     return 'Issued cancel firmware update command for device {} with result {}'.format(imei, result)
+
+
+@sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.update_configuration')
+def update_configuration(imei):
+    result = send_update_configuration(imei)
+    return 'Issued configuration update for device {} with result {}'.format(imei, result)
 
 
 default_exchange = Exchange('sim_chat_lib.celerytasks.sendcommand.default', type='direct')
