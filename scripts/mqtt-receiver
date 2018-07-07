@@ -60,10 +60,6 @@ def on_message(client, userdata, msg):
         )
 
 
-
-
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
