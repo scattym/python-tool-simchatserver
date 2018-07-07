@@ -32,7 +32,7 @@ setup(
             "python-memcached",
             'pika',
             'geotooldbapi>=1.3',
-            'geotoolapi>=1.14',
+            'geotoolapi>=1.15',
             'meitrackparser>=1.10',
             'celery',
             'kombu',

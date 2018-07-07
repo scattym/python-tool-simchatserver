@@ -8,7 +8,7 @@ aio_pika
 asyncpg
 psycopg2-binary
 geotooldbapi>=1.3
-geotoolapi>=1.14
-meitrackparser>=1.9
+geotoolapi>=1.15
+meitrackparser>=1.10
 celery
 kombu
