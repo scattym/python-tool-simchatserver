@@ -555,10 +555,9 @@ if __name__ == "__main__":
 
     log_level = 16 - args.debug
 
-    logger = logging.getLogger('pika')
-    logger.setLevel(logging.FATAL)
     logger = logging.getLogger('')
     logger.setLevel(logging.INFO)
+
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
@@ -570,6 +569,9 @@ if __name__ == "__main__":
         )
     ch.setFormatter(formatter)
     logger.addHandler(ch)
+
+    # almost time to look into kombu
+    logging.getLogger("pika").setLevel(logging.FATAL)
 
     if args.debug:
         logger.setLevel(log_level)
