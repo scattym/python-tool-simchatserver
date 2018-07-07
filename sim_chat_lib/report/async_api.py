@@ -1,17 +1,13 @@
-import json
 import datetime
 import multiprocessing
 import logging
 import queue
 import traceback
-import pika
-from pika.exceptions import AMQPError
 import os
 
 import geotool_api
 from geotool_api import device_api, driver_api
 from geotool_api import meitrack_config_api
-from geotool_api.message_queue_api import open_message_queue_conxn, publish_to_mq
 from sim_chat_lib import report
 
 logger = logging.getLogger(__name__)
@@ -157,6 +153,20 @@ class Task(object):
         if self.report.license_data is not None:
             try:
                 self.result = driver_api.add_driver_log_by_payload(self.report.imei, self.report.license_data)
+            except Exception as err:
+                logger.error("Exception in async task, logging file entry %s", err)
+                logger.log(13, traceback.print_exc())
+
+        if self.report.taxi_data:
+            try:
+                self.result = geotool_api.add_fare_log(
+                    self.report.imei, self.report.taxi_data.get_start_time(),
+                    self.report.taxi_data.get_end_time(),
+                    self.report.taxi_data.get_fare_price(),
+                    self.report.taxi_data.get_fare_distance(),
+                    self.report.taxi_data.get_fare_trip_time(),
+                    self.report.taxi_data.get_fare_waiting_time(),
+                )
             except Exception as err:
                 logger.error("Exception in async task, logging file entry %s", err)
                 logger.log(13, traceback.print_exc())

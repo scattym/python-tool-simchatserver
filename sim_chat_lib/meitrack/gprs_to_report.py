@@ -68,6 +68,8 @@ def gprs_to_report(gprs):
             report.event_description = gprs.enclosed_data.get_event_name()
             if report.event_description == "RFID":
                 report.license_data = safe_field_get(gprs, "rfid")
+
+            report.taxi_data = gprs.enclosed_data.get_taxi_meter_data()
             report_list.append(report)
 
             return report_list

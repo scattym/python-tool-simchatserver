@@ -109,6 +109,20 @@ gprs_license_list, _, _ = parse_data_payload(license_payload, DIRECTION_CLIENT_T
 gprs_license = gprs_license_list[0]
 
 
+fare_end_payload = b"""$$E242,864507032323403,AAA,109,-33.815773,151.200030,180616131046,A,10,9,0,351,0.9,79,25414,271428,505|3|00FA|04E381F5,0100,0000|0000|0000|018A|0565,,,108,0000,,6,0,,0|0000|0000|0000|0000|0000,,,21|180616124105|180616131046|10|10|000010|000010*BF\r\n"""
+gprs_fare_end_list, _, _ = parse_data_payload(fare_end_payload, DIRECTION_CLIENT_TO_SERVER)
+gprs_fare_end = gprs_fare_end_list[0]
+
+fare_begin_payload = b'$$h209,864507032323403,AAA,109,-33.815813,151.200110,180616124101,A,8,15,0,351,0.9,68,25412,269659,505|3|00FA|04E381F5,0000,0000|0000|0000|0189|0562,,,108,0000,,6,0,,0|0000|0000|0000|0000|0000,,,20|180616124105*02\r\n'
+gprs_fare_begin_list, _, _ = parse_data_payload(fare_begin_payload, DIRECTION_CLIENT_TO_SERVER)
+gprs_fare_begin = gprs_fare_begin_list[0]
+
+
+def send_gprs_message(imei, sock, gprs_message):
+    gprs_message.imei = imei
+    sock.send(gprs_message.as_bytes())
+    print(gprs_message.as_bytes())
+
 def chat_client(
         host, port, imei, version, file_test_on_start=False, send_data=False, send_data_interval=5, count=1,
         ignore_file_listing=False
@@ -213,6 +227,10 @@ def chat_client(
                     firmware_hb_message(imei, s)
                 if msg.rstrip() == "firmware_fc0":
                     firmware_fc0_message(imei, s)
+                if msg.rstrip() == "taxi_begin":
+                    send_gprs_message(imei, s, gprs_fare_begin)
+                if msg.rstrip() == "taxi_end":
+                    send_gprs_message(imei, s, gprs_fare_end)
                 else:
                     s.send(("%s%s" % (msg, "\r\n")).encode())
                 sys.stdout.write('[Me] ')
