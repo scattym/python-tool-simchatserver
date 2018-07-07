@@ -1,7 +1,7 @@
 2.56 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Bump version of geotool-api as required by the license report parser. Although not currently used it's causing import errors.
 
 
 2.55 (2018-07-07)
