@@ -1,4 +1,4 @@
-2.55 (unreleased)
+2.55 (2018-07-07)
 -----------------
 
 - Add ability to trigger configuration update through the master api.
