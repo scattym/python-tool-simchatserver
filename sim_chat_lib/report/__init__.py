@@ -144,6 +144,7 @@ class Report(object):
         self.firmware_version = None
         self.serial_number = None
         self.license_data = None
+        self.taxi_data = None
 
 
 class MeitrackConfigRequest(object):
