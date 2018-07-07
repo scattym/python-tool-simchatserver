@@ -139,6 +139,9 @@ class ChatClient(object):
     def request_cancel_firmware_update(self):
         logger.log(13, "Updating firmware not implemented for this device.")
 
+    def update_configuration(self):
+        pass
+
     def parse_config(self, response):
         pass
 

@@ -142,15 +142,10 @@ class MeitrackChatClient(BaseChatClient):
 
     def on_login(self):
         super(MeitrackChatClient, self).on_login()
-
-        config_request = MeitrackConfigRequest()
-        config_request.imei = self.imei
-        logger.log(13, "Add config request to queue %s", config_request)
-        self.queue_config_request(config_request)
-        logger.log(13, "end of on login")
         report = event_to_report(self.imei, "Client login")
         queue_result = self.queue_report(report)
         logger.log(13, "Queue add result was %s", queue_result)
+        logger.log(13, "end of on login")
 
     def on_client_close(self):
         report = event_to_report(self.imei, "Client disconnected")
@@ -263,6 +258,20 @@ class MeitrackChatClient(BaseChatClient):
                     response.get("driving_license_validity_time")
                 )
                 self.queue_gprs(gprs)
+            if response.get("peripheral_configuration") is not None:
+                config_list = []
+                if response["peripheral_configuration"].get("device_type") == 9:
+                    for key, val in response["peripheral_configuration"].items():
+                        if 'device_' in key:
+                            if val is not None:
+                                try:
+                                    device_id = int(key.split('_')[1])
+                                    config_list.append([device_id, val])
+                                except ValueError as err:
+                                    logger.error("Unable to find device id from key %s", key)
+                    if config_list:
+                        gprs = build_message.stc_set_io_device_params(self.imei, b"A78", config_list)
+                        self.queue_gprs(gprs)
 
     def process_connect_string(self, data):
         gprs_list = self.data_to_gprs_list(data)
@@ -525,3 +534,15 @@ class MeitrackChatClient(BaseChatClient):
             gprs = stc_cancel_ota_update(self.imei)
             self.queue_gprs(gprs, True)
             self.reset_firmware_download_state()
+
+    def update_configuration(self):
+        if not self.imei:
+            logger.error("Unable to request client to update configuration as client id not yet known")
+        else:
+            config_request = MeitrackConfigRequest()
+            config_request.imei = self.imei
+            logger.log(13, "Add config request to queue %s", config_request)
+            self.queue_config_request(config_request)
+            report = event_to_report(self.imei, "Request client config")
+            queue_result = self.queue_report(report)
+            logger.log(13, "Add config request to queue %s", config_request)
