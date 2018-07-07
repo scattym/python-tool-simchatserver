@@ -1,7 +1,9 @@
 2.55 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add ability to trigger configuration update through the master api.
+- Don't send config on every login.
+- Add ability to send C91 command based on peripheral_configuration from the geotool api.
 
 
 2.54 (2018-06-17)
