@@ -1,7 +1,8 @@
 2.59 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add ability to print all comms regardless of log levels.
+- Change some of the log entries caused by kubernetes health checks to info instead of error.
 
 
 2.58 (2018-07-31)

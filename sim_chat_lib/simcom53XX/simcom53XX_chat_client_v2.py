@@ -78,6 +78,7 @@ class ChatClient(BaseChatClient):
         >>> t.process_data(b"ENCDATA:48>" + ENC_DATA_BYTES)
         'This is a test string for encryption'
         """
+        super().process_data(data)
         try:
             byte_converter = lambda x: x.encode()
             if isinstance(data, str):

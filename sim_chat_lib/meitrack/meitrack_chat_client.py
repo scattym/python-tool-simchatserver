@@ -285,6 +285,7 @@ class MeitrackChatClient(BaseChatClient):
         self.process_gprs_list(gprs_list)
 
     def process_data(self, data):
+        super().process_data(data)
         self.timeout_old()
         self.send_gprs_from_queue()
         gprs_list = self.data_to_gprs_list(data)
