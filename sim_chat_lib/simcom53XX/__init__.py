@@ -11,11 +11,15 @@ DEVICE_NAME_LIST = ["5320", "5360"]
 def parse_client_connect(socket, report_queue, connect_line):
     client_details = {}
     logger.log(13, connect_line)
-    if connect_line[0:6] != 'C0NXN:':
+    byte_converter = lambda x: x.encode()
+    if isinstance(connect_line, str):
+        byte_converter = lambda x: x
+
+    if connect_line[0:6] != byte_converter('C0NXN:'):
         logger.error("No start string: %s, %s", connect_line, connect_line[0:6])
         return None
 
-    connect_string_list = connect_line.rstrip().split(':')
+    connect_string_list = connect_line.rstrip().split(byte_converter(':'))
     if len(connect_string_list) >= 2:
         client_details = {
             "version": None,
