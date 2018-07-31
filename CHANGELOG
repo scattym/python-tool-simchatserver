@@ -1,7 +1,7 @@
 2.61 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add logic to disconnect expired connections.
 
 
 2.60 (2018-07-31)

@@ -381,6 +381,12 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified, wait_ti
             if CHAT_CLIENT_LIST.get(sock_fd):
                 CHAT_CLIENT_LIST.get(sock_fd).check_for_timeout(datetime.datetime.now())
 
+        for sock_fd in CHAT_CLIENT_LIST:
+            if CHAT_CLIENT_LIST.get(sock_fd):
+                if CHAT_CLIENT_LIST.get(sock_fd).has_expired():
+                    logger.info("Timeout on client %s", sock_fd)
+                    close_socket(CHAT_CLIENT_LIST.get(sock_fd))
+
     stop_consumers(task_queue)
 
     server_socket.close()
