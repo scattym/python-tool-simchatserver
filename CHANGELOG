@@ -1,4 +1,4 @@
-2.58 (unreleased)
+2.58 (2018-07-31)
 -----------------
 
 - Add ability to identify simcom clients now that we have transitioned to python 3.
