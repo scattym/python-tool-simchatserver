@@ -44,8 +44,9 @@ class ChatClient(object):
             logger.error("We tried to write to the socket but got error: %s", err)
         except socket.timeout as err:
             logger.error("We tried to write to the socket but got timeout error: %s", err)
-
-        self.update_last_tick()
+        # we don't want to update last tick as sending data
+        # results in the connection never aging out.
+        # self.update_last_tick()
 
     def receive_data(self):
         # TODO: Got a timeout here. Need to work out why this
