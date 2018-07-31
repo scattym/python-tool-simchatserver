@@ -24,6 +24,7 @@ class ChatClient(object):
         self.ip_address = peer[0]
         self.port = peer[1]
         self.last_tick = datetime.datetime.now()
+        self.print_comms = True
 
     def on_login(self):
         self.request_client_info()
@@ -34,7 +35,9 @@ class ChatClient(object):
         except AttributeError as err:
             logger.log(13, "Already encoded")
         # logger.info("Sending data to {}. Data: {}".format(self.ident(), data))
-        logger.info("Tx {}. Data: {}".format(self.ident(), data))
+        logger.info("Tx {}, Data: {}".format(self.ident(), data))
+        if self.print_comms:
+            print("{}, Tx {}, Data: {}".format(datetime.datetime.now(), self.ident(), data))
         try:
             self.sock_fd.send(data)
         except socket.error as err:
@@ -56,7 +59,9 @@ class ChatClient(object):
             logger.error("We tried to read from the socket but got error: %s", err)
         except socket.timeout as err:
             logger.error("We tried to read from the socket but got timeout error: %s", err)
-        logger.info("Rx {}. Data: {}".format(self.ident(), data))
+        logger.info("Rx {}, Data: {}".format(self.ident(), data))
+        if self.print_comms:
+            print("{}, Rx {}, Data: {}".format(datetime.datetime.now(), self.ident(), data))
         self.update_last_tick()
         if data:
             return self.process_data(data)
