@@ -1,4 +1,4 @@
-2.61 (unreleased)
+2.61 (2018-07-31)
 -----------------
 
 - Add logic to disconnect expired connections.
