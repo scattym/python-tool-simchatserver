@@ -1,4 +1,4 @@
-2.60 (unreleased)
+2.60 (2018-07-31)
 -----------------
 
 - Don't update last tick when sending data as this causes the connection to never time out in some circumstances.
