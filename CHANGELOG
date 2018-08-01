@@ -1,7 +1,8 @@
 2.62 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix bug causing exception when trying to age out an old connection.
+- Increase timeout to 10 minutes.
 
 
 2.61 (2018-07-31)

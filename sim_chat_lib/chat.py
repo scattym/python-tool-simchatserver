@@ -94,10 +94,10 @@ class ChatClient(object):
     def age(self):
         last_tick = self.last_tick
         now = datetime.datetime.now()
-        return now - last_tick
+        return (now - last_tick).total_seconds()
 
     def has_expired(self):
-        if self.age() > 300:
+        if self.age() > 600:
             return True
         return False
 
