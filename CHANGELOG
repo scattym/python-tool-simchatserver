@@ -1,4 +1,4 @@
-2.62 (unreleased)
+2.62 (2018-08-01)
 -----------------
 
 - Fix bug causing exception when trying to age out an old connection.
