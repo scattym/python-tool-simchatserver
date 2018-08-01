@@ -97,7 +97,7 @@ class ChatClient(object):
         return now - last_tick
 
     def has_expired(self):
-        if self.age > 300:
+        if self.age() > 300:
             return True
         return False
 
