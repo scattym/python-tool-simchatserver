@@ -16,6 +16,6 @@ WORKDIR /usr/local/src
 RUN mkdir -p /usr/local/src/simchatserver
 WORKDIR /usr/local/src/simchatserver
 COPY . /usr/local/src/simchatserver/
-RUN pip install --pre -r requirements.txt
+RUN pip install -r requirements.txt
 RUN python setup.py install
 
