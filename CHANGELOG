@@ -1,7 +1,7 @@
 2.63 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix bug in closing of socket on client timeout. Was causing an exception that would halt processing.
 
 
 2.62 (2018-08-01)
