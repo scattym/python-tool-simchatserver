@@ -1,4 +1,4 @@
-2.65 (unreleased)
+2.65 (2018-08-08)
 -----------------
 
 - Update battery level call to happen in own section.
