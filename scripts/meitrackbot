@@ -107,8 +107,7 @@ def send_gprs_message(imei, sock, gprs_message):
     print(gprs_message.as_bytes())
 
 def chat_client(
-        host, port, imei, version, file_test_on_start=False, send_data=False, send_data_interval=5, count=1,
-        ignore_file_listing=False
+        host, port, imei, send_data_interval
 ):
     imei = imei.encode()
 
@@ -151,25 +150,23 @@ def chat_client(
     while 1:
         socket_list = [s]
         timeout = 1000
-        if send_data:
-            timeout = send_data_interval
+        timeout = send_data_interval
 
         # Get the list sockets which are readable
         ready_to_read, ready_to_write, in_error = select.select(socket_list, [], [], timeout)
 
-        if not ready_to_read and send_data:
-            for i in range(0, count):
-                move_devices()
-                change_direction()
-                start_lat, start_long = move(start_lat, start_long)
-                enclosed_data = b"AAA,136,%b,%b,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000" % (
-                    str(devices["BOT1"]["lat"]).encode(),
-                    str(devices["BOT1"]["long"]).encode()
-                )
-                login_gprs.enclosed_data.parse_payload(enclosed_data)
-                login_gprs.recalc_leftover()
+        if not ready_to_read:
+            move_devices()
+            change_direction()
+            start_lat, start_long = move(start_lat, start_long)
+            enclosed_data = b"AAA,136,%b,%b,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000" % (
+                str(devices["BOT1"]["lat"]).encode(),
+                str(devices["BOT1"]["long"]).encode()
+            )
+            login_gprs.enclosed_data.parse_payload(enclosed_data)
+            login_gprs.recalc_leftover()
 
-                s.send(login_gprs.as_bytes())
+            s.send(login_gprs.as_bytes())
 
         for sock in ready_to_read:
             if sock == s:
@@ -183,7 +180,7 @@ def chat_client(
                     sys.stdout.write("\n")
                     print(data)
                     # sys.stdout.write("%s".format(data))
-                    if ignore_file_listing and b'D01,0' in data:
+                    if b'D01,0' in data:
                         print("We are ignoring the file listing command")
                     else:
                         gprs_list, before, after = parse_data_payload(data, DIRECTION_SERVER_TO_CLIENT)
@@ -213,12 +210,21 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
+    # "start_lat": -33.805928,
+    # "start_long": 151.1899883,
     parser.add_argument(
-        '-c',
-        '--packet-count',
-        help="The number of packets to send every interval",
-        default=1,
-        type=int,
+        '-a',
+        '--latitude',
+        help="Start lat",
+        default=float(os.environ.get("START_LAT", "-33.805928")),
+        type=float,
+    )
+    parser.add_argument(
+        '-b',
+        '--longitude',
+        help="Start long",
+        default=float(os.environ.get("START_LONG", "151.1899883")),
+        type=float,
     )
     parser.add_argument(
         '-f',
@@ -300,9 +306,10 @@ if __name__ == "__main__":
         logger.setLevel(log_level)
         ch.setLevel(log_level)
 
+    devices["BOT1"]["start_lat"] = args.latitude
+    devices["BOT1"]["start_long"] = args.longitude
     sys.exit(
         chat_client(
-            args.host, args.port, args.imei, args.version, args.file_test, args.send_data, args.wait_time,
-            args.packet_count, args.ignore_file_listing
+            args.host, args.port, args.imei, args.wait_time
         )
     )
