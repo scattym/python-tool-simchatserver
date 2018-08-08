@@ -1,7 +1,8 @@
 2.65 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Update battery level call to happen in own section.
+- Add log entries for printing battery levels.
 
 
 2.64 (2018-08-08)
