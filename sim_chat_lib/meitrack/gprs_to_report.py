@@ -47,8 +47,9 @@ def gprs_to_report(gprs):
             report.firmware_version = safe_field_get(gprs, "firmware_version")
             report.serial_number = safe_field_get(gprs, "serial_number")
 
-            logger.debug(gprs.enclosed_data.get_battery_voltage())
+            logger.debug("Battery voltage is %s", gprs.enclosed_data.get_battery_voltage())
             report.battery_voltage = gprs.enclosed_data.get_battery_voltage()
+            logger.debug("Battery level is %s", gprs.enclosed_data.get_battery_level())
             report.battery_level = gprs.enclosed_data.get_battery_level()
             logger.debug(gprs.enclosed_data.get_battery_level())
             gprs.enclosed_data.get_base_station_info()

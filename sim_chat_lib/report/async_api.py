@@ -100,6 +100,7 @@ class Task(object):
                 logger.error("Exception in async task, logging gps entry %s", err)
                 logger.error(traceback.print_exc())
 
+        if self.report.battery_level and self.report.battery_voltage:
             try:
                 self.result = device_api.device_battery_update(
                     self.report.imei,
