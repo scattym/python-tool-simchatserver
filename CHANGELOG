@@ -1,7 +1,13 @@
-2.63 (unreleased)
+2.64 (unreleased)
 -----------------
 
 - Add api call for update battery levels.
+
+
+2.63 (2018-08-04)
+-----------------
+
+- Fix bug in closing of socket on client timeout. Was causing an exception that would halt processing.
 
 
 2.62 (2018-08-01)
