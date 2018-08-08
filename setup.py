@@ -9,8 +9,8 @@ setup(
       author_email='mattjclark0407@hotmail.com',
       license='Copyright (C) Matthew Clark - All Rights Reserved',
       scripts=[
-            'scripts/meitrackbot',
             'scripts/meitrackchatserver',
+            'scripts/meitrackbot',
             'scripts/meitrackchatclient',
             'scripts/meitrackserver',
             'scripts/mqrecv-event',
