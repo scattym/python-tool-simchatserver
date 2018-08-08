@@ -1,0 +1,308 @@
+#!/usr/bin/env python
+# chat_client.py
+import os
+import sys
+import socket
+import select
+import argparse
+import logging
+import time
+
+from meitrack import stub_processor
+from meitrack.common import DIRECTION_CLIENT_TO_SERVER, DIRECTION_SERVER_TO_CLIENT
+from meitrack.gprs_protocol import parse_data_payload
+import random
+
+devices = {
+    "BOT1": {
+        "imei": "77070407942500",
+        #"start_lat": -33.815828,
+        #"start_long": 151.200083,
+        "start_lat": -33.815928,
+        "start_long": 151.1999883,
+        "up": 0.001,
+        "down": 0.0,
+        "left": 0.001,
+        "right": 0.001,
+    },
+}
+
+
+def set_initial_lat_long():
+    for device in devices:
+        devices[device]["lat"] = devices[device]["start_lat"]
+        devices[device]["long"] = devices[device]["start_long"]
+
+
+def change_direction():
+    for device in devices:
+        logger.info(
+            "Device %s, lat difference is %s", device, (devices[device]["lat"] - devices[device]["start_lat"])
+        )
+        if devices[device]["lat"] - devices[device]["start_lat"] > 0.03:
+            logger.info("Device %s moving down", device)
+            devices[device]["up"] = 0.0
+            devices[device]["down"] = 0.001
+        if devices[device]["lat"] - devices[device]["start_lat"] < -0.03:
+            logger.info("Device %s moving up", device,)
+            devices[device]["up"] = 0.001
+            devices[device]["down"] = 0.00
+        logger.info(
+            "Device %s, long difference is %s", device, (devices[device]["long"] - devices[device]["start_long"])
+        )
+        if devices[device]["long"] - devices[device]["start_long"] < -0.03:
+            logger.info("Device %s moving right", device,)
+            devices[device]["left"] = 0.0
+            devices[device]["right"] = 0.001
+        if devices[device]["long"] - devices[device]["start_long"] > 0.03:
+            logger.info("Device %s moving left", device,)
+            devices[device]["left"] = 0.001
+            devices[device]["right"] = 0.0
+
+
+def move_devices():
+    for device in devices:
+        devices[device]["lat"] = round(
+            devices[device]["lat"] + random.uniform(
+                devices[device]["up"],
+                devices[device]["down"] * -1.0
+            ),
+            6
+        )
+        devices[device]["long"] = round(
+            devices[device]["long"] + random.uniform(
+                devices[device]["left"] * -1.0,
+                devices[device]["right"]
+            ),
+            6
+        )
+
+
+START_LAT = -33.815828
+START_LONG = 151.200083
+MOVE_LAT = -0.0004
+MOVE_LONG = 0.0004
+current_move_lat = MOVE_LAT
+current_move_long = MOVE_LONG
+
+
+def move(latitude, longitude):
+    global START_LONG, START_LAT, MOVE_LONG, MOVE_LAT, current_move_long, current_move_lat
+
+    if abs(latitude - START_LAT) > 0.002:
+        if latitude > START_LAT:
+            current_move_lat = MOVE_LAT * -1
+    if abs(longitude - START_LONG) > 0.002:
+        if longitude < START_LONG:
+            current_move_long = MOVE_LONG * -1
+
+    latitude = latitude + current_move_lat
+    longitude = longitude + current_move_long
+
+    return round(latitude, 6), round(longitude, 6)
+
+def send_gprs_message(imei, sock, gprs_message):
+    gprs_message.imei = imei
+    sock.send(gprs_message.as_bytes())
+    print(gprs_message.as_bytes())
+
+def chat_client(
+        host, port, imei, version, file_test_on_start=False, send_data=False, send_data_interval=5, count=1,
+        ignore_file_listing=False
+):
+    imei = imei.encode()
+
+    gprs_list, before, after = parse_data_payload(
+        b'$$N196,864507032323403,AAA,136,-33.815828,151.200083,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000*07\r\n',
+        DIRECTION_CLIENT_TO_SERVER
+    )
+    if len(gprs_list) != 1:
+        sys.exit(1)
+
+    set_initial_lat_long()
+    start_lat = START_LAT
+    start_long = START_LONG
+    login_gprs = gprs_list[0]
+    login_gprs.imei = imei
+    enclosed_data = b"AAA,136,%b,%b,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000" % (
+        str(devices["BOT1"]["lat"]).encode(),
+        str(devices["BOT1"]["long"]).encode()
+    )
+    login_gprs.enclosed_data.parse_payload(enclosed_data)
+    login_gprs.recalc_leftover()
+
+    message = login_gprs.as_bytes()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(100)
+    s.setblocking(1)
+
+    # connect to remote host
+    try:
+        s.connect((host, port))
+        s.send(message)
+    except Exception as err:
+        print('Unable to connect: %s' % (err,))
+        sys.exit()
+
+    print('Connected to remote host. You can start sending messages')
+    sys.stdout.write('[Me] ')
+    sys.stdout.flush()
+
+    while 1:
+        socket_list = [s]
+        timeout = 1000
+        if send_data:
+            timeout = send_data_interval
+
+        # Get the list sockets which are readable
+        ready_to_read, ready_to_write, in_error = select.select(socket_list, [], [], timeout)
+
+        if not ready_to_read and send_data:
+            for i in range(0, count):
+                move_devices()
+                change_direction()
+                start_lat, start_long = move(start_lat, start_long)
+                enclosed_data = b"AAA,136,%b,%b,180502070902,A,10,10,0,31,1.0,61,8924,682111,505|3|00FA|04E381F2,0000,0000|0000|0000|0198|0003,182713,,108,0000,,3,0,,0|0000|0000|0000|0000|0000" % (
+                    str(devices["BOT1"]["lat"]).encode(),
+                    str(devices["BOT1"]["long"]).encode()
+                )
+                login_gprs.enclosed_data.parse_payload(enclosed_data)
+                login_gprs.recalc_leftover()
+
+                s.send(login_gprs.as_bytes())
+
+        for sock in ready_to_read:
+            if sock == s:
+                # incoming message from remote server, s
+                data = sock.recv(4096)
+
+                if not data:
+                    print('\nDisconnected from chat server')
+                    sys.exit()
+                else:
+                    sys.stdout.write("\n")
+                    print(data)
+                    # sys.stdout.write("%s".format(data))
+                    if ignore_file_listing and b'D01,0' in data:
+                        print("We are ignoring the file listing command")
+                    else:
+                        gprs_list, before, after = parse_data_payload(data, DIRECTION_SERVER_TO_CLIENT)
+                        for gprs in gprs_list:
+                            command = gprs.enclosed_data.as_bytes()
+                            # We don't want to respond to the file transfer test running from "file_test()"
+                            if b"180525064204_C1E1_N1U1D1.jpg" not in command:
+                                response_list = stub_processor.request_to_response(command, imei)
+                                if response_list:
+                                    for response in response_list:
+                                        print("Data identifier in request is: %s" % (gprs.data_identifier,))
+                                        response.data_identifier = gprs.data_identifier
+                                        print("Sending response %s" % (response.as_bytes(),))
+                                        s.send(response.as_bytes())
+                            else:
+                                print("No response to send for incoming command {}".format(command))
+                    sys.stdout.write('[Me] ')
+                    sys.stdout.flush()
+            else:
+                # user entered a message
+                msg = sys.stdin.readline().rstrip()
+                sys.stdout.write('[Me] ')
+                sys.stdout.flush()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        '-c',
+        '--packet-count',
+        help="The number of packets to send every interval",
+        default=1,
+        type=int,
+    )
+    parser.add_argument(
+        '-f',
+        '--file-test',
+        help="Issue a file test on connect.",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        '-i',
+        '--imei',
+        help="The imei to use in the connect string.",
+        default=os.environ.get("IMEI", "0407"),
+    )
+    parser.add_argument(
+        '-o',
+        '--host',
+        help="The host to connect to.",
+        default="localhost",
+    )
+
+    parser.add_argument(
+        '-p',
+        '--port',
+        help="The port for the webserver to listen on.",
+        type=int,
+        default=65533
+    )
+    parser.add_argument(
+        '-r',
+        '--version',
+        help="The protocol version to use.",
+        type=int,
+        default=1
+    )
+    parser.add_argument(
+        '-s',
+        '--send-data',
+        help="Send data on intervals defined by -w.",
+        action="store_true",
+        default=True
+    )
+    parser.add_argument(
+        '-w',
+        '--wait-time',
+        help="Interval at which to send data if enabled by -s option.",
+        type=int,
+        default=30
+    )
+    parser.add_argument(
+        '-v',
+        dest='debug',
+        help=("Increase the logging level. Can specify this option multiple "
+              "times for more detail."),
+        action="count",
+        default=0
+    )
+    parser.add_argument(
+        '--ignore-file-listing',
+        help="Ignore the file listing command",
+        default=True,
+        action="store_true",
+    )
+    args = parser.parse_args()
+
+    log_level = 11 - args.debug
+
+    logger = logging.getLogger('')
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    if args.debug:
+        logger.setLevel(log_level)
+        ch.setLevel(log_level)
+
+    sys.exit(
+        chat_client(
+            args.host, args.port, args.imei, args.version, args.file_test, args.send_data, args.wait_time,
+            args.packet_count, args.ignore_file_listing
+        )
+    )
