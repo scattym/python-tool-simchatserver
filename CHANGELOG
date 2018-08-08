@@ -1,7 +1,7 @@
 2.68 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Bump version of meitrack lib to bring in changes for rewriting gprs data.
 
 
 2.67 (2018-08-08)
