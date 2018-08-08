@@ -15,6 +15,8 @@ if [ "X${version}" != "X" ] ; then
         docker build --tag=mqrecv-gps-update:v${version} . -f dockerfiles/mqrecv-gps-update/Dockerfile
         docker build --tag=mqrecv-firmware-update:v${version} . -f dockerfiles/mqrecv-firmware-update/Dockerfile
         docker build --tag=mqrecv-mt-file:v${version} . -f dockerfiles/mqrecv-mt-file/Dockerfile
+        docker build --tag=meitrackbot:v${version} . -f dockerfiles/meitrackbot/Dockerfile
+
 
 		if [ $? -eq 0 ] ; then
 			if [ "X${running_version}" != "X" ] ; then
@@ -24,6 +26,7 @@ if [ "X${version}" != "X" ] ; then
 				docker stop mqrecv-gps-update-${running_version}
 				docker stop mqrecv-firmware-update-${running_version}
 				docker stop mqrecv-mt-file-${running_version}
+				docker stop meitrackbot-${running_version}
 
 			fi
 			if [ $? -eq 0 ] ; then
@@ -33,6 +36,7 @@ if [ "X${version}" != "X" ] ; then
 				docker run -dt --name=mqrecv-gps-update-${running_version} --restart=always mqrecv-gps-update:v${version} -v
 				docker run -dt --name=mqrecv-firmware-update-${running_version} --restart=always mqrecv-firmware-update:v${version} -v
 				docker run -dt --name=mqrecv-mt-file-${running_version} --restart=always mqrecv-mt-file:v${version} -v
+				docker run -dt --name=meitrackbot-${running_version} --restart=always meitrackbot:v${version} -v
 			fi
 		fi
 		

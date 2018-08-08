@@ -1,4 +1,4 @@
-CONTAINERS="mqrecv-cell-update mqrecv-event mqrecv-gps-update mqrecv-firmware-update mqrecv-mt-file"
+CONTAINERS="mqrecv-cell-update mqrecv-event mqrecv-gps-update mqrecv-firmware-update mqrecv-mt-file meitrackbot"
 
 for con in ${CONTAINERS} ; do
     docker pull gcr.io/geotool-test/${con}:v${GIT_VER}

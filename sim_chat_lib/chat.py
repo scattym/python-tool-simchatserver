@@ -23,7 +23,7 @@ class ChatClient(object):
             peer = ("none", -1)
         self.ip_address = peer[0]
         self.port = peer[1]
-        self.last_tick = datetime.datetime.now()
+        self.last_tick = datetime.datetime.utcnow()
         self.print_comms = True
 
     def on_login(self):
@@ -93,7 +93,9 @@ class ChatClient(object):
 
     def age(self):
         last_tick = self.last_tick
-        now = datetime.datetime.now()
+        logger.debug("Last tick is %s", last_tick)
+        now = datetime.datetime.utcnow()
+        logger.debug("Now is %s", last_tick)
         return (now - last_tick).total_seconds()
 
     def has_expired(self):
