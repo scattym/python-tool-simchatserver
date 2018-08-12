@@ -3,7 +3,8 @@ import os
 from celery import Celery
 from kombu import Exchange, Queue
 from kombu.common import Broadcast
-from sim_chat_lib.master import send_take_photo_by_imei, send_photo_list_by_imei, send_firmware_update
+from sim_chat_lib.master import send_take_photo_by_imei, send_photo_list_by_imei, send_firmware_update, \
+    send_restart_device, send_restart_gps
 from sim_chat_lib.master import send_cancel_firmware_update, send_update_configuration
 
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'amqp://guest@localhost')
@@ -59,6 +60,18 @@ def cancel_firmware_update(imei):
 def update_configuration(imei):
     result = send_update_configuration(imei)
     return 'Issued configuration update for device {} with result {}'.format(imei, result)
+
+
+@sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.restart_device')
+def update_configuration(imei):
+    result = send_restart_device(imei)
+    return 'Issued device restart for device {} with result {}'.format(imei, result)
+
+
+@sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.restart_gps')
+def update_configuration(imei):
+    result = send_restart_gps(imei)
+    return 'Issued gps restart for device {} with result {}'.format(imei, result)
 
 
 default_exchange = Exchange('sim_chat_lib.celerytasks.sendcommand.default', type='direct')

@@ -147,6 +147,12 @@ class ChatClient(object):
     def request_cancel_firmware_update(self):
         logger.log(13, "Updating firmware not implemented for this device.")
 
+    def restart_device(self):
+        logger.log(13, "Restarting device not implemented for this device.")
+
+    def restart_gps(self):
+        logger.log(13, "Restarting gps not implemented for this device.")
+
     def update_configuration(self):
         pass
 
