@@ -63,13 +63,13 @@ def update_configuration(imei):
 
 
 @sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.restart_device')
-def update_configuration(imei):
+def restart_device(imei):
     result = send_restart_device(imei)
     return 'Issued device restart for device {} with result {}'.format(imei, result)
 
 
 @sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.restart_gps')
-def update_configuration(imei):
+def restart_gps(imei):
     result = send_restart_gps(imei)
     return 'Issued gps restart for device {} with result {}'.format(imei, result)
 
