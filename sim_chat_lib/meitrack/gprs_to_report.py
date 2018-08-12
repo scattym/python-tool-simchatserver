@@ -85,14 +85,6 @@ def file_download_to_report(imei, file_download):
     return report
 
 
-def event_to_report(imei, event_text):
-    report = Report()
-    report.imei = imei.decode()
-    report.event_description = event_text
-    report.timestamp = datetime.datetime.utcnow()
-    return report
-
-
 def get_firmware_binary_report(imei):
     report = FirmwareBinaryRequestReport()
     report.imei = imei.decode()

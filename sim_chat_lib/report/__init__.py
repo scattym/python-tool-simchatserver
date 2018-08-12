@@ -156,6 +156,20 @@ class MeitrackConfigRequest(object):
         return "%s-%s" % (self.imei, self.response)
 
 
+def event_to_report(imei, event_text):
+    report = Report()
+    try:
+        report.imei = imei.decode()
+    except AttributeError as _:
+        report.imei = imei
+    try:
+        report.event_description = event_text.decode()
+    except AttributeError as _:
+        report.event_description = event_text
+    report.timestamp = datetime.datetime.utcnow()
+    return report
+
+
 if __name__ == "__main__":
     report = Report()
     report.imei = "testimei"
