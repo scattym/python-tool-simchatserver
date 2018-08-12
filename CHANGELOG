@@ -1,7 +1,8 @@
 2.69 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add ability to send device and gps restart commands from sim chat server.
+- Add celery tasks for sending device and gps restart commands.
 
 
 2.68 (2018-08-08)
