@@ -1,7 +1,8 @@
 2.71 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Make event reporting generic so can be used outside of the meitrack chat client class.
+- Add more logging to indicate outgoing messages to a device in the event log.
 
 
 2.70 (2018-08-12)

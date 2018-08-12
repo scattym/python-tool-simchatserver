@@ -2,6 +2,7 @@ import datetime
 import logging
 import socket
 from sim_chat_lib.exception import ClientClosedError
+from sim_chat_lib.report import event_to_report
 from sim_chat_lib.report.async_api import queue_report, queue_config_request
 
 logger = logging.getLogger(__name__)
@@ -116,6 +117,12 @@ class ChatClient(object):
 
     def queue_report(self, report):
         return queue_report(report, self.report_queue)
+
+    def queue_event_report(self, identifier, event_string):
+        report = event_to_report(identifier, event_string)
+        queue_result = self.queue_report(report)
+        logger.log(13, "Queue add result was %s", queue_result)
+        return queue_result
 
     def __str__(self):
         return self.get_client_details()
