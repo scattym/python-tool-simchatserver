@@ -1,7 +1,7 @@
 2.70 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix up the naming of the device and gps restart commands.
 
 
 2.69 (2018-08-12)
