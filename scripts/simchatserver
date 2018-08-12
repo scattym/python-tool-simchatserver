@@ -481,6 +481,10 @@ def send_to_device(ident, cmd):
                     client.request_cancel_firmware_update()
                 elif "update_configuration" == cmd:
                     client.update_configuration()
+                elif "restart_device" == cmd:
+                    client.restart_device()
+                elif "restart_gps" == cmd:
+                    client.restart_gps()
                 else:
                     client.send_command(cmd)
         except KeyError as err:

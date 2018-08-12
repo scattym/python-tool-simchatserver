@@ -5,6 +5,7 @@ import logging
 import os
 import traceback
 
+from meitrack.build_message import stc_restart_gps, stc_restart_gsm
 from meitrack.common import DIRECTION_CLIENT_TO_SERVER
 from meitrack.file_list import FileListing, FileListingError
 from meitrack.firmware_update import FirmwareUpdate, STAGE_FIRST, STAGE_SECOND, stc_cancel_ota_update
@@ -535,6 +536,20 @@ class MeitrackChatClient(BaseChatClient):
             gprs = stc_cancel_ota_update(self.imei)
             self.queue_gprs(gprs, True)
             self.reset_firmware_download_state()
+
+    def restart_device(self):
+        if not self.imei:
+            logger.error("Unable to request client to update firmware as client id not yet known")
+        else:
+            gprs = stc_restart_gsm(self.imei)
+            self.queue_gprs(gprs, True)
+
+    def restart_gps(self):
+        if not self.imei:
+            logger.error("Unable to request client to update firmware as client id not yet known")
+        else:
+            gprs = stc_restart_gps(self.imei)
+            self.queue_gprs(gprs, True)
 
     def update_configuration(self):
         if not self.imei:
