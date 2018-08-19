@@ -51,6 +51,12 @@ def send_restart_gps(imei):
     message = "imei-{},restart_gps".format(imei)
     return send_message(message)
 
+
+def send_toggle_debug(imei):
+    message = "imei-{},debug".format(imei)
+    return send_message(message)
+
+
 def send_message(message):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

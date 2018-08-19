@@ -119,9 +119,9 @@ class MeitrackChatClient(BaseChatClient):
     def get_client_details(self):
         start = super(MeitrackChatClient, self).get_client_details()
         return (
-                "meitrack, ident: %s, remote: %s, age: %s\n%s\nBuffer: %s\nCurrent download: %s"
+                "meitrack, start: %s, ident: %s, remote: %s, age: %s\n%s\nBuffer: %s\nCurrent download: %s"
                 "\nSDCard List: %s\nFirmware update: %s\nGPRS Queue Length: %s\n" % (
-                    self.ident(), start, self.age(), self.get_download_details(), self.buffer,
+                    start, self.ident(), start, self.age(), self.get_download_details(), self.buffer,
                     self.current_download, self.file_list_parser, self.firmware_update,
                     len(self.gprs_queue)
                 )

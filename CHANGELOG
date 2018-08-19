@@ -3,6 +3,8 @@
 
 - Make event reporting generic so can be used outside of the meitrack chat client class.
 - Add more logging to indicate outgoing messages to a device in the event log.
+- Add ability to set debug mode from the ui.
+- Add debug mode which will log all data to the debug log api when turned on. Defaults off at time of device connection.
 
 
 2.70 (2018-08-12)

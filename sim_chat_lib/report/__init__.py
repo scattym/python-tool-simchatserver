@@ -4,10 +4,14 @@ import logging
 
 import geotool_api
 from geotool_api import meitrack_file_add_packet
+from geotool_api import add_debug_log
 from geotool_api.driver_api import add_driver_log_by_license
 from license.cardreader import License
 
 logger = logging.getLogger(__name__)
+
+DEBUG_LOG_DIRECTION_CLIENT_TO_SERVER = '0'
+DEBUG_LOG_DIRECTION_SERVER_TO_CLIENT = '1'
 
 
 class BaseReport(object):
@@ -26,6 +30,25 @@ class BaseReport(object):
             "imei": self.imei,
             "response": response
         }
+
+
+class DebugLogReport(BaseReport):
+    def __init__(self):
+        super().__init__()
+        self.data = None
+        self.direction = None
+
+    def execute_post(self, log_time):
+        super().execute_post(log_time)
+        try:
+            imei = self.imei.decode()
+        except AttributeError as _:
+            imei = self.imei
+        result = add_debug_log(imei, self.direction, self.data, log_time)
+        if not result:
+            logger.error("Unable to log the event. Result: %s", result)
+            logger.debug(result)
+        return result
 
 
 class AAAReport(BaseReport):
