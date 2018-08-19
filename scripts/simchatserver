@@ -485,6 +485,9 @@ def send_to_device(ident, cmd):
                     client.restart_device()
                 elif "restart_gps" == cmd:
                     client.restart_gps()
+                elif "debug" == cmd:
+                    client.debug = not client.debug
+                    logger.info("Debug mode for ident %s is now %s", ident, str(client.debug))
                 else:
                     client.send_command(cmd)
         except KeyError as err:

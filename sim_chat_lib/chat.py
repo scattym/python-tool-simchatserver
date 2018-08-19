@@ -2,7 +2,8 @@ import datetime
 import logging
 import socket
 from sim_chat_lib.exception import ClientClosedError
-from sim_chat_lib.report import event_to_report
+from sim_chat_lib.report import event_to_report, DebugLogReport, DEBUG_LOG_DIRECTION_SERVER_TO_CLIENT, \
+    DEBUG_LOG_DIRECTION_CLIENT_TO_SERVER
 from sim_chat_lib.report.async_api import queue_report, queue_config_request
 
 logger = logging.getLogger(__name__)
@@ -14,6 +15,8 @@ class ChatClient(object):
     def __init__(self, sock_fd, report_queue):
         self.sock_fd = sock_fd
         self.report_queue = report_queue
+        self.debug = False
+        self.imei = None
         try:
             peer = sock_fd.getpeername()
         except OSError as err:
@@ -39,6 +42,9 @@ class ChatClient(object):
         logger.info("Tx {}, Data: {}".format(self.ident(), data))
         if self.print_comms:
             print("{}, Tx {}, Data: {}".format(datetime.datetime.now(), self.ident(), data))
+        if self.debug and self.imei is not None:
+            self.queue_debug_log(data, DEBUG_LOG_DIRECTION_SERVER_TO_CLIENT)
+
         try:
             self.sock_fd.send(data)
         except socket.error as err:
@@ -64,6 +70,8 @@ class ChatClient(object):
         logger.info("Rx {}, Data: {}".format(self.ident(), data))
         if self.print_comms:
             print("{}, Rx {}, Data: {}".format(datetime.datetime.now(), self.ident(), data))
+        if self.debug and self.imei is not None:
+            self.queue_debug_log(data, DEBUG_LOG_DIRECTION_CLIENT_TO_SERVER)
         self.update_last_tick()
         if data:
             return self.process_data(data)
@@ -75,7 +83,7 @@ class ChatClient(object):
         return "%s:%s" % (self.ip_address, self.port)
 
     def get_client_details(self):
-        return self.get_remote_ip()
+        return "IP: {}, DEBUG: {}".format(self.get_remote_ip(), self.debug)
 
     def ident(self):
         return None
@@ -114,6 +122,13 @@ class ChatClient(object):
         logger.log(13, "Queue config request start")
         result = queue_config_request(config_request, self.report_queue)
         logger.log(13, "Queue config request finished")
+
+    def queue_debug_log(self, data, direction):
+        report = DebugLogReport()
+        report.imei = self.imei
+        report.direction = direction
+        report.data = data
+        self.queue_report(report)
 
     def queue_report(self, report):
         return queue_report(report, self.report_queue)
