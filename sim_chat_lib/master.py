@@ -57,6 +57,11 @@ def send_toggle_debug(imei):
     return send_message(message)
 
 
+def send_set_pin(imei, pin, state):
+    message = "imei-{},set_pin,{},{}".format(imei, pin, state)
+    return send_message(message)
+
+
 def send_message(message):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
