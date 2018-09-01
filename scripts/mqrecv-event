@@ -11,6 +11,7 @@ import json
 import datetime
 import os
 
+from geotool_db_api.battery_api import get_update_battery_coroutine
 from geotool_db_api.common import create_pool_a
 from geotool_db_api.device_api import get_device_id
 from geotool_db_api.event_api import get_insert_eventlog_coroutine
@@ -161,6 +162,57 @@ async def main_digital_io(loop):
             if queue.name in message.body.decode():
                 break
 
+
+async def main_battery_update(loop):
+    connection = await aio_pika.connect_robust("amqp://{}:{}@{}/".format(MQ_USER, MQ_PASS, MQ_HOST), loop=loop)
+
+    queue_name = "battery_update"
+
+    # Creating channel
+    channel = await connection.channel()  # type: aio_pika.Channel
+
+    # Declaring queue
+    queue = await channel.declare_queue(queue_name)  # type: aio_pika.Queue
+    imei_map = {}
+
+    async for message in queue:
+        with message.process():
+            print(message.body)
+            data = json.loads(message.body)
+            if data.get("imei", None):
+                if imei_map.get(data["imei"]):
+                    device_id = imei_map.get(data["imei"])
+                else:
+                    device_id = await get_device_id(data["imei"])
+                    if device_id:
+                        imei_map[data["imei"]] = device_id
+            elif data.get("device", None):
+                device_id = data["device"]
+            elif data.get("primary_key") is not None:
+                device_id = data.get("primary_key")
+
+            print("Device id is %s" % (device_id,))
+
+            ####
+            # Handle GPS UPDATE MESSAGES
+            if data.get("battery_level") is not None:
+
+                # (device_id: int, battery_in_use: bool, battery_voltage: str, battery_level: str):
+                insert_coroutine = get_update_battery_coroutine(
+                    device_id,
+                    None,
+                    data.get("battery_voltage"),
+                    data.get("battery_level")
+                )
+                loop.create_task(insert_coroutine)
+                # loop.run_until_complete(update_coroutine)
+            else:
+                logger.error("Unknown command %s", data)
+
+            if queue.name in message.body.decode():
+                break
+
+
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(create_pool_a())
@@ -168,4 +220,5 @@ if __name__ == "__main__":
     loop.create_task(main_event(loop))
     loop.create_task(main_analogue_io(loop))
     loop.create_task(main_digital_io(loop))
+    loop.create_task(main_battery_update(loop))
     loop.run_forever()
