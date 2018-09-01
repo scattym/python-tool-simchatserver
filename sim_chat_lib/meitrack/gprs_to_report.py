@@ -1,6 +1,7 @@
 import datetime
 import logging
-from sim_chat_lib.report import Report, FileFragmentReport, FirmwareBinaryRequestReport, FirmwareVersionRequestReport
+from sim_chat_lib.report import Report, FileFragmentReport, FirmwareBinaryRequestReport, FirmwareVersionRequestReport, \
+    DigitalPinReport, AnaloguePinReport
 from sim_chat_lib.report import LicenseReadReport
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,22 @@ def gprs_to_report(gprs):
 
             report.taxi_data = gprs.enclosed_data.get_taxi_meter_data()
             report_list.append(report)
+
+            digital_pins = gprs.enclosed_data.get_digital_pin_states()
+            if digital_pins:
+                digital_pin_report = DigitalPinReport()
+                digital_pin_report.imei = gprs.imei
+                digital_pin_report.timestamp = safe_field_get(gprs, "date_time")
+                digital_pin_report.pin_map = digital_pins
+                report_list.append(digital_pin_report)
+
+            analogue_pins = gprs.enclosed_data.get_analogue_pin_states()
+            if analogue_pins:
+                analogue_pin_report = AnaloguePinReport()
+                analogue_pin_report.imei = gprs.imei
+                analogue_pin_report.timestamp = safe_field_get(gprs, "date_time")
+                analogue_pin_report.pin_map = analogue_pins
+                report_list.append(analogue_pin_report)
 
             return report_list
     return None

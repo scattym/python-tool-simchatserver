@@ -4,12 +4,12 @@ requests
 simplejson
 cachetools
 python-memcached
-pika==0.10.0
+pika
 aio_pika
 asyncpg
 psycopg2-binary
 geotooldbapi>=1.5
 geotoolapi>=1.22
-meitrackparser>=1.14
+meitrackparser>=1.15
 celery
 kombu

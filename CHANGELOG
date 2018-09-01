@@ -1,7 +1,8 @@
 2.73 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fixup the pool creation on async db clients clients. Now creating one pool per main loop in the mqrecv processors.
+- Add new DigitalReport and AnaloguePinReport classes to aid in the logging of io status.
 
 
 2.72 (2018-09-01)

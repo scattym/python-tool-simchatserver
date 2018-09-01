@@ -65,6 +65,7 @@ import os
 
 import pytz
 
+from geotool_db_api.common import create_pool_a
 from geotool_db_api.debug_log_api import get_insert_debug_log_coroutine
 from geotool_db_api.device_api import get_insert_cellupdate_coroutine, get_device_id
 
@@ -118,6 +119,7 @@ async def main(loop):
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
+    loop.run_until_complete(create_pool_a())
     print("Started cell update processor")
     loop.run_until_complete(main(loop))
     loop.close()

@@ -32,6 +32,44 @@ class BaseReport(object):
         }
 
 
+class DigitalPinReport(BaseReport):
+    def __init__(self):
+        super().__init__()
+        self.pin_map = None
+        self.timestamp = None
+
+    def execute_post(self, log_time):
+        super().execute_post(log_time)
+        try:
+            imei_str = self.imei.decode()
+        except AttributeError as _:
+            imei_str = self.imei
+        result = geotool_api.add_digital_pin_states(imei_str, self.pin_map, self.timestamp)
+        if not result:
+            logger.error("Unable to log the event. Result: %s", result)
+            logger.debug(result)
+            return {"imei": imei_str, "result": result}
+
+
+class AnaloguePinReport(BaseReport):
+    def __init__(self):
+        super().__init__()
+        self.pin_map = None
+        self.timestamp = None
+
+    def execute_post(self, log_time):
+        super().execute_post(log_time)
+        try:
+            imei_str = self.imei.decode()
+        except AttributeError as _:
+            imei_str = self.imei
+        result = geotool_api.add_analogue_pin_states(imei_str, self.pin_map, self.timestamp)
+        if not result:
+            logger.error("Unable to log the event. Result: %s", result)
+            logger.debug(result)
+        return {"imei": imei_str, "result": result}
+
+
 class DebugLogReport(BaseReport):
     def __init__(self):
         super().__init__()
