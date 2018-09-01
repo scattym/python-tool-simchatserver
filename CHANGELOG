@@ -7,6 +7,8 @@
 - Add command to set device pin states.
 - Add login command to meitrackchatclient.
 - Add argument to force a login on connect with the meitrack chat client.
+- Add master protocol function for set_pin.
+- Add celery task for set_pin from ui.
 
 
 2.71 (2018-08-19)
