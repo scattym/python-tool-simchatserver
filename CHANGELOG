@@ -4,6 +4,9 @@
 - Fixup the pool creation on async db clients clients. Now creating one pool per main loop in the mqrecv processors.
 - Add new DigitalReport and AnaloguePinReport classes to aid in the logging of io status.
 - Fix bug in the handling of datetime objects in the async db process for io pin handling.
+- Add ability for battery updates to be processed through the message queue interface.
+- Bump geotool db to 1.6 for io and battery changes.
+- Bump geotool api to 1.23 for io and battery api changes.
 
 
 2.72 (2018-09-01)
