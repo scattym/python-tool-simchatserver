@@ -95,11 +95,14 @@ async def main_analogue_io(loop):
             ####
             # Handle GPS UPDATE MESSAGES
             if data.get("pin") is not None:
+                if '.' not in data["timestamp"]:
+                    data["timestamp"] = "{}.0".format(data["timestamp"])
+                timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
                 insert_coroutine = get_insert_analogue_io_coroutine(
                     device_id,
                     int(data.get("pin")),
                     float(data.get("value")),
-                    data.get("timestamp")
+                    timestamp
                 )
                 loop.create_task(insert_coroutine)
                 # loop.run_until_complete(update_coroutine)
@@ -141,11 +144,14 @@ async def main_digital_io(loop):
             ####
             # Handle GPS UPDATE MESSAGES
             if data.get("pin") is not None:
+                if '.' not in data["timestamp"]:
+                    data["timestamp"] = "{}.0".format(data["timestamp"])
+                timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
                 insert_coroutine = get_insert_digital_io_coroutine(
                     device_id,
                     int(data.get("pin")),
                     bool(data.get("value")),
-                    data.get("timestamp")
+                    timestamp
                 )
                 loop.create_task(insert_coroutine)
                 # loop.run_until_complete(update_coroutine)

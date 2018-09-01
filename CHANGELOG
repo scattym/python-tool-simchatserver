@@ -3,6 +3,7 @@
 
 - Fixup the pool creation on async db clients clients. Now creating one pool per main loop in the mqrecv processors.
 - Add new DigitalReport and AnaloguePinReport classes to aid in the logging of io status.
+- Fix bug in the handling of datetime objects in the async db process for io pin handling.
 
 
 2.72 (2018-09-01)
