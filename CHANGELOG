@@ -1,7 +1,8 @@
 2.74 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add logging instantiation to mqrecv-event so that we can see the sql statements when in debug mode.
+- Bump geotool db lib to bring in logging change.
 
 
 2.73 (2018-09-01)
