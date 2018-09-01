@@ -1,4 +1,4 @@
-2.77 (unreleased)
+2.77 (2018-09-01)
 -----------------
 
 - Bump geotool db api to bring in string conversion fix.
