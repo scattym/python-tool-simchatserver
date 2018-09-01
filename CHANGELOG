@@ -1,7 +1,7 @@
 2.75 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix bug in the updating of battery levels.
 
 
 2.74 (2018-09-01)
