@@ -1,4 +1,4 @@
-2.73 (unreleased)
+2.73 (2018-09-01)
 -----------------
 
 - Fixup the pool creation on async db clients clients. Now creating one pool per main loop in the mqrecv processors.
