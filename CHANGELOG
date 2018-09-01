@@ -3,6 +3,10 @@
 
 - Add separate class for handling second stage of firmware update process.
 - Add logic to determine if device is in firmware update on connect (receiving a FC0).
+- Add ability to send C01 command to meitrack clients.
+- Add command to set device pin states.
+- Add login command to meitrackchatclient.
+- Add argument to force a login on connect with the meitrack chat client.
 
 
 2.71 (2018-08-19)
