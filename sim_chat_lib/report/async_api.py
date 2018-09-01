@@ -267,6 +267,7 @@ def get_result(result_queue, blocking=False, timeout=1):
     logger.log(13, "Getting response from result queue")
     if result_queue:
         result = result_queue.get(block=blocking, timeout=timeout)
+        logger.log(13, "Returning result %s", result)
         return result
     return None
 

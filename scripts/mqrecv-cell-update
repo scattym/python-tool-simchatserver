@@ -62,6 +62,8 @@ import aio_pika
 import json
 import datetime
 import os
+
+from geotool_db_api.common import create_pool_a
 from geotool_db_api.device_api import get_insert_cellupdate_coroutine, get_device_id
 
 MQ_HOST = os.environ.get("MQ_HOST", "127.0.0.1")
@@ -121,6 +123,7 @@ async def main(loop):
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
+    loop.run_until_complete(create_pool_a())
     print("Started cell update processor")
     loop.run_until_complete(main(loop))
     loop.close()

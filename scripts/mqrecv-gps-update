@@ -76,6 +76,9 @@ import aio_pika
 import json
 import datetime
 import os
+import logging
+
+from geotool_db_api.common import create_pool_a
 from geotool_db_api.device_api import get_insert_deviceupdate_coroutine
 from geotool_db_api.device_api import get_update_deviceupdatecache_coroutine, get_device_id
 
@@ -83,17 +86,19 @@ MQ_HOST = os.environ.get("MQ_HOST", "127.0.0.1")
 MQ_USER = os.environ.get("MQ_USER", "guest")
 MQ_PASS = os.environ.get("MQ_PASS", "guest")
 
+logger = logging.getLogger(__name__)
 
-async def main(loop):
+
+async def main_gps_update(loop):
     connection = await aio_pika.connect_robust("amqp://{}:{}@{}/".format(MQ_USER, MQ_PASS, MQ_HOST), loop=loop)
 
     queue_name = "gps_update"
 
     # Creating channel
-    channel = await connection.channel()    # type: aio_pika.Channel
+    channel = await connection.channel()  # type: aio_pika.Channel
 
     # Declaring queue
-    queue = await channel.declare_queue(queue_name)   # type: aio_pika.Queue
+    queue = await channel.declare_queue(queue_name)  # type: aio_pika.Queue
     imei_map = {}
 
     async for message in queue:
@@ -110,45 +115,50 @@ async def main(loop):
             elif data.get("device", None):
                 device_id = data["device"]
 
-            # Handle gps coming in as a single field
-            # "SRID=4326;POINT (151.07571 -33.636995)",
-            location = data.get("location", None)
-            if location:
-                bracket_open = location.find('(')
-                bracket_close = location.find(')')
-                print(location[bracket_open+1:bracket_close])
-                longitude, latitude = location[bracket_open+1:bracket_close].split(" ", 1)
+            ####
+            # Handle GPS UPDATE MESSAGES
+            if data.get("location") is not None or data.get("latitude") is not None:
+                # Handle gps coming in as a single field
+                # "SRID=4326;POINT (151.07571 -33.636995)",
+                location = data.get("location", None)
+                if location:
+                    bracket_open = location.find('(')
+                    bracket_close = location.find(')')
+                    print(location[bracket_open + 1:bracket_close])
+                    longitude, latitude = location[bracket_open + 1:bracket_close].split(" ", 1)
+                else:
+                    longitude = data.get("longitude")
+                    latitude = data.get("latitude")
+
+                print("Device id is %s" % (device_id,))
+                if "." not in data["timestamp"]:
+                    data["timestamp"] = "{}.0".format(data["timestamp"])
+                timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
+                if "." not in data["log_time"]:
+                    data["log_time"] = "{}.0".format(data["log_time"])
+
+                log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
+                if device_id:
+                    insert_coroutine = get_insert_deviceupdate_coroutine(
+                        device_id, data["imei"], float(longitude), float(latitude),
+                        int(data["true_track"]),
+                        int(0),
+                        int(data["ground_speed"]), float(data["altitude"]),
+                        timestamp, float(data["dilution"]), int(data["num_sats"]), log_time,
+                    )
+                    loop.create_task(insert_coroutine)
+                    # loop.run_until_complete(insert_coroutine)
+
+                    update_coroutine = get_update_deviceupdatecache_coroutine(
+                        float(longitude), float(latitude), int(data["true_track"]),
+                        int(0), int(data["ground_speed"]), float(data["altitude"]),
+                        timestamp, float(data["dilution"]), int(data["num_sats"]),
+                        device_id,
+                    )
+                    loop.create_task(update_coroutine)
+                    # loop.run_until_complete(update_coroutine)
             else:
-                longitude = data.get("longitude")
-                latitude = data.get("latitude")
-
-            print("Device id is %s" % (device_id,))
-            if "." not in data["timestamp"]:
-                data["timestamp"] = "{}.0".format(data["timestamp"])
-            timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
-            if "." not in data["log_time"]:
-                data["log_time"] = "{}.0".format(data["log_time"])
-
-            log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
-            if device_id:
-                insert_coroutine = get_insert_deviceupdate_coroutine(
-                    device_id, data["imei"], float(longitude), float(latitude),
-                    int(data["true_track"]),
-                    int(0),
-                    int(data["ground_speed"]), float(data["altitude"]),
-                    timestamp, float(data["dilution"]), int(data["num_sats"]), log_time,
-                )
-                loop.create_task(insert_coroutine)
-                # loop.run_until_complete(insert_coroutine)
-
-                update_coroutine = get_update_deviceupdatecache_coroutine(
-                    float(longitude), float(latitude), int(data["true_track"]),
-                    int(0), int(data["ground_speed"]), float(data["altitude"]),
-                    timestamp, float(data["dilution"]), int(data["num_sats"]),
-                    device_id,
-                )
-                loop.create_task(update_coroutine)
-                # loop.run_until_complete(update_coroutine)
+                logger.error("Unknown command %s", data)
 
             if queue.name in message.body.decode():
                 break
@@ -156,6 +166,7 @@ async def main(loop):
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
+    loop.run_until_complete(create_pool_a())
     print("GPS update processor has started.")
-    loop.run_until_complete(main(loop))
+    loop.run_until_complete(main_gps_update(loop))
     loop.close()
