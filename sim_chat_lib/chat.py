@@ -175,6 +175,9 @@ class ChatClient(object):
     def restart_gps(self):
         logger.log(13, "Restarting gps not implemented for this device.")
 
+    def set_output(self, pin, state):
+        logger.log(13, "Set output not implemented for this device.")
+
     def update_configuration(self):
         pass
 

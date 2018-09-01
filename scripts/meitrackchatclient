@@ -125,7 +125,7 @@ def send_gprs_message(imei, sock, gprs_message):
 
 def chat_client(
         host, port, imei, version, file_test_on_start=False, send_data=False, send_data_interval=5, count=1,
-        ignore_file_listing=False
+        ignore_file_listing=False, login_on_connect=False
 ):
     imei = imei.encode()
 
@@ -146,17 +146,9 @@ def chat_client(
     # connect to remote host
     try:
         s.connect((host, port))
-        #s.send(message)
-        # s.send(login_gprs.as_bytes())
-        # s.send(gprs_event_136.as_bytes())
-        # s.send(login_gprs.as_bytes())
-        # s.send(gprs_event_136.as_bytes())
-        # s.send(login_gprs.as_bytes())
-        # s.send(gprs_event_136.as_bytes())
-        # s.send(login_gprs.as_bytes())
-        # s.send(gprs_event_136.as_bytes())
-        # s.send(login_gprs.as_bytes())
-        # s.send(gprs_event_136.as_bytes())
+        if login_on_connect:
+            s.send(login_gprs.as_bytes())
+
     except Exception as err:
         print('Unable to connect: %s' % (err,))
         sys.exit()
@@ -217,6 +209,8 @@ def chat_client(
                 msg = sys.stdin.readline().rstrip()
                 if msg.rstrip() == "enctest":
                     data = "This is a test string for encryption"
+                elif msg.rstrip() == "login":
+                    s.send(login_gprs.as_bytes())
                 elif msg.rstrip() == 'filetest':
                     file_test(imei, s, True)
                 elif msg.rstrip() == 'sostest':
@@ -262,6 +256,13 @@ if __name__ == "__main__":
         default="0407",
     )
     parser.add_argument(
+        '-l',
+        '--login',
+        help="Send login string on connect",
+        action="store_true",
+        default=False
+    )
+    parser.add_argument(
         '-o',
         '--host',
         help="The host to connect to.",
@@ -300,7 +301,7 @@ if __name__ == "__main__":
         '-v',
         dest='debug',
         help=("Increase the logging level. Can specify this option multiple "
-              "times for more detail."),
+              "times for more deSend data on intervals defined by -w.tail."),
         action="count",
         default=0
     )
@@ -331,6 +332,6 @@ if __name__ == "__main__":
     sys.exit(
         chat_client(
             args.host, args.port, args.imei, args.version, args.file_test, args.send_data, args.wait_time,
-            args.packet_count, args.ignore_file_listing
+            args.packet_count, args.ignore_file_listing, args.login
         )
     )

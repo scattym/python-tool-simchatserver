@@ -450,6 +450,7 @@ def send_to_device(ident, cmd):
         try:
             client = get_client(ident)
             if client:
+                cmd_arr = cmd.split(",")
                 if cmd == "info":
                     client.request_client_info()
                 elif cmd == "location":
@@ -459,7 +460,6 @@ def send_to_device(ident, cmd):
                 elif "take_photo" in cmd:
                     camera_number = "1"
                     file_name = None
-                    cmd_arr = cmd.split(",")
                     if len(cmd_arr) >= 2:
                         camera_number = cmd_arr[1]
                     if len(cmd_arr) >= 3:
@@ -468,7 +468,6 @@ def send_to_device(ident, cmd):
                 elif "get_file" in cmd:
                     file_name = None
                     payload_start_index = 0
-                    cmd_arr = cmd.split(",")
                     if len(cmd_arr) >= 2:
                         file_name = cmd_arr[1]
                     if len(cmd_arr) >= 3:
@@ -485,6 +484,16 @@ def send_to_device(ident, cmd):
                     client.restart_device()
                 elif "restart_gps" == cmd:
                     client.restart_gps()
+                elif "set_pin" in cmd:
+                    print(len(cmd_arr))
+                    if len(cmd_arr) >= 3:
+                        try:
+                            pin = int(cmd_arr[1])
+                            state = int(cmd_arr[2])
+                            client.set_output(pin, state)
+                        except ValueError as _:
+                            pass
+
                 elif "debug" == cmd:
                     client.debug = not client.debug
                     logger.info("Debug mode for ident %s is now %s", ident, str(client.debug))
