@@ -50,7 +50,7 @@ class MeitrackFirmwareClient(BaseChatClient):
         self.serial_number = None
         self.file_list_parser = FileListing()
         # self.file_download_list = []
-        self.last_file_request = datetime.datetime.now()
+        self.last_file_request = datetime.datetime.utcnow()
         self.gprs_queue = []
         self.current_message = None
 
@@ -70,7 +70,7 @@ class MeitrackFirmwareClient(BaseChatClient):
         if self.current_message is None and self.firmware_update is None:
             if len(self.gprs_queue) >= 1:
                 self.current_message = self.gprs_queue[0]
-                self.current_message["sent"] = (datetime.datetime.now()-EPOCH).total_seconds()
+                self.current_message["sent"] = (datetime.datetime.utcnow()-EPOCH).total_seconds()
                 self.send_data(self.current_message["request_bytes"])
                 logger.info(self.current_message["request_bytes"])
 

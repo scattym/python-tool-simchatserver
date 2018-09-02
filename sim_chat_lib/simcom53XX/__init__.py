@@ -23,7 +23,7 @@ def parse_client_connect(socket, report_queue, connect_line):
     if len(connect_string_list) >= 2:
         client_details = {
             "version": None,
-            "last_tick": datetime.datetime.now(),
+            "last_tick": datetime.datetime.utcnow(),
             "imei": connect_string_list[1],
             "proto_version": 1,
         }

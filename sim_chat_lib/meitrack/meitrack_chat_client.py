@@ -50,7 +50,7 @@ class MeitrackChatClient(BaseChatClient):
         self.serial_number = None
         self.file_list_parser = FileListing()
         # self.file_download_list = []
-        self.last_file_request = datetime.datetime.now()
+        self.last_file_request = datetime.datetime.utcnow()
         self.gprs_queue = []
         self.current_message = None
 
@@ -65,7 +65,7 @@ class MeitrackChatClient(BaseChatClient):
 
     def timeout_old(self):
         if self.current_message is not None and len(self.gprs_queue) >= 1:
-            now = (datetime.datetime.now()-EPOCH).total_seconds()
+            now = (datetime.datetime.utcnow()-EPOCH).total_seconds()
             if self.gprs_queue[0]["sent"] != 0 and (now - self.gprs_queue[0]["sent"]) >= 60:
                 logger.error("Timing out %s", self.current_message)
                 self.current_message = None
@@ -76,7 +76,7 @@ class MeitrackChatClient(BaseChatClient):
         if self.current_message is None and self.firmware_update is None:
             if len(self.gprs_queue) >= 1:
                 self.current_message = self.gprs_queue[0]
-                self.current_message["sent"] = (datetime.datetime.now()-EPOCH).total_seconds()
+                self.current_message["sent"] = (datetime.datetime.utcnow()-EPOCH).total_seconds()
                 self.send_data(self.current_message["request_bytes"])
                 logger.info(self.current_message["request_bytes"])
 
@@ -388,7 +388,7 @@ class MeitrackChatClient(BaseChatClient):
                     if file_name and file_bytes:
                         # Reset last file request so that we don't overload the client with requests
                         # while it is already sending a file.
-                        self.last_file_request = datetime.datetime.now()
+                        self.last_file_request = datetime.datetime.utcnow()
                         packet_number_int = int(packet_number.decode())
                         num_packets_int = int(num_packets.decode())
                         self.current_download = file_name
@@ -479,7 +479,7 @@ class MeitrackChatClient(BaseChatClient):
             try:
                 gprs = build_message.stc_request_photo_list(self.imei, start)
                 self.queue_gprs(gprs)
-                self.last_file_request = datetime.datetime.now()
+                self.last_file_request = datetime.datetime.utcnow()
                 self.queue_event_report(self.imei, "Request photo list")
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send. Error: %s", err)
@@ -506,7 +506,7 @@ class MeitrackChatClient(BaseChatClient):
             try:
                 gprs = build_message.stc_request_get_file(self.imei, file_name, payload_start_index)
                 self.queue_gprs(gprs)
-                self.last_file_request = datetime.datetime.now()
+                self.last_file_request = datetime.datetime.utcnow()
                 self.queue_event_report(
                     self.imei,
                     "Request file {} from fragment {}".format(file_name, payload_start_index+1)

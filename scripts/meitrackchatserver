@@ -75,7 +75,7 @@ def get_age(imei):
     device = IMEI_INFO_MAP.get(imei)
     if device:
         last_tick = device.get("last_tick")
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         return now - last_tick
     return -1
 

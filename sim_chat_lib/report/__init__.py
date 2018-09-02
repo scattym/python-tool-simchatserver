@@ -16,12 +16,11 @@ DEBUG_LOG_DIRECTION_SERVER_TO_CLIENT = '1'
 
 class BaseReport(object):
     def __init__(self):
-        self.imei = None
-        self.timestamp = datetime.datetime.now()
+        self._imei = None
+        self.timestamp = None
         pass
 
     def execute_post(self, log_time):
-        logger.error("Calling execute post from base class")
         pass
 
     def response_to_chat_dict(self, response_type, response):
@@ -30,6 +29,17 @@ class BaseReport(object):
             "imei": self.imei,
             "response": response
         }
+
+    @property
+    def imei(self):
+        return self._imei
+
+    @imei.setter
+    def imei(self, value):
+        try:
+            self._imei = value.decode()
+        except AttributeError as _:
+            self._imei = value
 
 
 class DigitalPinReport(BaseReport):
@@ -40,15 +50,11 @@ class DigitalPinReport(BaseReport):
 
     def execute_post(self, log_time):
         super().execute_post(log_time)
-        try:
-            imei_str = self.imei.decode()
-        except AttributeError as _:
-            imei_str = self.imei
-        result = geotool_api.add_digital_pin_states(imei_str, self.pin_map, self.timestamp)
+        result = geotool_api.add_digital_pin_states(self.imei, self.pin_map, self.timestamp)
         if not result:
             logger.error("Unable to log the event. Result: %s", result)
             logger.debug(result)
-            return {"imei": imei_str, "result": result}
+        return self.response_to_chat_dict("digital_pin_update", result)
 
 
 class AnaloguePinReport(BaseReport):
@@ -59,15 +65,11 @@ class AnaloguePinReport(BaseReport):
 
     def execute_post(self, log_time):
         super().execute_post(log_time)
-        try:
-            imei_str = self.imei.decode()
-        except AttributeError as _:
-            imei_str = self.imei
-        result = geotool_api.add_analogue_pin_states(imei_str, self.pin_map, self.timestamp)
+        result = geotool_api.add_analogue_pin_states(self.imei, self.pin_map, self.timestamp)
         if not result:
             logger.error("Unable to log the event. Result: %s", result)
             logger.debug(result)
-        return {"imei": imei_str, "result": result}
+        return self.response_to_chat_dict("analogue_pin_update", result)
 
 
 class DebugLogReport(BaseReport):
@@ -78,15 +80,11 @@ class DebugLogReport(BaseReport):
 
     def execute_post(self, log_time):
         super().execute_post(log_time)
-        try:
-            imei = self.imei.decode()
-        except AttributeError as _:
-            imei = self.imei
-        result = add_debug_log(imei, self.direction, self.data, log_time)
+        result = add_debug_log(self.imei, self.direction, self.data, log_time)
         if not result:
             logger.error("Unable to log the event. Result: %s", result)
             logger.debug(result)
-        return result
+        return self.response_to_chat_dict("debug_log", result)
 
 
 class AAAReport(BaseReport):
@@ -119,7 +117,7 @@ class LicenseReadReport(AAAReport):
     def __init__(self):
         super().__init__()
         self.license = None
-        self.timestamp = datetime.datetime.now()
+        self.timestamp = datetime.datetime.utcnow()
 
     def execute_post(self, log_time):
         super().execute_post(log_time)
@@ -137,7 +135,7 @@ class FileFragmentReport(BaseReport):
         self.num_packets = None
         self.packet_number = None
         self.file_bytes = None
-        self.timestamp = datetime.datetime.now()
+        self.timestamp = datetime.datetime.utcnow()
 
     def execute_post(self, log_time):
         result = geotool_api.add_event_log(
@@ -190,7 +188,7 @@ class Report(object):
         self.gps_latitude = None
         self.gps_longitude = None
         self.num_sats = None
-        self.timestamp = datetime.datetime.now()
+        self.timestamp = datetime.datetime.utcnow()
         self.battery_voltage = None
         self.battery_level = None
         self.mcc = None

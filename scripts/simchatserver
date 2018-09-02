@@ -203,6 +203,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified, wait_ti
                     response = get_result(result_queue)
                     if response and response.get("imei"):
                         if is_available("imei-%s" % (response["imei"],)):
+                            logger.log(13, "Found connection for response with ident imei-%s", response["imei"])
                             client = get_client("imei-%s" % (response["imei"],))
                             if not client:
                                 logger.error("Unable to get client for imei: %s", response["imei"])
@@ -213,6 +214,12 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified, wait_ti
                                     client.parse_firmware_version(response["response"])
                                 elif response.get("type") == "firmware_binary":
                                     client.parse_firmware_binary(response["response"])
+                                else:
+                                    logger.log(
+                                        13,
+                                        "Response %s is not a response that will be passed to the client",
+                                        response.get("type")
+                                    )
                             # response.parser(response.result)
                         else:
                             logger.error("Device %s is no longer available for response", response.get("imei"))
@@ -379,7 +386,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified, wait_ti
         # This can't only happen in a timeout as in a loaded system it will be rare for a timeout to occur
         for sock_fd in CHAT_CLIENT_LIST:
             if CHAT_CLIENT_LIST.get(sock_fd):
-                CHAT_CLIENT_LIST.get(sock_fd).check_for_timeout(datetime.datetime.now())
+                CHAT_CLIENT_LIST.get(sock_fd).check_for_timeout(datetime.datetime.utcnow())
 
         for sock_fd in CHAT_CLIENT_LIST:
             if CHAT_CLIENT_LIST.get(sock_fd):
