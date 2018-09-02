@@ -78,6 +78,8 @@ import datetime
 import os
 import logging
 
+import pytz
+
 from geotool_db_api.common import create_pool_a
 from geotool_db_api.device_api import get_insert_deviceupdate_coroutine
 from geotool_db_api.device_api import get_update_deviceupdatecache_coroutine, get_device_id
@@ -138,13 +140,23 @@ async def main_gps_update(loop):
                     data["log_time"] = "{}.0".format(data["log_time"])
 
                 log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
+                log_time = pytz.utc.localize(log_time)
+                timestamp = pytz.utc.localize(timestamp)
+
                 if device_id:
                     insert_coroutine = get_insert_deviceupdate_coroutine(
-                        device_id, data["imei"], float(longitude), float(latitude),
+                        device_id,
+                        data["imei"],
+                        float(longitude),
+                        float(latitude),
                         int(data["true_track"]),
                         int(0),
-                        int(data["ground_speed"]), float(data["altitude"]),
-                        timestamp, float(data["dilution"]), int(data["num_sats"]), log_time,
+                        int(data["ground_speed"]),
+                        float(data["altitude"]),
+                        timestamp,
+                        float(data["dilution"]),
+                        int(data["num_sats"]),
+                        log_time,
                     )
                     loop.create_task(insert_coroutine)
                     # loop.run_until_complete(insert_coroutine)

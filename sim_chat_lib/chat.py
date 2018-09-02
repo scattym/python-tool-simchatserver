@@ -41,7 +41,7 @@ class ChatClient(object):
         # logger.info("Sending data to {}. Data: {}".format(self.ident(), data))
         logger.info("Tx {}, Data: {}".format(self.ident(), data))
         if self.print_comms:
-            print("{}, Tx {}, Data: {}".format(datetime.datetime.now(), self.ident(), data))
+            print("{}, Tx {}, Data: {}".format(datetime.datetime.utcnow(), self.ident(), data))
         if self.debug and self.imei is not None:
             self.queue_debug_log(data, DEBUG_LOG_DIRECTION_SERVER_TO_CLIENT)
 
@@ -69,7 +69,7 @@ class ChatClient(object):
             logger.error("We tried to read from the socket but got timeout error: %s", err)
         logger.info("Rx {}, Data: {}".format(self.ident(), data))
         if self.print_comms:
-            print("{}, Rx {}, Data: {}".format(datetime.datetime.now(), self.ident(), data))
+            print("{}, Rx {}, Data: {}".format(datetime.datetime.utcnow(), self.ident(), data))
         if self.debug and self.imei is not None:
             self.queue_debug_log(data, DEBUG_LOG_DIRECTION_CLIENT_TO_SERVER)
         self.update_last_tick()

@@ -60,7 +60,7 @@ class Task(object):
     def __init__(self, report):
         self.report = report
         self.result = None
-        self.log_time = datetime.datetime.now()
+        self.log_time = datetime.datetime.utcnow()
 
     def __call__(self):
         if isinstance(self.report, report.BaseReport):

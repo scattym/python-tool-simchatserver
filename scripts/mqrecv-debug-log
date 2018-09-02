@@ -101,7 +101,10 @@ async def main(loop):
                 device_id = data["device"]
 
             print("Device id is %s" % (device_id,))
-            log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%SZ")
+            try:
+                log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%SZ")
+            except ValueError as _:
+                log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
             log_time = pytz.utc.localize(log_time)
             if device_id:
                 loop.create_task(
@@ -120,6 +123,6 @@ async def main(loop):
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(create_pool_a())
-    print("Started cell update processor")
+    print("Started debug log processor")
     loop.run_until_complete(main(loop))
     loop.close()

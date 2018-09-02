@@ -23,7 +23,7 @@ def parse_client_connect(sock_fd, report_queue, connect_line):
         for gprs in gprs_list:
             if gprs.imei:
                 client_details["imei"] = gprs.imei
-                client_details["last_tick"] = datetime.datetime.now()
+                client_details["last_tick"] = datetime.datetime.utcnow()
                 if b'FC0' in gprs.enclosed_data.payload:
                     chat_client = create_firmware_client(sock_fd, report_queue, client_details)
 

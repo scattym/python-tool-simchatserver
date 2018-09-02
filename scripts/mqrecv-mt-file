@@ -59,8 +59,8 @@ async def main(loop, file_agg):
             )
             print(file_agg)
             camera_number = data.get("camera_number", "0")
-            camera_time = data.get("camera_time", str(datetime.datetime.now()))
-            log_time = data.get("log_time", str(datetime.datetime.now()))
+            camera_time = data.get("camera_time", str(datetime.datetime.utcnow()))
+            log_time = data.get("log_time", str(datetime.datetime.utcnow()))
 
             if file_bytes:
                 parts = file_name.split(b'_')
