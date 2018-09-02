@@ -1,4 +1,4 @@
-2.78 (unreleased)
+2.78 (2018-09-02)
 -----------------
 
 - Change to imei being decoded as a property of the BaseReport so that we don't need to constantly decode it.
