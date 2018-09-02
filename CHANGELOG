@@ -4,6 +4,7 @@
 - Change to imei being decoded as a property of the BaseReport so that we don't need to constantly decode it.
 - Add logging to show when a client is found when parsing response messages sent back to simchatserver.
 - Move datetime calculations to utcnow.
+- Bump meitrack lib to bring in parsing of digital pin bits in reversed order.
 
 
 2.77 (2018-09-01)
