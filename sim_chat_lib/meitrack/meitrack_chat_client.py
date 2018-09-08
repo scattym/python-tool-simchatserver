@@ -46,7 +46,6 @@ class MeitrackChatClient(BaseChatClient):
         self.current_download = None
         self.current_packet = None
         self.firmware_update = None
-        self.firmware_update_fc0 = None
         self.serial_number = None
         self.file_list_parser = FileListing()
         # self.file_download_list = []
@@ -153,7 +152,6 @@ class MeitrackChatClient(BaseChatClient):
 
     def reset_firmware_download_state(self):
         self.firmware_update = None
-        self.firmware_update_fc0 = None
 
     def parse_firmware_binary(self, response):
         if response and response.get("version") and response.get("file_name"):
@@ -166,8 +164,6 @@ class MeitrackChatClient(BaseChatClient):
                 base64.b64decode(response.get("firmware")),
                 STAGE_SECOND
             )
-            if self.firmware_update_fc0:
-                self.firmware_update.parse_response(self.firmware_update_fc0)
             gprs = self.firmware_update.return_next_payload()
             self.queue_gprs(gprs, True)
 
@@ -337,12 +333,6 @@ class MeitrackChatClient(BaseChatClient):
             if gprs.enclosed_data.command == b'FC7' and self.firmware_update is None:
                 gprs = firmware_update.stc_cancel_ota_update(self.imei)
                 self.queue_gprs(gprs)
-            if gprs.enclosed_data.command in [b'FC0',] and self.firmware_update is None:
-                if gprs.enclosed_data.command == b'FC0':
-                    self.firmware_update_fc0 = gprs
-                logger.info("Device %s is in firmware download mode", self.imei)
-                get_firmware_event = get_firmware_binary_report(self.imei)
-                self.queue_report(get_firmware_event)
 
             if self.firmware_update is not None:
                 logger.log(15, "Firmware update in progress.")
