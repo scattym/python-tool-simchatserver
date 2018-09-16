@@ -1,4 +1,4 @@
-2.79 (unreleased)
+2.79 (2018-09-16)
 -----------------
 
 - Remove firmware binary parsing logic from the meitrack chat client now that it is in the meitrack firmware client class.
