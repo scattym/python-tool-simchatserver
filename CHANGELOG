@@ -1,7 +1,8 @@
 2.79 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Remove firmware binary parsing logic from the meitrack chat client now that it is in the meitrack firmware client class.
+- Bump meitrack parser library to stop library from printing byte parameters to stdout.
 
 
 2.78 (2018-09-02)
