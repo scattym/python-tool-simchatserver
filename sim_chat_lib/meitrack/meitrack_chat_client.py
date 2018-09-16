@@ -154,18 +154,7 @@ class MeitrackChatClient(BaseChatClient):
         self.firmware_update = None
 
     def parse_firmware_binary(self, response):
-        if response and response.get("version") and response.get("file_name"):
-            self.firmware_update = FirmwareUpdate(
-                self.imei,
-                response.get("device_filter").encode(),
-                MT_UPDATE_HOST.encode(),
-                MT_UPDATE_PORT.encode(),
-                response.get("file_name").encode(),
-                base64.b64decode(response.get("firmware")),
-                STAGE_SECOND
-            )
-            gprs = self.firmware_update.return_next_payload()
-            self.queue_gprs(gprs, True)
+        pass
 
     def parse_firmware_version(self, response):
         if response and response.get("version") and response.get("file_name"):
