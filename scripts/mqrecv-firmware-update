@@ -7,50 +7,16 @@ import os
 from geotool_db_api.common import create_pool_a
 from geotool_db_api.device_api import get_update_firmware_coroutine
 from geotool_db_api.device_api import get_device_id
+from mqrecv_lib.firmware_update import main_firmware_update
 
 MQ_HOST = os.environ.get("MQ_HOST", "127.0.0.1")
 MQ_USER = os.environ.get("MQ_USER", "guest")
 MQ_PASS = os.environ.get("MQ_PASS", "guest")
 
 
-async def main(loop):
-    connection = await aio_pika.connect_robust("amqp://{}:{}@{}/".format(MQ_USER, MQ_PASS, MQ_HOST), loop=loop)
-
-    queue_name = "firmware_update"
-
-    # Creating channel
-    channel = await connection.channel()    # type: aio_pika.Channel
-
-    # Declaring queue
-    queue = await channel.declare_queue(queue_name)   # type: aio_pika.Queue
-    imei_map = {}
-
-    async for message in queue:
-        with message.process():
-            print(message.body)
-            data = json.loads(message.body)
-            if data.get("imei", None):
-                if imei_map.get(data["imei"]):
-                    device_id = imei_map.get(data["imei"])
-                else:
-                    device_id = await get_device_id(data["imei"])
-                    if device_id:
-                        imei_map[data["imei"]] = device_id
-            elif data.get("device", None):
-                device_id = data["device"]
-            # manufacturer: str, model: str, revision: str, serial: str, running_version: str, imei: str
-            loop.create_task(get_update_firmware_coroutine(
-                data["manufacturer"], data["model"], data["revision"], data["serial"], data["running_version"],
-                device_id
-            ))
-
-            if queue.name in message.body.decode():
-                break
-
-
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(create_pool_a())
     print("Firmware update processsor has started.")
-    loop.run_until_complete(main(loop))
+    loop.run_until_complete(main_firmware_update(loop))
     loop.close()

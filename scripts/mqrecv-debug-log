@@ -58,71 +58,20 @@
 # print(' [*] Waiting for messages. To exit press CTRL+C')
 # channel.start_consuming()
 import asyncio
-import aio_pika
-import json
-import datetime
 import os
 
-import pytz
 
 from geotool_db_api.common import create_pool_a
-from geotool_db_api.debug_log_api import get_insert_debug_log_coroutine
-from geotool_db_api.device_api import get_insert_cellupdate_coroutine, get_device_id
+from mqrecv_lib.debug_log import main_debug_log
 
 MQ_HOST = os.environ.get("MQ_HOST", "127.0.0.1")
 MQ_USER = os.environ.get("MQ_USER", "guest")
 MQ_PASS = os.environ.get("MQ_PASS", "guest")
 
 
-async def main(loop):
-    connection = await aio_pika.connect_robust("amqp://{}:{}@{}/".format(MQ_USER, MQ_PASS, MQ_HOST), loop=loop)
-
-    queue_name = "debug_log"
-
-    # Creating channel
-    channel = await connection.channel()    # type: aio_pika.Channel
-
-    # Declaring queue
-    queue = await channel.declare_queue(queue_name)   # type: aio_pika.Queue
-    imei_map = {}
-
-    async for message in queue:
-        with message.process():
-            print(message.body)
-            data = json.loads(message.body)
-            if data.get("imei", None):
-                if imei_map.get(data["imei"]):
-                    device_id = imei_map.get(data["imei"])
-                else:
-                    device_id = await get_device_id(data["imei"])
-                    if device_id:
-                        imei_map[data["imei"]] = device_id
-            elif data.get("device", None):
-                device_id = data["device"]
-
-            print("Device id is %s" % (device_id,))
-            try:
-                log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%SZ")
-            except ValueError as _:
-                log_time = datetime.datetime.strptime(data["log_time"], "%Y-%m-%d %H:%M:%S.%f")
-            log_time = pytz.utc.localize(log_time)
-            if device_id:
-                loop.create_task(
-                    get_insert_debug_log_coroutine(
-                        log_time,
-                        data["direction"],
-                        data["data"],
-                        int(device_id),
-                    )
-                )
-
-            if queue.name in message.body.decode():
-                break
-
-
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(create_pool_a())
     print("Started debug log processor")
-    loop.run_until_complete(main(loop))
+    loop.run_until_complete(main_debug_log(loop))
     loop.close()
