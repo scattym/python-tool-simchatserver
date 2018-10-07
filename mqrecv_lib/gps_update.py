@@ -1,25 +1,15 @@
-#!/usr/bin/env python
-
-
-import asyncio
-import aio_pika
-import json
 import datetime
-import os
+import json
 import logging
 
+import aio_pika
 import pytz
 
-from geotool_db_api.common import create_pool_a
-from geotool_db_api.device_api import get_insert_deviceupdate_coroutine
-from geotool_db_api.device_api import get_update_deviceupdatecache_coroutine, get_device_id
-
-MQ_HOST = os.environ.get("MQ_HOST", "127.0.0.1")
-MQ_USER = os.environ.get("MQ_USER", "guest")
-MQ_PASS = os.environ.get("MQ_PASS", "guest")
+from mqrecv_lib.common import MQ_USER, MQ_PASS, MQ_HOST
+from geotool_db_api.device_api import get_device_id, get_insert_deviceupdate_coroutine, \
+    get_update_deviceupdatecache_coroutine
 
 logger = logging.getLogger(__name__)
-
 
 async def main_gps_update(loop):
     connection = await aio_pika.connect_robust("amqp://{}:{}@{}/".format(MQ_USER, MQ_PASS, MQ_HOST), loop=loop)
@@ -35,7 +25,7 @@ async def main_gps_update(loop):
 
     async for message in queue:
         with message.process():
-            print(message.body)
+            logger.info(message.body)
             data = json.loads(message.body)
             if data.get("imei", None):
                 if imei_map.get(data["imei"]):
@@ -56,13 +46,13 @@ async def main_gps_update(loop):
                 if location:
                     bracket_open = location.find('(')
                     bracket_close = location.find(')')
-                    print(location[bracket_open + 1:bracket_close])
+                    logger.debug(location[bracket_open + 1:bracket_close])
                     longitude, latitude = location[bracket_open + 1:bracket_close].split(" ", 1)
                 else:
                     longitude = data.get("longitude")
                     latitude = data.get("latitude")
 
-                print("Device id is %s" % (device_id,))
+                logger.debug("Device id is %s", device_id)
                 if "." not in data["timestamp"]:
                     data["timestamp"] = "{}.0".format(data["timestamp"])
                 timestamp = datetime.datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
@@ -104,11 +94,3 @@ async def main_gps_update(loop):
 
             if queue.name in message.body.decode():
                 break
-
-
-if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(create_pool_a())
-    print("GPS update processor has started.")
-    loop.run_until_complete(main_gps_update(loop))
-    loop.close()

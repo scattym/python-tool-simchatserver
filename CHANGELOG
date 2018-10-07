@@ -1,7 +1,8 @@
 2.80 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Refactor all asynchronous loops into new mqrecv_lib library.
+- Move gps, cell and debug processing into mqrecv-event to reduce number of required db connections.
 
 
 2.79 (2018-09-16)
