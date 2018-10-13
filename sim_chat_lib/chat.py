@@ -189,3 +189,6 @@ class ChatClient(object):
 
     def parse_firmware_binary(self, response):
         pass
+
+    def set_snapshot_parameters(self, event_code=1, interval=20, count=1, upload=1, delete=1):
+        pass

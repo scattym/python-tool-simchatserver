@@ -3,6 +3,7 @@
 
 - Refactor all asynchronous loops into new mqrecv_lib library.
 - Move gps, cell and debug processing into mqrecv-event to reduce number of required db connections.
+- Bump version of meitrack lib to bring in B46 command for setting of camera snapshot parameters.
 
 
 2.79 (2018-09-16)

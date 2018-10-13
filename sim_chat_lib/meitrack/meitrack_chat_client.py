@@ -5,7 +5,7 @@ import logging
 import os
 import traceback
 
-from meitrack.build_message import stc_restart_gps, stc_restart_gsm, stc_set_output_pin
+from meitrack.build_message import stc_restart_gps, stc_restart_gsm, stc_set_output_pin, stc_set_snapshot_parameters
 from meitrack.common import DIRECTION_CLIENT_TO_SERVER
 from meitrack.file_list import FileListing, FileListingError
 from meitrack.firmware_update import FirmwareUpdate, STAGE_FIRST, STAGE_SECOND, stc_cancel_ota_update
@@ -533,6 +533,23 @@ class MeitrackChatClient(BaseChatClient):
             gprs = stc_set_output_pin(self.imei, 1, pin, state)
             self.queue_gprs(gprs, True)
             self.queue_event_report(self.imei, "Request set pin %s to state %s" % (pin, state))
+
+    def set_snapshot_parameters(self, event_code=1, interval=20, count=1, upload=1, delete=1):
+        if not self.imei:
+            logger.error("Unable to request client to update firmware as client id not yet known")
+        else:
+            gprs = stc_set_snapshot_parameters(self.imei, event_code, interval, count, upload, delete)
+            self.queue_gprs(gprs, True)
+            self.queue_event_report(
+                self.imei,
+                "Snapshot parameters sent to device. Event: %s, Interval: %s, Count: %s, Upload: %s, Delete: %s" % (
+                    event_code,
+                    interval,
+                    count,
+                    upload,
+                    delete,
+                )
+            )
 
     def update_configuration(self):
         if not self.imei:
