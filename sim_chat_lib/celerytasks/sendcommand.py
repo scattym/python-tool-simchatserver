@@ -86,6 +86,12 @@ def set_pin(imei, pin, state):
     return 'Issued debug toggle for device {} with result {}'.format(imei, result)
 
 
+@sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.set_snapshot_parameters')
+def set_snapshot_parameters(imei, event_code, interval, count, upload, delete):
+    result = send_set_pin(imei, event_code, interval, count, upload, delete)
+    return 'Issued debug toggle for device {} with result {}'.format(imei, result)
+
+
 default_exchange = Exchange('sim_chat_lib.celerytasks.sendcommand.default', type='direct')
 sim_chat_server_celery_app.conf.task_queues = (
     Broadcast('sim_chat_lib.celerytasks.sendcommand.broadcast_tasks'),

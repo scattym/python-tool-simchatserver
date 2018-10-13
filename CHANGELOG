@@ -4,7 +4,9 @@
 - Refactor all asynchronous loops into new mqrecv_lib library.
 - Move gps, cell and debug processing into mqrecv-event to reduce number of required db connections.
 - Bump version of meitrack lib to bring in B46 command for setting of camera snapshot parameters.
-
+- Add ability to trigger B46 command from the meitrack chat client.
+- Add scs command protocol for setting of camera parameters.
+- Add celery commands to set camera snapshot parameters.
 
 2.79 (2018-09-16)
 -----------------

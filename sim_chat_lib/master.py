@@ -62,6 +62,11 @@ def send_set_pin(imei, pin, state):
     return send_message(message)
 
 
+def send_set_snapshot_parameters(imei, event_code, interval, count, upload, delete):
+    message = "imei-{},set_snapshot,{},{},{},{},{}".format(imei, event_code, interval, count, upload, delete)
+    return send_message(message)
+
+
 def send_message(message):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
