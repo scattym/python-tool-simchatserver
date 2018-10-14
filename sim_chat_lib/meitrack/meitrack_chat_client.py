@@ -277,11 +277,14 @@ class MeitrackChatClient(BaseChatClient):
                     logger.error("Error adding packet to file list %s. Clearing list.", err)
                     self.file_list_parser.clear_list()
 
-                if gprs and gprs.enclosed_data and gprs.enclosed_data["event_code"] == b'39':
-                    self.file_list_parser.add_item(gprs.enclosed_data["file_name"])
-                    self.queue_event_report(
-                        self.imei, "New photo on device {}".format(gprs.enclosed_data["file_name"])
-                    )
+                # logic no longer required as the images are automatically sent to the headend.
+                # We are still issuing a file list after 480s so any orphans should get cleaned
+                # up by that logic instead.
+                # if gprs and gprs.enclosed_data and gprs.enclosed_data["event_code"] == b'39':
+                #     self.file_list_parser.add_item(gprs.enclosed_data["file_name"])
+                #     self.queue_event_report(
+                #         self.imei, "New photo on device {}".format(gprs.enclosed_data["file_name"])
+                #     )
 
                 if gprs and gprs.enclosed_data:
                     file_name, num_packets, packet_number, file_bytes = gprs.enclosed_data.get_file_data()
