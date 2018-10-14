@@ -1,4 +1,4 @@
-2.80 (unreleased)
+2.80 (2018-10-14)
 -----------------
 
 - Refactor all asynchronous loops into new mqrecv_lib library.
