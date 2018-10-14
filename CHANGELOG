@@ -9,6 +9,7 @@
 
 - Don't add files reported by event 39 to the list of files that we need to download. Files are automatically sent to the head end.
 - Increase file fragment timeout to 120s as it was sometimes getting triggered for a file that the device was still sending. Was 60s.
+- Allow sending of empty license commands to reset the value back to the default of any license type. Previously empty values were ignored so we could not set C50 back to empty.
 
 
 2.81 (2018-10-14)
