@@ -39,8 +39,11 @@ def config_to_gprs(config, imei):
         event_report = event_to_report(imei, "Set timezone offset")
         event_report_list.append(event_report)
 
-    if config.get("driving_license_type_en", False) is True and config.get("driving_license_type") is not None:
-        gprs = build_message.stc_set_driver_license_type(imei, config.get("driving_license_type"))
+    if config.get("driving_license_type_en", False) is True:
+        driving_license_type = config.get("driving_license_type")
+        if driving_license_type is None:
+            driving_license_type = ""
+        gprs = build_message.stc_set_driver_license_type(imei, driving_license_type)
         gprs_list.append(gprs)
         event_report = event_to_report(imei, "Set driving license type")
         event_report_list.append(event_report)
