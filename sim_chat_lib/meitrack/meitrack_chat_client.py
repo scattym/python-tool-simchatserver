@@ -23,7 +23,7 @@ from sim_chat_lib.report import MeitrackConfigRequest
 
 logger = logging.getLogger(__name__)
 
-MT_PARTIAL_WAIT = int(os.environ.get("MT_PARTIAL_WAIT", "60"))
+MT_PARTIAL_WAIT = int(os.environ.get("MT_PARTIAL_WAIT", "120"))
 MT_PARTIAL_WAIT_DELTA = datetime.timedelta(seconds=MT_PARTIAL_WAIT)
 MT_NEW_FILE_WAIT = int(os.environ.get("MT_NEW_FILE_WAIT", "480"))
 MT_NEW_FILE_WAIT_DELTA = datetime.timedelta(seconds=MT_NEW_FILE_WAIT)
