@@ -1,7 +1,8 @@
 2.81 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Split geotool config to meitrack gprs messages out into separate file.
+- Add ability to parse the camera configuration parameters from the geotool config object.
 
 
 2.80 (2018-10-14)

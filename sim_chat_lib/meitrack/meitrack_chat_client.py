@@ -16,6 +16,7 @@ from meitrack.error import GPRSParseError
 from meitrack.error import GPRSError
 from meitrack.gprs_protocol import parse_data_payload
 from meitrack import build_message, firmware_update
+from sim_chat_lib.meitrack.geotool_config_to_gprs_list import config_to_gprs
 from sim_chat_lib.meitrack.gprs_to_report import gprs_to_report, get_firmware_binary_report, get_firmware_version_report
 from sim_chat_lib.report import MeitrackConfigRequest
 
@@ -176,91 +177,11 @@ class MeitrackChatClient(BaseChatClient):
             logger.error("No response to parse.")
             return
         if self.firmware_update is None:
-            if response.get("heartbeat_interval") is not None:
-                gprs = build_message.stc_set_heartbeat_interval(self.imei, response.get("heartbeat_interval"))
+            gprs_list, event_report_list = config_to_gprs(response, self.imei)
+            for gprs in gprs_list:
                 self.queue_gprs(gprs)
-                self.queue_event_report(self.imei, "Set heartbeat interval")
-            if response.get("time_interval") is not None:
-                gprs = build_message.stc_set_tracking_by_time_interval(self.imei, response.get("time_interval"))
-                self.queue_gprs(gprs)
-                self.queue_event_report(self.imei, "Set time interval")
-            if response.get("cornering_angle") is not None:
-                gprs = build_message.stc_set_cornering_angle(self.imei, response.get("cornering_angle"))
-                self.queue_gprs(gprs)
-                self.queue_event_report(self.imei, "Set cornering angle")
-            if response.get("tracking_by_distance") is not None:
-                gprs = build_message.stc_set_tracking_by_distance(self.imei, response.get("tracking_by_distance"))
-                self.queue_gprs(gprs)
-                self.queue_event_report(self.imei, "Set tracking by distance")
-            if response.get("time_zone_offset_minutes") is not None:
-                gprs = build_message.stc_set_time_zone(self.imei, response.get("time_zone_offset_minutes"))
-                self.queue_gprs(gprs)
-                self.queue_event_report(self.imei, "Set timezone offset")
-            if response.get("driving_license_type") is not None:
-                gprs = build_message.stc_set_driver_license_type(self.imei, response.get("driving_license_type"))
-                self.queue_gprs(gprs)
-            if response.get("fatigue_driving_consecutive_driving_time") is not None or \
-                    response.get("fatigue_driving_alert_time") is not None or \
-                    response.get("fatigue_driving_acc_off_time_mins") is not None:
-                consecutive = response.get("fatigue_driving_consecutive_driving_time") or 480
-                alert = response.get("fatigue_driving_alert_time") or 300
-                acc_off = response.get("fatigue_driving_acc_off_time_mins") or 0
-                gprs = build_message.stc_set_fatigue_driving_alert_time(
-                    self.imei,
-                    consecutive,
-                    alert,
-                    acc_off
-                )
-                self.queue_gprs(gprs)
-                self.queue_event_report(self.imei, "Set drivers license type")
-            if response.get("idle_alert_consecutive_speed_time") is not None or \
-                    response.get("idle_alert_speed_kmh") is not None or \
-                    response.get("idle_alert_alert_time") is not None:
-                consecutive = response.get("idle_alert_consecutive_speed_time") or 480
-                speed = response.get("fatigue_driving_acc_off_time_mins") or 0
-                alert_time = response.get("idle_alert_alert_time") or 300
-
-                gprs = build_message.stc_set_idle_alert_time(
-                    self.imei,
-                    consecutive,
-                    speed,
-                    alert_time,
-                )
-                self.queue_gprs(gprs)
-                self.queue_event_report(self.imei, "Set idle alert parameters")
-            if response.get("speeding_alert_speed") is not None or \
-                    response.get("speeding_alert_disabled") is not None:
-                speed = response.get("speeding_alert_speed") or 480
-                disabled = response.get("speeding_alert_disabled") or True
-                gprs = build_message.stc_set_speeding_alert(
-                    self.imei,
-                    speed,
-                    disabled,
-                )
-                self.queue_gprs(gprs)
-                self.queue_event_report(self.imei, "Set speeding parameters")
-            if response.get("driving_license_validity_time") is not None:
-                gprs = build_message.stc_set_driver_license_validity_time(
-                    self.imei,
-                    response.get("driving_license_validity_time")
-                )
-                self.queue_gprs(gprs)
-                self.queue_event_report(self.imei, "Set driving license validity time")
-            if response.get("peripheral_configuration") is not None:
-                config_list = []
-                if response["peripheral_configuration"].get("device_type") == 9:
-                    for key, val in response["peripheral_configuration"].items():
-                        if 'device_' in key:
-                            if val is not None:
-                                try:
-                                    device_id = int(key.split('_')[1])
-                                    config_list.append([device_id, val])
-                                except ValueError as err:
-                                    logger.error("Unable to find device id from key %s", key)
-                    if config_list:
-                        gprs = build_message.stc_set_io_device_params(self.imei, b"A78", config_list)
-                        self.queue_gprs(gprs)
-                        self.queue_event_report(self.imei, "Set peripheral config")
+            for event_report in event_report_list:
+                self.queue_report(event_report)
 
     def process_connect_string(self, data):
         gprs_list = self.data_to_gprs_list(data)
