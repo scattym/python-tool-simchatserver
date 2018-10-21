@@ -36,7 +36,7 @@ setup(
             'aio_pika',
             'geotooldbapi>=2.1',
             'geotoolapi>=1.23',
-            'meitrackparser>=2.2',
+            'meitrackparser>=2.3',
             'celery',
             'kombu',
             # 'geotool_api==1.0',
