@@ -1,4 +1,4 @@
-2.84 (unreleased)
+2.84 (2018-11-17)
 -----------------
 
 - Add celery sqs plugin to dependencies.
