@@ -3,6 +3,9 @@
 FROM python:3.6-slim
 MAINTAINER Matt Clark <mattjclark0407@hotmail.com>
 
+RUN apt-get update && apt-get install -y \
+	libcurl4-gnutls-dev \
+&& rm -rf /var/lib/apt/lists/*
 COPY binaries/python36/* /tmp
 COPY dockerfiles/simchatserver-base/pip.conf /etc/pip.conf
 ENV PIP_CONFIG_FILE /etc/pip.conf
