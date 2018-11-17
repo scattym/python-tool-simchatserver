@@ -27,7 +27,7 @@ setup(
       ],
       packages=find_packages(),
       install_requires=[
-            "pycrypto",
+            "pycryptodome",
             "requests",
             "simplejson",
             "cachetools",
