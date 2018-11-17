@@ -37,7 +37,7 @@ setup(
             'geotooldbapi>=2.1',
             'geotoolapi>=1.23',
             'meitrackparser>=2.2',
-            'celery',
+            'celery[sqs]',
             'kombu',
             # 'geotool_api==1.0',
       ],
