@@ -2,6 +2,7 @@
 -----------------
 
 - Add celery sqs plugin to dependencies.
+- Update geotool and geotool-db dependencies to remove pycrypto references.
 
 
 2.83 (2018-10-21)
