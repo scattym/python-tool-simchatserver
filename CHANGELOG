@@ -1,7 +1,13 @@
-2.83 (unreleased)
+2.84 (unreleased)
 -----------------
 
 - Add celery sqs plugin to dependencies.
+
+
+2.83 (2018-10-21)
+-----------------
+
+- Bump version of meitrack lib to bring in unit tested functionality.
 
 
 2.82 (2018-10-14)

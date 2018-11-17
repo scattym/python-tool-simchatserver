@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
       name='simchatserver',
-      version='2.83.dev0',
+      version='2.84.dev0',
       description='Project to communicate with simcom and meitrack devices',
       url='https://bitbucket.org/mjclark1/python-tool-simchatserver.git',
       author='Matt Clark',
@@ -36,7 +36,7 @@ setup(
             'aio_pika',
             'geotooldbapi>=2.1',
             'geotoolapi>=1.23',
-            'meitrackparser>=2.2',
+            'meitrackparser>=2.3',
             'celery[sqs]',
             'kombu',
             # 'geotool_api==1.0',
