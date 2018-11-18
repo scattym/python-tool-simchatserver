@@ -1,7 +1,7 @@
 2.86 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Don't register stdin with epoll.
 
 
 2.85 (2018-11-18)
