@@ -182,7 +182,7 @@ def chat_server(port, task_queue, result_queue, disconnect_unidentified, wait_ti
     epoll.register(server_socket.fileno(), select.EPOLLIN)
     logger.log(13, "Result queue file descriptor is %s", result_queue._reader.fileno())
     epoll.register(result_queue._reader, select.EPOLLIN)
-    epoll.register(sys.stdin, select.EPOLLIN)
+    # epoll.register(sys.stdin, select.EPOLLIN)
 
     QUIT_FLAG = False
 
