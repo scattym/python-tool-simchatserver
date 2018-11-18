@@ -571,7 +571,7 @@ if __name__ == "__main__":
         '--port',
         help="The port for the webserver to listen on.",
         type=int,
-        default=65533,
+        default=int(os.environ.get('SCS_PORT', '65533')),
     )
     parser.add_argument(
         '-s',
