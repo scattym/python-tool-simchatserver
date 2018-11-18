@@ -1,7 +1,7 @@
 2.85 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add ability to specify port through environmental variable SCS_PORT.
 
 
 2.84 (2018-11-17)
