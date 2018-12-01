@@ -15,11 +15,11 @@ import os
 import pytz
 
 from geotool_db_api.common import create_pool_a
-from mqrecv_lib.analogue_io import main_analogue_io
+from mqrecv_lib.analogue_io import main_analogue_io, main_current_analogue_io
 from mqrecv_lib.battery_update import main_battery_update
 from mqrecv_lib.cell_update import main_cell_update
 from mqrecv_lib.debug_log import main_debug_log
-from mqrecv_lib.digital_io import main_digital_io
+from mqrecv_lib.digital_io import main_digital_io, main_current_digital_io
 from mqrecv_lib.event import main_event
 from mqrecv_lib.gps_update import main_gps_update
 
@@ -84,6 +84,8 @@ if __name__ == "__main__":
     loop.create_task(main_event(loop))
     loop.create_task(main_analogue_io(loop))
     loop.create_task(main_digital_io(loop))
+    loop.create_task(main_current_analogue_io(loop))
+    loop.create_task(main_current_digital_io(loop))
     loop.create_task(main_battery_update(loop))
     loop.create_task(main_cell_update(loop))
     loop.create_task(main_gps_update(loop))
