@@ -65,7 +65,7 @@ async def main_digital_io(loop):
 async def main_current_digital_io(loop):
     connection = await aio_pika.connect_robust("amqp://{}:{}@{}/".format(MQ_USER, MQ_PASS, MQ_HOST), loop=loop)
 
-    queue_name = "digital_io"
+    queue_name = "current_digital_io"
 
     # Creating channel
     channel = await connection.channel()  # type: aio_pika.Channel
