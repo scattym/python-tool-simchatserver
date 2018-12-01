@@ -1,7 +1,8 @@
 2.88 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix queue names for current io pin status messages
+- Bump geotool db to bring in fix for invalid analogue function definition.
 
 
 2.87 (2018-12-01)
