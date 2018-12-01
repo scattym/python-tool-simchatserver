@@ -1,7 +1,7 @@
 2.89 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Bump geotool api library version to bring in possible fix for current status not being updated.
 
 
 2.88 (2018-12-01)
