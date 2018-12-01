@@ -1,4 +1,4 @@
-2.87 (unreleased)
+2.87 (2018-12-01)
 -----------------
 
 - Add new processor for handling current io status through the message queue interface.
