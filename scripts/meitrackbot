@@ -109,6 +109,9 @@ def send_gprs_message(imei, sock, gprs_message):
 
 
 send_data = [
+    # RFID
+    b"""AAA,37,%b,%b,180701053440,A,4,10,0,208,19.1,68,29899,421883,505|3|00FA|04E381F5,0500,0000|0000|0000|018A|0576,%%  ^FRANKLING MICHAEL MR.^^?;6006644100700761257=999919770704=?+  3100            1            58007167  00102?,,108,0000,,3,0,,0|0000|0000|0000|0000|0000""",
+
     # Engine on
     b'AAA,3,%b,%b,181202051813,A,6,5,0,292,1.1,58,877611,5865393,505|2|7D07|041C15F3,0400,0000|0000|0000|018B|0658,,,108,0000,,3,0,,0|0000|0000|0000|0000|0000',
 
@@ -196,6 +199,7 @@ def chat_client(
     login_gprs.recalc_leftover()
 
     message = login_gprs.as_bytes()
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(100)
     s.setblocking(1)
@@ -236,6 +240,7 @@ def chat_client(
             login_gprs.recalc_leftover()
 
             s.send(login_gprs.as_bytes())
+            print(login_gprs.as_bytes())
             data_counter = (data_counter + 1) % len(send_data)
 
         for sock in ready_to_read:
