@@ -53,6 +53,7 @@ class MeitrackFirmwareClient(BaseChatClient):
         self.last_file_request = datetime.datetime.utcnow()
         self.gprs_queue = []
         self.current_message = None
+        self.sent_counter = 0
 
         if imei:
             self.on_login()
@@ -72,6 +73,9 @@ class MeitrackFirmwareClient(BaseChatClient):
                 self.current_message = self.gprs_queue[0]
                 self.current_message["sent"] = (datetime.datetime.utcnow()-EPOCH).total_seconds()
                 self.send_data(self.current_message["request_bytes"])
+                self.sent_counter += 1
+                if self.sent_counter % 10 == 0:
+                    self.queue_event_report(self.imei, "Send firmware packet {}".format(self.sent_counter))
                 logger.info(self.current_message["request_bytes"])
 
     def match_response_to_message(self, gprs):
@@ -239,6 +243,7 @@ class MeitrackFirmwareClient(BaseChatClient):
                 if next_message is not None:
                     self.queue_gprs(next_message, True)
                 if self.firmware_update.is_finished:
+                    self.queue_event_report(self.imei, "Firmware upload finished.".format(self.sent_counter))
                     self.reset_firmware_download_state()
 
         return return_str
