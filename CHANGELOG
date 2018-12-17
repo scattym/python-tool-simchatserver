@@ -1,4 +1,4 @@
-2.91 (unreleased)
+2.91 (2018-12-17)
 -----------------
 
 - Expose flower to manage celery.
