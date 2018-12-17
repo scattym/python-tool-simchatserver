@@ -2,7 +2,8 @@
 
 FROM simchatserver-base:interim
 MAINTAINER Matt Clark <mattjclark0407@hotmail.com>
+RUN pip install celery-flower
 
 USER sysadmin
 ENTRYPOINT ["/usr/local/bin/celery"]
-CMD ["-A", "sim_chat_lib.celerytasks.sendcommand", "worker", "-l", "info"]
+CMD ["flower", "-A", "sim_chat_lib.celerytasks.sendcommand", "worker", "-l", "info"]
