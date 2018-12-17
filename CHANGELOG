@@ -1,7 +1,7 @@
 2.91 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Expose flower to manage celery.
 
 
 2.90 (2018-12-17)
