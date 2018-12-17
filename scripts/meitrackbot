@@ -318,7 +318,7 @@ if __name__ == "__main__":
         '-o',
         '--host',
         help="The host to connect to.",
-        default="localhost",
+        default=os.environ.get("SCS_HOST", "localhost"),
     )
 
     parser.add_argument(
