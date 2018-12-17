@@ -3,6 +3,7 @@
 FROM simchatserver-base:interim
 MAINTAINER Matt Clark <mattjclark0407@hotmail.com>
 RUN pip install celery-flower
+EXPOSE 5555
 
 USER sysadmin
 ENTRYPOINT ["/usr/local/bin/celery"]
