@@ -1,7 +1,8 @@
 2.95 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add ability to delete files from the master.
+- Bump meitrack lib to bring in file deletion commands.
 
 
 2.94 (2019-01-13)
