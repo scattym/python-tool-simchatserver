@@ -1,4 +1,4 @@
-2.93 (unreleased)
+2.93 (2019-01-13)
 -----------------
 
 - Add setting up of broadcast exchange back to the celery code.
