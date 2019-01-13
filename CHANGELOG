@@ -1,7 +1,7 @@
 2.94 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Move running of flower into a separate docker instance.
 
 
 2.93 (2019-01-13)
