@@ -7,4 +7,4 @@ EXPOSE 5555
 
 USER sysadmin
 ENTRYPOINT ["/usr/local/bin/celery"]
-CMD ["flower", ""-A", "sim_chat_lib.celerytasks.sendcommand", "worker", "-l", "info"]
+CMD ["flower", "-A", "sim_chat_lib.celerytasks.sendcommand", "worker", "-l", "info"]
