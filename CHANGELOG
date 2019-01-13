@@ -2,6 +2,7 @@
 -----------------
 
 - Move running of flower into a separate docker instance.
+- Add build scripts for simchatflower
 
 
 2.93 (2019-01-13)
