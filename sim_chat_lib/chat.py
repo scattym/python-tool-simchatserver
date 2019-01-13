@@ -160,6 +160,9 @@ class ChatClient(object):
     def request_get_file(self, file_name, payload_start_index=0):
         logger.log(13, "Client file retrieval not implemented for this device.")
 
+    def request_delete_file(self, file_name):
+        logger.log(13, "Client file deletion not implemented for this device.")
+
     def set_heartbeat_interval(self, seconds):
         logger.log(13, "Setting heartbeat not implemented for this device.")
 
