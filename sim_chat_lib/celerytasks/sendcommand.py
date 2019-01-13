@@ -8,7 +8,8 @@ from sim_chat_lib.master import send_take_photo_by_imei, send_photo_list_by_imei
 from sim_chat_lib.master import send_cancel_firmware_update, send_update_configuration
 
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'amqp://guest@localhost')
-sim_chat_server_celery_app = Celery('sim_chat_server_tasks', broker=CELERY_BROKER_URL)
+sim_chat_server_celery_app = Celery('sim_chat_server_tasks', broker=CELERY_BROKER_URL, )
+sim_chat_server_celery_app.conf.broker_transport_options = {'region': 'ap-southeast-2'}
 
 #     {
 #     'sim_chat_lib.celerytasks.sendcommand.take_photo': {
@@ -92,13 +93,13 @@ def set_snapshot_parameters(imei, event_code, interval, count, upload, delete):
     return 'Issued debug toggle for device {} with result {}'.format(imei, result)
 
 
-default_exchange = Exchange('sim_chat_lib.celerytasks.sendcommand.default', type='direct')
-sim_chat_server_celery_app.conf.task_queues = (
-    Broadcast('sim_chat_lib.celerytasks.sendcommand.broadcast_tasks'),
-    Queue(
-        'sim_chat_lib.celerytasks.sendcommand.default',
-        default_exchange,
-        routing_key='sim_chat_lib.celerytasks.sendcommand.default'
-    )
-)
-sim_chat_server_celery_app.conf.task_routes = (route_for_simchatcelery,)
+# default_exchange = Exchange('sim_chat_lib.celerytasks.sendcommand.default', type='direct')
+# sim_chat_server_celery_app.conf.task_queues = (
+#     Broadcast('sim_chat_lib.celerytasks.sendcommand.broadcast_tasks', 'broadcast_queue'),
+#     Queue(
+#         'sim_chat_lib.celerytasks.sendcommand.default',
+#         default_exchange,
+#         routing_key='sim_chat_lib.celerytasks.sendcommand.default'
+#     )
+# )
+# sim_chat_server_celery_app.conf.task_routes = (route_for_simchatcelery,)
