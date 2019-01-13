@@ -1,7 +1,7 @@
 2.93 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add setting up of broadcast exchange back to the celery code.
 
 
 2.92 (2019-01-13)
