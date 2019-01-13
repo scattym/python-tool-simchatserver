@@ -7,3 +7,4 @@ docker build --tag=gcr.io/geotool-test/mqrecv-firmware-update:v${GIT_VER} . -f d
 docker build --tag=gcr.io/geotool-test/mqrecv-mt-file:v${GIT_VER} . -f dockerfiles/mqrecv-mt-file/Dockerfile-dev
 docker build --tag=gcr.io/geotool-test/meitrackbot:v${GIT_VER} . -f dockerfiles/meitrackbot/Dockerfile-dev
 docker build --tag=gcr.io/geotool-test/simchatcelery:v${GIT_VER} . -f dockerfiles/simchatcelery/Dockerfile-dev
+docker build --tag=gcr.io/geotool-test/simchatflower:v${GIT_VER} . -f dockerfiles/simchatflower/Dockerfile-dev
