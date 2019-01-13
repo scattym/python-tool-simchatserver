@@ -425,6 +425,26 @@ class MeitrackChatClient(BaseChatClient):
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send. Error: %s", err)
 
+    def request_delete_all_files(self):
+        if not self.imei:
+            logger.error("Unable to request client to retrieve photo as client id not yet known")
+        else:
+            if self.file_list_parser.num_files > 0:
+                for file_name in self.file_list_parser.file_arr:
+                    try:
+                        gprs = build_message.stc_request_delete_file(self.imei, file_name)
+                        self.queue_gprs(gprs)
+                        self.last_file_request = datetime.datetime.utcnow()
+                        self.queue_event_report(
+                            self.imei,
+                            "Request delete file {}".format(file_name)
+                        )
+                    except GPRSError as err:
+                        logger.error("Failed to create gprs payload to send. Error: %s", err)
+
+                for file_name in self.file_list_parser.file_arr:
+                    self.file_list_parser.remove_item(file_name)
+
     def request_get_file(self, file_name, payload_start_index=0):
         if not self.imei:
             logger.error("Unable to request client to retrieve photo as client id not yet known")

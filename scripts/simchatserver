@@ -490,6 +490,8 @@ def send_to_device(ident, cmd):
                         logger.debug("File name is {}".format(file_name))
                     if file_name:
                         client.request_delete_file(file_name)
+                elif "delete_all_file" in cmd:
+                    client.request_delete_all_files()
                 elif "firmware_update" == cmd:
                     client.request_firmware_update()
                 elif "cancel_firmware_update" == cmd:
