@@ -10,6 +10,6 @@ asyncpg
 psycopg2-binary
 geotooldbapi>=2.2
 geotoolapi>=2.0
-meitrackparser>=2.3
+meitrackparser>=2.4
 celery[sqs]
 kombu
