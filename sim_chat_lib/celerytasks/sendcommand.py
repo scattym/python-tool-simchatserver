@@ -93,13 +93,13 @@ def set_snapshot_parameters(imei, event_code, interval, count, upload, delete):
     return 'Issued debug toggle for device {} with result {}'.format(imei, result)
 
 
-# default_exchange = Exchange('sim_chat_lib.celerytasks.sendcommand.default', type='direct')
-# sim_chat_server_celery_app.conf.task_queues = (
-#     Broadcast('sim_chat_lib.celerytasks.sendcommand.broadcast_tasks', 'broadcast_queue'),
-#     Queue(
-#         'sim_chat_lib.celerytasks.sendcommand.default',
-#         default_exchange,
-#         routing_key='sim_chat_lib.celerytasks.sendcommand.default'
-#     )
-# )
-# sim_chat_server_celery_app.conf.task_routes = (route_for_simchatcelery,)
+default_exchange = Exchange('sim_chat_lib.celerytasks.sendcommand.default', type='direct')
+sim_chat_server_celery_app.conf.task_queues = (
+    Broadcast('sim_chat_lib.celerytasks.sendcommand.broadcast_tasks', 'broadcast_queue'),
+    Queue(
+        'sim_chat_lib.celerytasks.sendcommand.default',
+        default_exchange,
+        routing_key='sim_chat_lib.celerytasks.sendcommand.default'
+    )
+)
+sim_chat_server_celery_app.conf.task_routes = (route_for_simchatcelery,)
