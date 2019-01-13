@@ -299,11 +299,19 @@ class MeitrackChatClient(BaseChatClient):
 
                         # if packet_number_int % 8 == 7 and num_packets_int > packet_number_int+1:
                         #     self.request_get_file(file_name, packet_number_int+1)
-                        return_str += "File: %s, packet: %s, of: %s\n" % (
-                            file_name.decode(),
-                            packet_number_int+1,
-                            num_packets_int
-                        )
+                        try:
+                            return_str += "File: %s, packet: %s, of: %s\n" % (
+                                file_name.decode(),
+                                packet_number_int+1,
+                                num_packets_int
+                            )
+                        except UnicodeDecodeError as _:
+                            return_str += "File: %s, packet: %s, of: %s\n" % (
+                                file_name,
+                                packet_number_int+1,
+                                num_packets_int
+                            )
+
                         if num_packets_int == packet_number_int+1:
                             self.current_download = None
                             self.current_packet = None
