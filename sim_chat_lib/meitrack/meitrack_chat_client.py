@@ -86,7 +86,7 @@ class MeitrackChatClient(BaseChatClient):
                 del self.gprs_queue[0]
                 self.current_message = None
             else:
-                logger.error(
+                logger.info(
                     "Identifier %s does not match item in queue: %s",
                     gprs.data_identifier,
                     self.gprs_queue[0]["id"]
@@ -262,7 +262,7 @@ class MeitrackChatClient(BaseChatClient):
                 try:
                     return_str += (gprs.as_bytes()).decode()
                 except UnicodeDecodeError as err:
-                    logger.error("Unable to decode response to send to masters with error: %s", err)
+                    logger.debug("Unable to decode response to send to masters with error: %s", err)
                     return_str += "Binary data"
 
                 try:
