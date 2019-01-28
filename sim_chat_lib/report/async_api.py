@@ -164,7 +164,11 @@ class Task(object):
 
         if self.report.license_data is not None:
             try:
-                self.result = driver_api.add_driver_log_by_payload(self.report.imei, self.report.license_data)
+                self.result = driver_api.add_driver_log_by_payload(
+                    self.report.imei,
+                    self.report.timestamp,
+                    self.report.license_data
+                )
             except Exception as err:
                 logger.error("Exception in async task, logging file entry %s", err)
                 logger.log(13, traceback.print_exc())

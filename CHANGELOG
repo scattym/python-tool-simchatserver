@@ -1,8 +1,8 @@
 2.97 (unreleased)
 -----------------
 
-- Nothing changed yet.
-
+- Add timestamp to the driver log apis.
+- Bump version of geotool api to bring in new timestamp parameter.
 
 2.96 (2019-01-13)
 -----------------
