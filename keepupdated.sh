@@ -25,7 +25,7 @@ docker stop simchatflower || true
 docker rm simchatflower || true
 docker run -dt --link=simchatserver --restart=always -e SCS_HOST=simchatserver -e CELERY_BROKER_URL="amqp://10.1.1.4" -e GEO_API_HOST=10.1.1.4:8000 \
     -e MQ_HOST=10.1.1.4 -e DBHOST=10.1.1.4 -e DB_POOL_MAX=10 -e DB_POOL_MIN=1 -e FLOWER_BROKER="amqp://guest:guest@10.1.1.4:5672//" \
-    -e FLOWER_BROKER_API="http://guest:guest@10.1.1.4:15672/api/" -p 5555:5555 --name=simchatcelery gcr.io/geotool-test/simchatflower:v${GIT_VER}
+    -e FLOWER_BROKER_API="http://guest:guest@10.1.1.4:15672/api/" -p 5555:5555 --name=simchatflower gcr.io/geotool-test/simchatflower:v${GIT_VER}
 
 
 (docker ps -a | grep "xited" | awk '{print $1}' | xargs docker rm) || true
