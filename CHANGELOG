@@ -1,4 +1,4 @@
-2.98 (unreleased)
+2.98 (2019-02-16)
 -----------------
 
 - Bump geotoolapi to bring in fix for fare log lookup.
