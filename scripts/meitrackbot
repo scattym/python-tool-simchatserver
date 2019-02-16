@@ -104,6 +104,7 @@ def move(latitude, longitude):
 
 def send_gprs_message(imei, sock, gprs_message):
     gprs_message.imei = imei
+    gprs_message.recalc_date()
     sock.send(gprs_message.as_bytes())
     print(gprs_message.as_bytes())
 
@@ -196,6 +197,7 @@ def chat_client(
         str(devices["BOT1"]["long"]).encode()
     )
     login_gprs.enclosed_data.parse_payload(enclosed_data)
+    login_gprs.recalc_date()
     login_gprs.recalc_leftover()
 
     message = login_gprs.as_bytes()
@@ -237,6 +239,7 @@ def chat_client(
             # next_command = next_message(devices["BOT1"]["lat"], devices["BOT1"]["long"])
 
             login_gprs.enclosed_data.parse_payload(enclosed_data)
+            login_gprs.recalc_date()
             login_gprs.recalc_leftover()
 
             s.send(login_gprs.as_bytes())
@@ -260,6 +263,7 @@ def chat_client(
                     else:
                         gprs_list, before, after = parse_data_payload(data, DIRECTION_SERVER_TO_CLIENT)
                         for gprs in gprs_list:
+                            gprs.recalc_date()
                             command = gprs.enclosed_data.as_bytes()
                             # We don't want to respond to the file transfer test running from "file_test()"
                             if b"180525064204_C1E1_N1U1D1.jpg" not in command:

@@ -1,7 +1,8 @@
 2.99 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Update meitrack chat bot to use the new date recalc functions in the meitrack library.
+- Bump meitrack parsing library.
 
 
 2.98 (2019-02-16)
