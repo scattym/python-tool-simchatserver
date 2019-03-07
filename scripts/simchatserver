@@ -502,6 +502,8 @@ def send_to_device(ident, cmd):
                     client.restart_device()
                 elif "restart_gps" == cmd:
                     client.restart_gps()
+                elif "request_photo_event_flags" == cmd:
+                    client.request_photo_event_flags()
                 elif "set_pin" in cmd:
                     if len(cmd_arr) >= 3:
                         try:
