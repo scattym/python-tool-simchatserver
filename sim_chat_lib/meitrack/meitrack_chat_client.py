@@ -86,7 +86,7 @@ class MeitrackChatClient(BaseChatClient):
                 del self.gprs_queue[0]
                 self.current_message = None
             else:
-                logger.error(
+                logger.info(
                     "Identifier %s does not match item in queue: %s",
                     gprs.data_identifier,
                     self.gprs_queue[0]["id"]
@@ -262,7 +262,7 @@ class MeitrackChatClient(BaseChatClient):
                 try:
                     return_str += (gprs.as_bytes()).decode()
                 except UnicodeDecodeError as err:
-                    logger.error("Unable to decode response to send to masters with error: %s", err)
+                    logger.debug("Unable to decode response to send to masters with error: %s", err)
                     return_str += "Binary data"
 
                 try:
@@ -299,11 +299,19 @@ class MeitrackChatClient(BaseChatClient):
 
                         # if packet_number_int % 8 == 7 and num_packets_int > packet_number_int+1:
                         #     self.request_get_file(file_name, packet_number_int+1)
-                        return_str += "File: %s, packet: %s, of: %s\n" % (
-                            file_name.decode(),
-                            packet_number_int+1,
-                            num_packets_int
-                        )
+                        try:
+                            return_str += "File: %s, packet: %s, of: %s\n" % (
+                                file_name.decode(),
+                                packet_number_int+1,
+                                num_packets_int
+                            )
+                        except UnicodeDecodeError as _:
+                            return_str += "File: %s, packet: %s, of: %s\n" % (
+                                file_name,
+                                packet_number_int+1,
+                                num_packets_int
+                            )
+
                         if num_packets_int == packet_number_int+1:
                             self.current_download = None
                             self.current_packet = None
@@ -397,6 +405,45 @@ class MeitrackChatClient(BaseChatClient):
                 self.queue_event_report(self.imei, "Request take photo camera {}".format(camera_number))
             except GPRSError as err:
                 logger.error("Failed to create gprs payload to send. Error: %s", err)
+
+    def request_delete_file(self, file_name):
+        if not self.imei:
+            logger.error("Unable to request client to retrieve photo as client id not yet known")
+        elif file_name is None:
+            logger.error("File name is not known. %s", file_name)
+            traceback.print_exc()
+            raise ProtocolError("Filename not calculated.")
+        else:
+            try:
+                gprs = build_message.stc_request_delete_file(self.imei, file_name)
+                self.queue_gprs(gprs)
+                self.last_file_request = datetime.datetime.utcnow()
+                self.queue_event_report(
+                    self.imei,
+                    "Request delete file {}".format(file_name)
+                )
+            except GPRSError as err:
+                logger.error("Failed to create gprs payload to send. Error: %s", err)
+
+    def request_delete_all_files(self):
+        if not self.imei:
+            logger.error("Unable to request client to retrieve photo as client id not yet known")
+        else:
+            if self.file_list_parser.num_files > 0:
+                for file_name in self.file_list_parser.file_arr:
+                    try:
+                        gprs = build_message.stc_request_delete_file(self.imei, file_name)
+                        self.queue_gprs(gprs)
+                        self.last_file_request = datetime.datetime.utcnow()
+                        self.queue_event_report(
+                            self.imei,
+                            "Request delete file {}".format(file_name)
+                        )
+                    except GPRSError as err:
+                        logger.error("Failed to create gprs payload to send. Error: %s", err)
+
+                for file_name in self.file_list_parser.file_arr:
+                    self.file_list_parser.remove_item(file_name)
 
     def request_get_file(self, file_name, payload_start_index=0):
         if not self.imei:

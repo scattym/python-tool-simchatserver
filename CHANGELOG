@@ -1,7 +1,59 @@
-2.92 (unreleased)
------------------
+3.0.1 (unreleased)
+------------------
 
 - Nothing changed yet.
+
+
+3.0.0 (2019-02-16)
+------------------
+
+- Update meitrack chat bot to use the new date recalc functions in the meitrack library.
+- Bump meitrack parsing library.
+
+
+2.98 (2019-02-16)
+-----------------
+
+- Bump geotoolapi to bring in fix for fare log lookup.
+
+
+2.97 (2019-01-28)
+-----------------
+
+- Add timestamp to the driver log apis.
+- Bump version of geotool api to bring in new timestamp parameter.
+
+2.96 (2019-01-13)
+-----------------
+
+- Implement delete all files command.
+
+
+2.95 (2019-01-13)
+-----------------
+
+- Add ability to delete files from the master.
+- Bump meitrack lib to bring in file deletion commands.
+
+
+2.94 (2019-01-13)
+-----------------
+
+- Move running of flower into a separate docker instance.
+- Add build scripts for simchatflower
+
+
+2.93 (2019-01-13)
+-----------------
+
+- Add setting up of broadcast exchange back to the celery code.
+
+
+2.92 (2019-01-13)
+-----------------
+
+- Add handling for file names that contain non-unicode characters.
+- Bump meitrack lib to bring in low level fixes for file names with non-unicode characters.
 
 
 2.91 (2018-12-17)

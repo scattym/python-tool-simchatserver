@@ -26,7 +26,11 @@ def gprs_to_report(gprs):
         if file_name and file_bytes:
             file_frag_report = FileFragmentReport()
             file_frag_report.imei = gprs.imei.decode()
-            file_frag_report.file_name = file_name.decode()
+            try:
+                file_frag_report.file_name = file_name.decode()
+            except UnicodeDecodeError as err:
+                logger.error("Invalid filename. Recording string representation")
+                file_frag_report.file_name = str(file_name)
             file_frag_report.num_packets = int(num_packets.decode())
             file_frag_report.packet_number = int(packet_number.decode())
             file_frag_report.file_bytes = file_bytes
