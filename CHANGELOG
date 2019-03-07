@@ -1,4 +1,4 @@
-3.0.2 (unreleased)
+3.0.2 (2019-03-07)
 ------------------
 
 - Add ability to send the request photo event flags command from the master cli.
