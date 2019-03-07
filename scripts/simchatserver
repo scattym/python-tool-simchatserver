@@ -481,6 +481,17 @@ def send_to_device(ident, cmd):
                         payload_start_index = cmd_arr[2]
                     if file_name:
                         client.request_get_file(file_name, payload_start_index)
+                elif "delete_file" in cmd:
+                    file_name = None
+                    if len(cmd_arr) >= 2:
+                        file_name = cmd_arr[1]
+                        if file_name[0] == '"':
+                            file_name = eval(r"b'{}'".format(file_name[1:-1]))
+                        logger.debug("File name is {}".format(file_name))
+                    if file_name:
+                        client.request_delete_file(file_name)
+                elif "delete_all_files" in cmd:
+                    client.request_delete_all_files()
                 elif "firmware_update" == cmd:
                     client.request_firmware_update()
                 elif "cancel_firmware_update" == cmd:
