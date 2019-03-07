@@ -13,3 +13,4 @@ geotoolapi>=2.4
 meitrackparser>=2.7
 celery[sqs]
 kombu
+tornado==5.1.1
