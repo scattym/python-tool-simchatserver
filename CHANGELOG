@@ -1,7 +1,7 @@
 3.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add photo event flags to the config parsing/send to device section.
 
 
 3.0.0 (2019-02-16)
