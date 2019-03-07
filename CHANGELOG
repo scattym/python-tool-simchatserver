@@ -1,7 +1,7 @@
 3.0.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Force tornado version 5.1.1 for simchatflower to function properly.
 
 
 3.0.2 (2019-03-07)

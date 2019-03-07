@@ -39,6 +39,7 @@ setup(
             'meitrackparser>=2.7',
             'celery[sqs]',
             'kombu',
+            'tornado==5.1.1',
             # 'geotool_api==1.0',
       ],
       # dependency_links=[
