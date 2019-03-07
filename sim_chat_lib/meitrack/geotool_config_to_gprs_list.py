@@ -136,4 +136,13 @@ def config_to_gprs(config, imei):
         event_report = event_to_report(imei, "Set camera snapshot config")
         event_report_list.append(event_report)
 
+    if config.get("photo_event_flags_en", False) is True:
+        photo_event_flags = config.get("photo_event_flags")
+        if photo_event_flags is None:
+            photo_event_flags = ""
+        gprs = build_message.stc_set_photo_event_flags_by_bytes(imei, photo_event_flags)
+        gprs_list.append(gprs)
+        event_report = event_to_report(imei, "Set photo event flags")
+        event_report_list.append(event_report)
+
     return gprs_list, event_report_list
