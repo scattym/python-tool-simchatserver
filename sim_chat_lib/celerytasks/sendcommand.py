@@ -95,7 +95,7 @@ def set_snapshot_parameters(imei, event_code, interval, count, upload, delete):
 
 
 @sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.format_sdcard')
-def set_snapshot_parameters(imei):
+def format_sdcard(imei):
     result = send_format_sdcard(imei)
     return 'Issued format sdcard command for device {} with result {}'.format(imei, result)
 

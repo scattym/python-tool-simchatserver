@@ -8,9 +8,9 @@ pika
 aio_pika
 asyncpg
 psycopg2-binary
-geotooldbapi>=2.4
-geotoolapi>=2.4
-meitrackparser>=2.7
+geotooldbapi>=2.5
+geotoolapi>=2.5
+meitrackparser>=2.8
 celery[sqs]
 kombu
 tornado==5.1.1
