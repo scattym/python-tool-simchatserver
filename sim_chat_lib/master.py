@@ -67,6 +67,11 @@ def send_set_snapshot_parameters(imei, event_code, interval, count, upload, dele
     return send_message(message)
 
 
+def send_format_sdcard(imei):
+    message = "imei-{},format_sdcard".format(imei)
+    return send_message(message)
+
+
 def send_message(message):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

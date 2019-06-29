@@ -184,6 +184,9 @@ class ChatClient(object):
     def request_photo_event_flags(self):
         logger.log(13, "Request photo event flags not implemented for this device")
 
+    def request_format_sdcard(self):
+        logger.log(13, "Request photo event flags not implemented for this device")
+
     def set_output(self, pin, state):
         logger.log(13, "Set output not implemented for this device.")
 

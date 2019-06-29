@@ -4,7 +4,8 @@ from celery import Celery
 from kombu import Exchange, Queue
 from kombu.common import Broadcast
 from sim_chat_lib.master import send_take_photo_by_imei, send_photo_list_by_imei, send_firmware_update, \
-    send_restart_device, send_restart_gps, send_toggle_debug, send_set_pin, send_set_snapshot_parameters
+    send_restart_device, send_restart_gps, send_toggle_debug, send_set_pin, send_set_snapshot_parameters, \
+    send_format_sdcard
 from sim_chat_lib.master import send_cancel_firmware_update, send_update_configuration
 
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'amqp://guest@localhost')
@@ -90,7 +91,13 @@ def set_pin(imei, pin, state):
 @sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.set_snapshot_parameters')
 def set_snapshot_parameters(imei, event_code, interval, count, upload, delete):
     result = send_set_snapshot_parameters(imei, event_code, interval, count, upload, delete)
-    return 'Issued debug toggle for device {} with result {}'.format(imei, result)
+    return 'Issued set snapshot parameters for device {} with result {}'.format(imei, result)
+
+
+@sim_chat_server_celery_app.task(name='sim_chat_lib.celerytasks.sendcommand.format_sdcard')
+def set_snapshot_parameters(imei):
+    result = send_format_sdcard(imei)
+    return 'Issued format sdcard command for device {} with result {}'.format(imei, result)
 
 
 default_exchange = Exchange('sim_chat_lib.celerytasks.sendcommand.default', type='direct')
