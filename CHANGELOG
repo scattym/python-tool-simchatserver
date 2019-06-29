@@ -1,7 +1,11 @@
 3.0.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Bump geotool-api to bring in fixes for basic publish response and addition of error handling for response != 200.
+- Bump geotool-db-api to bring in changes to allow device info lookup.
+- Bump meitrackparser to bring in new device type handling and format sdcard command.
+- Implement master command to format sdcard.
+- Implement celery command to format sdcard.
 
 
 3.0.3 (2019-03-07)
