@@ -523,6 +523,8 @@ def send_to_device(ident, cmd):
                             client.set_snapshot_parameters(event_code, interval, count, upload, delete)
                         except ValueError as _:
                             pass
+                elif "format_sdcard" in cmd:
+                    client.request_format_sdcard()
                 elif "debug" == cmd:
                     client.debug = not client.debug
                     logger.info("Debug mode for ident %s is now %s", ident, str(client.debug))

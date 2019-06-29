@@ -6,7 +6,7 @@ import os
 import traceback
 
 from meitrack.build_message import stc_restart_gps, stc_restart_gsm, stc_set_output_pin, stc_set_snapshot_parameters, \
-    stc_read_photo_event_flags
+    stc_read_photo_event_flags, stc_request_format_sdcard
 from meitrack.common import DIRECTION_CLIENT_TO_SERVER
 from meitrack.file_list import FileListing, FileListingError
 from meitrack.firmware_update import FirmwareUpdate, STAGE_FIRST, STAGE_SECOND, stc_cancel_ota_update
@@ -508,11 +508,19 @@ class MeitrackChatClient(BaseChatClient):
 
     def request_photo_event_flags(self):
         if not self.imei:
-            logger.error("Unable to request client to update firmware as client id not yet known")
+            logger.error("Unable to request client photo event flags client id not yet known")
         else:
             gprs = stc_read_photo_event_flags(self.imei)
             self.queue_gprs(gprs, True)
             self.queue_event_report(self.imei, "Request photo event flags")
+
+    def request_format_sdcard(self):
+        if not self.imei:
+            logger.error("Unable to request client to format the sdcard as client id not yet known")
+        else:
+            gprs = stc_request_format_sdcard(self.imei)
+            self.queue_gprs(gprs, True)
+            self.queue_event_report(self.imei, "Request format sdcard")
 
     def set_output(self, pin, state):
         if not self.imei:
