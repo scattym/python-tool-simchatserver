@@ -1,18 +1,8 @@
 #!/usr/bin/env python
 import argparse
-import logging
-import json
-
-import pika
-import psycopg2
-
 import asyncio
-import aio_pika
-import json
-import datetime
+import logging
 import os
-
-import pytz
 
 from geotool_db_api.common import create_pool_a
 from mqrecv_lib.analogue_io import main_analogue_io, main_current_analogue_io
@@ -28,7 +18,6 @@ MQ_USER = os.environ.get("MQ_USER", "guest")
 MQ_PASS = os.environ.get("MQ_PASS", "guest")
 
 logger = logging.getLogger(__name__)
-
 
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ async def main_analogue_io(loop):
 
     async for message in queue:
         with message.process():
-            logger.info(message.body)
+            logger.log(15, message.body)
             data = json.loads(message.body)
             if data.get("imei", None):
                 if imei_map.get(data["imei"]):

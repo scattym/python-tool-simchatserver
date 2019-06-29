@@ -7,7 +7,7 @@ import pytz
 
 from geotool_db_api.input_output_api import get_insert_digital_io_coroutine, get_update_current_digital_io_coroutine
 from mqrecv_lib.common import MQ_USER, MQ_PASS, MQ_HOST
-from geotool_db_api.device_api import get_device_id
+from geotool_db_api.device_api import get_device_id, get_device_info, get_device_info_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +73,7 @@ async def main_current_digital_io(loop):
     # Declaring queue
     queue = await channel.declare_queue(queue_name)  # type: aio_pika.Queue
     imei_map = {}
+    device_info_map = {}
 
     async for message in queue:
         with message.process():
@@ -82,13 +83,16 @@ async def main_current_digital_io(loop):
                 if imei_map.get(data["imei"]):
                     device_id = imei_map.get(data["imei"])
                 else:
-                    device_id = await get_device_id(data["imei"])
+                    device_id = await get_device_info(data["imei"])
                     if device_id:
                         imei_map[data["imei"]] = device_id
             elif data.get("device", None):
                 device_id = data["device"]
+                if device_info_map.get(device_id) is None:
+                    device_info_map[device_id] = await get_device_info_by_id(device_id)
 
             logger.debug("Device id is %s", device_id)
+            logger.debug("Device info is %s", device_info_map.get(device_id))
 
             ####
             # Handle GPS UPDATE MESSAGES

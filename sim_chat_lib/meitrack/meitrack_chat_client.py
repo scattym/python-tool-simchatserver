@@ -54,6 +54,7 @@ class MeitrackChatClient(BaseChatClient):
         self.last_file_request = datetime.datetime.utcnow()
         self.gprs_queue = []
         self.current_message = None
+        self.device_type = None
 
         if imei:
             self.on_login()
@@ -120,9 +121,9 @@ class MeitrackChatClient(BaseChatClient):
     def get_client_details(self):
         start = super(MeitrackChatClient, self).get_client_details()
         return (
-                "meitrack, start: %s, ident: %s, remote: %s, age: %s\n%s\nBuffer: %s\nCurrent download: %s"
+                "meitrack, type: %s, start: %s, ident: %s, remote: %s, age: %s\n%s\nBuffer: %s\nCurrent download: %s"
                 "\nSDCard List: %s\nFirmware update: %s\nGPRS Queue Length: %s\n" % (
-                    start, self.ident(), start, self.age(), self.get_download_details(), self.buffer,
+                    self.device_type, start, self.ident(), start, self.age(), self.get_download_details(), self.buffer,
                     self.current_download, self.file_list_parser, self.firmware_update,
                     len(self.gprs_queue)
                 )
@@ -213,7 +214,11 @@ class MeitrackChatClient(BaseChatClient):
             raise ChatError("Buffer too long")
 
         try:
-            gprs_list, before, after = parse_data_payload(self.buffer, DIRECTION_CLIENT_TO_SERVER)
+            gprs_list, before, after = parse_data_payload(
+                self.buffer,
+                DIRECTION_CLIENT_TO_SERVER,
+                device_type=self.device_type,
+            )
             if before != b'':
                 logger.error("Got data before start of packet. Should not be possible.")
             logger.log(13, "Leftover bytes count %s, with data: %s", len(after), after)
@@ -238,6 +243,9 @@ class MeitrackChatClient(BaseChatClient):
             else:
                 self.imei = gprs.imei
                 self.on_login()
+
+            if self.device_type is None:
+                self.device_type = gprs.enclosed_data.get_device_type()
 
             self.match_response_to_message(gprs)
 
