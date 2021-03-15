@@ -1,6 +1,6 @@
 # Docker image for running python applications
 
-FROM python:3.6-slim
+FROM python:3.9-slim
 MAINTAINER Matt Clark <mattjclark0407@hotmail.com>
 
 RUN apt-get update && apt-get install -y \
@@ -9,11 +9,7 @@ RUN apt-get update && apt-get install -y \
 COPY binaries/python36/* /tmp
 COPY dockerfiles/simchatserver-base/pip.conf /etc/pip.conf
 ENV PIP_CONFIG_FILE /etc/pip.conf
-RUN pip install --no-cache pycryptodome
-RUN pip install --no-cache requests
-RUN pip install --no-cache simplejson
-RUN pip install --no-cache cachetools
-RUN pip install --no-cache python-memcached
+RUN pip install --no-cache pycryptodome requests simplejson cachetools python-memcached
 RUN useradd sysadmin
 WORKDIR /usr/local/src
 RUN mkdir -p /usr/local/src/simchatserver
